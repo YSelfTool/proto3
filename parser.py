@@ -1,10 +1,24 @@
 import regex as re
+import sys
 from collections import OrderedDict
 
 class ParserException(Exception):
+    name = "Parser Exception"
+    has_explanation = False
+    #explanation = "The source did generally not match the expected protocol syntax."
     def __init__(self, message, linenumber=None):
         self.message = message
         self.linenumber = linenumber
+
+    def __str__(self):
+        result = ""
+        if self.linenumber is not None:
+            result = "Exception at line {}: {}".format(self.linenumber, self.message)
+        else:
+            result = "Exception: {}".format(self.message)
+        if self.has_explanation:
+            result += "\n" + self.explanation
+        return result
 
 class Element:
     """
@@ -71,7 +85,7 @@ class Element:
             return element
         return current
 
-    PATTERN = r"x(?<!x)" # yes, a master piece
+    PATTERN = r"x(?<!x)" # yes, a master piece, but it should never be called
 
 class Content(Element):
     def __init__(self, children):
@@ -115,7 +129,10 @@ class Content(Element):
                 raise ParserException("Content does not match inner!", linenumber)
         return Content(children)
 
-    PATTERN = r"\s*(?<content>(?:[^\[\];]+)?(?:\[[^\]]+\][^;\[\]]*)*);"
+    # v1: has problems with missing semicolons
+    #PATTERN = r"\s*(?<content>(?:[^\[\];]+)?(?:\[[^\]]+\][^;\[\]]*)*);"
+    # v2: does not require the semicolon, but the newline
+    PATTERN = r"\s*(?<content>(?:[^\[\];\r\n]+)?(?:\[[^\]\r\n]+\][^;\[\]\r\n]*)*);?"
 
 class Text:
     def __init__(self, text):
@@ -152,7 +169,7 @@ class Tag:
     def dump(self, level=None):
         if level is None:
             level = 0
-        return "{}tag: {}: {}".format(" " * level, self.name, "; ".join(self.values))
+        print("{}tag: {}: {}".format(" " * level, self.name, "; ".join(self.values)))
 
     @staticmethod
     def parse(match, linenumber):
@@ -301,16 +318,24 @@ def parse(source):
                 break
         if not found:
             raise ParserException("No matching syntax element found!", linenumber)
+    if current is not tree:
+        raise ParserException("Source ended within fork!")
     return tree
 
-def main():
+def main(test_file_name=None):
     source = ""
-    with open("test/source0.txt") as f:
+    test_file_name = test_file_name or "source0"
+    with open("test/{}.txt".format(test_file_name)) as f:
         source = f.read()
-    tree = parse(source)
-    #tree.dump()
-    print(tree.render())
+    try:
+        tree = parse(source)
+        tree.dump()
+    except ParserException as e:
+        print(e)
+    else:
+        print("worked!")
     
 
 if __name__ == "__main__":
-    exit(main())
+    test_file_name = sys.argv[1] if len(sys.argv) > 1 else None
+    exit(main(test_file_name))
