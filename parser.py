@@ -66,9 +66,7 @@ class Element:
         if match is None:
             raise ParserException("Source does not match!", linenumber)
         length = match.group().count("\n")
-        if linenumber is None:
-            return length
-        return linenumber + length
+        return length + (0 if linenumber is None else linenumber)
 
     @staticmethod
     def parse_outer(element, current):
@@ -88,8 +86,9 @@ class Element:
     PATTERN = r"x(?<!x)" # yes, a master piece, but it should never be called
 
 class Content(Element):
-    def __init__(self, children):
+    def __init__(self, children, linenumber):
         self.children = children
+        self.linenumber = linenumber
 
     def render(self):
         return "".join(map(lambda e: e.render(), self.children))
@@ -127,7 +126,7 @@ class Content(Element):
                     break
             if not matched:
                 raise ParserException("Content does not match inner!", linenumber)
-        return Content(children)
+        return Content(children, linenumber)
 
     # v1: has problems with missing semicolons
     #PATTERN = r"\s*(?<content>(?:[^\[\];]+)?(?:\[[^\]]+\][^;\[\]]*)*);"
@@ -135,8 +134,9 @@ class Content(Element):
     PATTERN = r"\s*(?<content>(?:[^\[\];\r\n]+)?(?:\[[^\]\r\n]+\][^;\[\]\r\n]*)*);?"
 
 class Text:
-    def __init__(self, text):
+    def __init__(self, text, linenumber):
         self.text = text
+        self.linenumber = linenumber
 
     def render(self):
         return self.text
@@ -153,15 +153,16 @@ class Text:
         content = match.group("text")
         if content is None:
             raise ParserException("Text is empty!", linenumber)
-        return Text(content)
+        return Text(content, linenumber)
 
     PATTERN = r"(?<text>[^\[]+)(?:(?=\[)|$)"
 
 
 class Tag:
-    def __init__(self, name, values):
+    def __init__(self, name, values, linenumber):
         self.name = name
         self.values = values
+        self.linenumber = linenumber
 
     def render(self):
         return r"\textbf{{{}:}} {}".format(self.name, "; ".join(self.values));
@@ -179,13 +180,13 @@ class Tag:
         if content is None:
             raise ParserException("Tag is empty!", linenumber)
         parts = content.split(";")
-        return Tag(parts[0], parts[1:])
+        return Tag(parts[0], parts[1:], linenumber)
 
     PATTERN = r"\[(?<content>(?:[^;\]]*;)*(?:[^;\]]*))\]"
 
 class Empty(Element):
-    def __init__(self):
-        pass
+    def __init__(self, linenumber):
+        linenumber = linenumber
 
     def render(self):
         return ""
@@ -203,9 +204,10 @@ class Empty(Element):
     PATTERN = r"\s+"
 
 class Remark(Element):
-    def __init__(self, name, value):
+    def __init__(self, name, value, linenumber):
         self.name = name
         self.value = value
+        self.linenumber = linenumber
 
     def render(self):
         return r"\textbf{{{}}}: {}".format(self.name, self.value)
@@ -225,17 +227,18 @@ class Remark(Element):
         if len(parts) < 2:
             raise ParserException("Remark value is empty!", linenumber)
         name, value = parts
-        element = Remark(name, value)
+        element = Remark(name, value, linenumber)
         current = Element.parse_outer(element, current)
         return current, linenumber
 
     PATTERN = r"\s*\#(?<content>[^\n]+)"
 
 class Fork(Element):
-    def __init__(self, environment, name, parent, children=None):
+    def __init__(self, environment, name, parent, linenumber, children=None):
         self.environment = environment if environment is None or len(environment) > 0 else None
         self.name = name if name is None or len(name) > 0 else None
         self.parent = parent
+        self.linenumber = linenumber
         self.children = [] if children is None else children
 
     def dump(self, level=None):
@@ -259,7 +262,7 @@ class Fork(Element):
 
     @staticmethod
     def create_root():
-        return Fork(None, None, None)
+        return Fork(None, None, None, 0)
 
     @staticmethod
     def parse(match, current, linenumber=None):
@@ -272,7 +275,7 @@ class Fork(Element):
             name = name1
         if name2 is not None:
             name += " {}".format(name2)
-        element = Fork(environment, name, current)
+        element = Fork(environment, name, current, linenumber)
         current = Element.parse_outer(element, current)
         return current, linenumber
 
@@ -319,7 +322,7 @@ def parse(source):
         if not found:
             raise ParserException("No matching syntax element found!", linenumber)
     if current is not tree:
-        raise ParserException("Source ended within fork!")
+        raise ParserException("Source ended within fork! (started at line {})".format(current.linenumber))
     return tree
 
 def main(test_file_name=None):
