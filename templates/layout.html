@@ -3,24 +3,40 @@
 <head>
     {% block head %}
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Protokollsystem" />
-    <link rel="stylesheet" href="{{ url_for("static", filename="css/style.css") }}" />
+    <link rel="stylesheet" href="{{url_for("static", filename="css/bootstrap.min.css")}}">
+    <link rel="stylesheet" href="{{url_for("static", filename="css/style.css")}}" />
     {% block additional_js %}
     {% endblock %}
     <title>{% block title %}Unbenannte Seite{% endblock %} - Protokollsystem</title>
     {% endblock %}
 </head>
 <body>
-<div class="header">
-    <p class="header-title"><a href="{{ url_for("index") }}">Protokollsystem</a></p>
-    {% block additional_links %}
-    {% endblock %}
-</div>
-<div class="main">
+<nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Protokolle</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="{{url_for("index")}}">Zuhause</a></li>
+                {# todo: add more links #}
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container">
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% if messages %}
 {% for category, message in messages %}
-    <div class="section alert {{ category }}">
+    <div class="alert {{ category }}">
         {{ message }}
     </div>
 {% endfor %}
@@ -29,13 +45,8 @@
 {% block content %}
 Diese Seite ist leer.
 {% endblock %}
-{% block footer %}
-<div class="footer">
-    <p class="footer-text">System zur Erstellung und Verwaltung von Sitzungsprotokollen, entwickelt von Robin Sonnabend</p>
-    <p class="footer-link"><a href="{{ url_for("imprint") }}">Impressum</a></p>
-    <p class="footer-link"><a href="{{ url_for("contact") }}">Kontakt</a></p>
-    <p class="footer-link"><a href="{{ url_for("privacy") }}">Datenschutzerklärung</a></p>
+
 </div>
-{% endblock %}
-</div>
+<script src="{{url_for("static", filename="js/jquery.min.js")}}"></script>
+<script src="{{url_for("static", filename="js/bootstrap.min.js")}}"></script>
 </body>

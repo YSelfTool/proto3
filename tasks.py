@@ -88,7 +88,7 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 db.session.commit()
                 return
             old_todos = list(protocol.todos)
-            for todo in old_todos
+            for todo in old_todos:
                 protocol.todos.remove(todo)
             db.session.commit()
             tags = tree.get_tags()
@@ -133,7 +133,7 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 todo.tags = ";".join(todo_tags_internal)
                 db.session.commit()
             old_decisions = list(protocol.decisions)
-            for decision in old_decisions
+            for decision in old_decisions:
                 protocol.decisions.remove(decision)
             db.session.commit()
             decision_tags = [tag for tag in tags if tag.name == "beschluss"]
