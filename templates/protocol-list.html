@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_table %}
+{% block title %}Protokolle{% endblock %}
+
+{% block content %}
+<div class="container">
+    {{render_table(protocols_table)}}
+</div>
+{% endblock %}

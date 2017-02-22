@@ -29,7 +29,6 @@ class LdapManager:
         if not self.authenticate(username, password):
             return None
         groups = list(map(lambda g: g.decode("utf-8"), self.groups(username)))
-        print(groups)
         return User(username, groups)
 
     def authenticate(self, username, password):

@@ -12,7 +12,9 @@ from functools import wraps
 import config
 from shared import db, date_filter, datetime_filter, ldap_manager, security_manager
 from utils import is_past, mail_manager, url_manager
+from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
 from views.forms import LoginForm
+from views.tables import ProtocolsTable
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -65,9 +67,23 @@ app.jinja_env.globals.update(current_user=current_user)
 # blueprints here
 
 @app.route("/")
-@login_required
+#@login_required
 def index():
     return render_template("index.html")
+
+@app.route("/protocol/list")
+def list_protocols():
+    is_logged_in = check_login()
+    user = current_user()
+    protocols = [
+        protocol for protocol in Protocol.query.all()
+        if (not is_logged_in and protocol.protocoltype.is_public)
+        or (is_logged_in and (
+            protocol.protocoltype.public_group in user.groups
+            or protocol.protocoltype.private_group in user.groups))]
+    protocols_table = ProtocolsTable(protocols)
+    return render_template("protocol-list.html", protocols=protocols, protocols_table=protocols_table)
+    
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
