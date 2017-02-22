@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField
+from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField
 from wtforms.validators import InputRequired
 
 class LoginForm(FlaskForm):
@@ -24,3 +24,11 @@ class MeetingReminderForm(FlaskForm):
     days_before = IntegerField("Tage vor Sitzung", validators=[InputRequired("Du musst eine Dauer angeben.")])
     send_public = BooleanField("Öffentlich einladen")
     send_private = BooleanField("Intern einladen")
+
+class NewProtocolForm(FlaskForm):
+    protocoltype = SelectField("Typ", choices=[], coerce=int)
+    date = DateField("Datum", validators=[InputRequired("Du musst ein Datum angeben.")], format="%d.%m.%Y")
+
+    def __init__(self, protocoltypes, **kwargs):
+        super().__init__(**kwargs)
+        self.protocoltype.choices = [(protocoltype.id, protocoltype.short_name) for protocoltype in protocoltypes]

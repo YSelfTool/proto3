@@ -4,7 +4,7 @@ import os
 import subprocess
 import shutil
 
-from models.database import Document, Protocol, Error, Todo, Decision
+from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP
 from server import celery, app
 from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, time_filter
 from utils import mail_manager, url_manager, encode_kwargs, decode_kwargs
@@ -49,6 +49,9 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
             protocol = Protocol.query.filter_by(id=protocol_id).first()
             if protocol is None:
                 raise Exception("No protocol given. Aborting parsing.")
+            for error in protocol.errors:
+                protocol.errors.remove(error)
+            db.session.commit()
             if protocol.source is None:
                 error = protocol.create_error("Parsing", "Protocol source is None", "")
                 db.session.add(error)
@@ -68,9 +71,9 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 db.session.add(error)
                 db.session.commit()
                 return
-            remarks = {element.name: element for element in tree.children is isinstance(element, Remark)}
+            remarks = {element.name: element for element in tree.children if isinstance(element, Remark)}
             required_fields = ["Datum", "Anwesende", "Beginn", "Ende", "Autor", "Ort"]
-            missing_fields = [field for field in required_files if field not in remarks]
+            missing_fields = [field for field in required_fields if field not in remarks]
             if len(missing_fields) > 0:
                 error = protocol.create_error("Parsing", "Missing fields", ", ".join(missing_fields))
                 db.session.add(error)
@@ -147,6 +150,16 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 decision = Decision(protocol_id=protocol.id, content=decision_tag.values[0])
                 db.session.add(decision)
                 db.session.commit()
+            old_tops = list(protocol.tops)
+            for top in old_tops:
+                protocol.tops.remove(top)
+            tops = []
+            for index, fork in enumerate((child for child in tree.children if isinstance(child, Fork))):
+                top = TOP(protocol.id, fork.name, index, False)
+                db.session.add(top)
+            db.session.commit()
+            protocol.done = True
+            db.session.commit()
 
 
             

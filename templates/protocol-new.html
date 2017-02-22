@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_form %}
+{% block title %}Protokoll anlegen{% endblock %}
+
+{% block content %}
+<div class="container">
+    {{render_form(form, action_url=url_for("new_protocol"), action_text="Anlegen")}}
+</div>
+{% endblock %}

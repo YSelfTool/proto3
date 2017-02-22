@@ -1,7 +1,7 @@
 # coding: utf-8
 from flask import Markup, url_for, request
 from models.database import Protocol, ProtocolType, DefaultTOP, TOP, Todo, Decision
-from shared import date_filter
+from shared import date_filter, datetime_filter
 
 class Table:
     def __init__(self, title, values, newlink=None, newtext=None):
@@ -49,16 +49,17 @@ class SingleValueTable:
 
 class ProtocolsTable(Table):
     def __init__(self, protocols):
-        super().__init__("Protokolle", protocols, newlink=None)
+        super().__init__("Protokolle", protocols, newlink=url_for("new_protocol"))
 
     def headers(self):
-        return ["ID", "Sitzung", "Datum"]
+        return ["ID", "Sitzung", "Status", "Datum"]
 
     def row(self, protocol):
         return [
-            Table.link(url_for("protocol_view", protocol_id=protocol.id), str(protocol.id)),
-            protocol.protocoltype.name,
-            date_filter(protocol.data)
+            Table.link(url_for("show_protocol", protocol_id=protocol.id), str(protocol.id)),
+            Table.link(url_for("show_type", type_id=protocol.protocoltype.id), protocol.protocoltype.name),
+            Table.link(url_for("show_protocol", protocol_id=protocol.id), "Fertig" if protocol.is_done() else "Geplant"),
+            date_filter(protocol.date)
         ]
 
 class ProtocolTypesTable(Table):
@@ -142,3 +143,34 @@ class MeetingRemindersTable(Table):
         if reminder.send_private:
             parts.append("Intern")
         return " und ".join(parts)
+
+class ErrorsTable(Table):
+    def __init__(self, errors):
+        super().__init__("Fehler", errors)
+
+    def headers(self):
+        return ["Protokoll", "Fehler", "Zeitpunkt", "Beschreibung"]
+
+    def row(self, error):
+        return [
+            Table.link(url_for("show_protocol", protocol_id=error.protocol.id), error.protocol.get_identifier()),
+            error.name,
+            datetime_filter(error.datetime),
+            error.description
+        ]
+
+class TodosTable(Table):
+    def __init__(self, todos):
+        super().__init__("Todos", todos)
+
+    def headers(self):
+        return ["Status", "Sitzung", "Name", "Aufgabe"]
+
+    def row(self, todo):
+        protocol = todo.get_first_protocol()
+        return [
+            todo.get_state(),
+            Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier()),
+            todo.who,
+            todo.description
+        ]

@@ -221,6 +221,9 @@ class Remark(Element):
             level = 0
         print("{}remark: {}: {}".format(" " * level, self.name, self.value))
 
+    def get_tags(self, tags):
+        return tags
+
     @staticmethod
     def parse(match, current, linenumber=None):
         linenumber = Element.parse_inner(match, current, linenumber)

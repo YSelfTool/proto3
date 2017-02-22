@@ -1,7 +1,6 @@
 from flask import render_template, send_file, url_for, redirect, flash, request
 
-from datetime import datetime, date, timedelta
-import time
+from datetime import datetime, time, date, timedelta
 import math
 
 from shared import db
@@ -10,6 +9,8 @@ from utils import random_string, url_manager
 #from models.tables import TexResponsiblesTable, TexSupportersTable
 
 from sqlalchemy.orm import relationship, backref
+
+import config
 
 class ProtocolType(db.Model):
     __tablename__ = "protocoltypes"
@@ -79,7 +80,7 @@ class Protocol(db.Model):
     documents = relationship("Document", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Document.is_compiled")
     errors = relationship("Error", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Error.id")
 
-    def __init__(self, protocoltype_id, date, source=None, start_time=None, end_time=None, author=None, participants=None, location=None):
+    def __init__(self, protocoltype_id, date, source=None, start_time=None, end_time=None, author=None, participants=None, location=None, done=False):
         self.protocoltype_id = protocoltype_id
         self.date = date
         self.source = source
@@ -88,6 +89,7 @@ class Protocol(db.Model):
         self.author = author
         self.participants = participants
         self.location = location
+        self.done = done
 
     def __repr__(self):
         return "<Protocol(id={}, protocoltype_id={})>".format(
@@ -99,8 +101,8 @@ class Protocol(db.Model):
 
     def fill_from_remarks(self, remarks):
         self.date = datetime.strptime(remarks["Datum"].value, "%d.%m.%Y")
-        self.start_time = time.strptime(remarks["Beginn"].value, "%H:%M")
-        self.end_time = time.strptime(remarks["Ende"].value, "%H:%M")
+        self.start_time = datetime.strptime(remarks["Beginn"].value, "%H:%M").time()
+        self.end_time = datetime.strptime(remarks["Ende"].value, "%H:%M").time()
         self.author = remarks["Autor"].value
         self.participants = remarks["Anwesende"].value
         self.location = remarks["Ort"].value
@@ -108,6 +110,22 @@ class Protocol(db.Model):
     def is_done(self):
         return self.done
 
+    def get_identifier(self):
+        return "{}-{}".format(
+            self.protocoltype.short_name.lower(),
+            self.date.strftime("%y-%m-%d"))
+
+    def get_etherpad_link(self):
+        return config.ETHERPAD_URL + self.get_identifier()
+
+    def get_etherpad_source_link(self):
+        return self.get_etherpad_link() + "/export/txt"
+
+    def has_nonplanned_tops(self):
+        return len([top for top in self.tops if not top.planned]) > 0
+
+    def get_originating_todos(self):
+        return [todo for todo in self.todos if self == todo.get_first_protocol()]
 
 class DefaultTOP(db.Model):
     __tablename__ = "defaulttops"
@@ -133,7 +151,7 @@ class TOP(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     name = db.Column(db.String)
-    number = db.Column(db.String)
+    number = db.Column(db.Integer)
     planned = db.Column(db.Boolean)
 
     def __init__(self, protocol_id, name, number, planned):
@@ -183,6 +201,24 @@ class Todo(db.Model):
     def __repr__(self):
         return "<Todo(id={}, who={}, description={}, tags={}, done={})>".format(
             self.id, self.who, self.description, self.tags, self.done)
+
+    def get_first_protocol(self):
+        candidates = sorted(self.protocols, key=lambda p: p.date)
+        if len(candidates) == 0:
+            return None
+        return candidates[0]
+
+    def get_state(self):
+        return "[Erledigt]" if self.done else "[Offen]"
+
+    def render_html(self):
+        parts = [
+            self.get_state(),
+            "<strong>{}:</strong>".format(self.who),
+            self.description
+        ]
+        return " ".join(parts)
+
 
 class TodoProtocolAssociation(db.Model):
     __tablename__ = "todoprotocolassociations"

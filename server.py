@@ -2,19 +2,21 @@
 import locale
 locale.setlocale(locale.LC_TIME, "de_DE.utf8")
 
-from flask import Flask, g, current_app, request, session, flash, redirect, url_for, abort, render_template, Response
+from flask import Flask, g, current_app, request, session, flash, redirect, url_for, abort, render_template, Response, send_file
 from flask_script import Manager, prompt
 from flask_migrate import Migrate, MigrateCommand
 #from flask_socketio import SocketIO
 from celery import Celery
 from functools import wraps
+import requests
+from io import StringIO, BytesIO
 
 import config
-from shared import db, date_filter, datetime_filter, ldap_manager, security_manager
+from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager
 from utils import is_past, mail_manager, url_manager
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm
-from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm
+from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -38,6 +40,8 @@ app.jinja_env.trim_blocks = True
 app.jinja_env.lstrip_blocks = True
 app.jinja_env.filters["datify"] = date_filter
 app.jinja_env.filters["datetimify"] = datetime_filter
+app.jinja_env.filters["timify"] = time_filter
+app.jinja_env.filters["datify_long"] = date_filter_long
 app.jinja_env.filters["url_complete"] = url_manager.complete
 app.jinja_env.tests["auth_valid"] = security_manager.check_user
 
@@ -290,9 +294,9 @@ def move_default_top(type_id, top_id, diff):
     default_top.number += int(diff)
     db.session.commit()
     return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
-    
 
-@app.route("/protocol/list")
+
+@app.route("/protocols/list")
 def list_protocols():
     is_logged_in = check_login()
     user = current_user()
@@ -302,9 +306,87 @@ def list_protocols():
         or (is_logged_in and (
             protocol.protocoltype.public_group in user.groups
             or protocol.protocoltype.private_group in user.groups))]
+    # TODO: sort by date and paginate
     protocols_table = ProtocolsTable(protocols)
     return render_template("protocols-list.html", protocols=protocols, protocols_table=protocols_table)
-    
+
+@app.route("/protocol/new", methods=["GET", "POST"])
+@login_required
+def new_protocol():
+    user = current_user()
+    protocoltypes = ProtocolType.query.all()
+    form = NewProtocolForm(protocoltypes)
+    if form.validate_on_submit():
+        protocoltype = ProtocolType.query.filter_by(id=form.protocoltype.data).first()
+        if protocoltype is None or not protocoltype.has_modify_right(user):
+            flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
+            return redirect(request.args.get("next") or url_for("index"))
+        protocol = Protocol(protocoltype.id, form.date.data)
+        db.session.add(protocol)
+        db.session.commit()
+        return redirect(request.args.get("next") or url_for("list_protocols"))
+    return render_template("protocol-new.html", form=form, protocoltypes=protocoltypes)
+
+@app.route("/protocol/show/<int:protocol_id>")
+def show_protocol(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_public_view_right(user):
+        flash("Invalides Protokoll.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    errors_table = ErrorsTable(protocol.errors)
+    return render_template("protocol-show.html", protocol=protocol, errors_table=errors_table)
+
+@app.route("/protocol/etherpull/<int:protocol_id>")
+def etherpull_protocol(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    source_req = requests.get(protocol.get_etherpad_source_link())
+    #source = source_req.content.decode("utf-8")
+    source = source_req.text
+    print(source.split("\r"))
+    #print(source.split("\n"))
+    protocol.source = source
+    db.session.commit()
+    tasks.parse_protocol(protocol)
+    flash("Das Protokoll wird kompiliert.", "alert-success")
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+
+@app.route("/protocol/source/<int:protocol_id>")
+@login_required
+def get_protocol_source(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    file_like = BytesIO(protocol.source.encode("utf-8"))
+    return send_file(file_like, cache_timeout=1, as_attachment=True, attachment_filename="{}.txt".format(protocol.get_identifier()))
+
+@app.route("/protocol/update/<int:protocol_id>")
+@login_required
+def update_protocol(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    # TODO: render form to upload a new version
+
+
+@app.route("/todos/list")
+def list_todos():
+    is_logged_in = check_login()
+    user = current_user()
+    todos = Todos.query.all()
+    # TODO: paginate
+    todos_table = TodosTable(todos)
+    return render_template("todos-list.html", todos=todos, todos_table=todos_table)
+
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

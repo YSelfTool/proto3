@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_table %}
+{% block title %}Protokoll{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="btn-group">
+        <a class="btn {% if protocol.source is none %}btn-primary{% else %}btn-default{% endif %}" href="{{url_for("etherpull_protocol", protocol_id=protocol.id)}}">From etherpad</a>
+        {% if protocol.source is not none %}
+            <a class="btn btn-primary" href="{{url_for("get_protocol_source", protocol_id=protocol.id)}}">Download Quelltext</a>
+        {% endif %} 
+        {% if protocol.is_done() %}
+            <a class="btn btn-success" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Protokoll editieren</a>
+        {% endif %}
+        <a class="btn btn-default" href="{{protocol.get_etherpad_link()}}" target="_blank">Etherpad</a>
+        <a class="btn btn-default" href="{{url_for("show_type", type_id=protocol.protocoltype.id)}}">Typ</a>
+    </div>
+    <div class="row">
+        <div id="left-column" class="col-lg-6">
+            <h2>Protokoll: {{protocol.protocoltype.name}} vom {{protocol.date|datify}}</h2>
+            {% if protocol.is_done() %}
+                <p><strong>Datum:</strong> {{protocol.date|datify_long}}</p>
+                <p><strong>Zeit:</strong> von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}</p>
+                <p><strong>Ort:</strong> {{protocol.location}}</p>
+                <p><strong>Protokollant:</strong> {{protocol.author}}</p>
+                <p><strong>Anwesende:</strong> {{protocol.participants}}</p>
+            {% else %}
+                <p><strong>Geplant:</strong> {{protocol.date|datify_long}}</p>
+            {% endif %}
+
+            <h3>Tagesordnung</h3>
+            <ul>
+            {% if not protocol.has_nonplanned_tops() %}
+                {% for default_top in protocol.protocoltype.default_tops %}
+                    {% if not default_top.is_at_end() %}
+                        <li>{{default_top.name}}</li>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            {% for top in protocol.tops %}
+                <li>{{top.name}}</li>
+            {% endfor %}
+            {% if not protocol.has_nonplanned_tops() %}
+                {% for default_top in protocol.protocoltype.default_tops %}
+                    {% if default_top.is_at_end() %}
+                        <li>{{default_top.name}}</li>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            </ul>
+
+            {% if protocol.is_done() %}
+            <h3>Beschlüsse</h3>
+            <ul>
+                {% for decision in protocol.decisions %}
+                    <li>{{decision.content}}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        <div id="right-column" class="col-lg-6">
+            {% if protocol.is_done() %}
+            <h3>Todos dieser Sitzung <a href="{{url_for("list_todos")}}">Aktuelle Todos</a></h3>
+            <ul>
+                {% for todo in protocol.get_originating_todos() %}
+                    <li>{{todo.render_html()|safe}}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% if protocol.errors|length > 0 %}
+                {{render_table(errors_table)}}
+            {% endif %}
+            {% if protocol.documents|length > 0 %}
+                <h3>Anhang</h3>
+                {# TODO: render documents table here #}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
