@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_table, render_single_table %}
+{% block title %}Protokolltyp {{protocoltype.short_name}}{% endblock %}
+
+{% block content %}
+<div class="container">
+    {{render_single_table(protocoltype_table)}}
+    {{render_table(default_tops_table)}}
+    Standard-TOPs mit negativer Sortierung werden vor und die mit positiver Sortierung nach den TOPs eingefügt.
+</div>
+{% endblock %}

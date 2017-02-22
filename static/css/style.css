@@ -19,4 +19,6 @@ body {
     color: #808000;
 }
 
-
+h3 > a {
+    font-size: 18px;
+}

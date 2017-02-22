@@ -28,6 +28,9 @@
             <ul class="nav navbar-nav">
                 <li><a href="{{url_for("index")}}">Zuhause</a></li>
                 <li><a href="{{url_for("list_protocols")}}">Protokolle</a></li>
+                {% if check_login() %}
+                <li><a href="{{url_for("list_types")}}">Typen</a></li>
+                {% endif %}
                 {# todo: add more links #}
             </ul>
             <ul class="nav navbar-nav navbar-right">

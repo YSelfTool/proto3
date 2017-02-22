@@ -42,7 +42,7 @@ to not render a label for the CRSFTokenField -->
         <label>
             {{ field(type='checkbox', **kwargs) }} {{ field.label }} 
         </label>
-        <span onclick="el=document.getElementById('{{field.id}}-description');el.style.display=(el.style.display=='none'?'flex':'none')" class="field-description-questionmark">?</span>
+        <!--<span onclick="el=document.getElementById('{{field.id}}-description');el.style.display=(el.style.display=='none'?'flex':'none')" class="field-description-questionmark">?</span>-->
         {% if field.errors %}
             {% for e in field.errors %}
                 <p class="help-block">{{ e }}</p>
@@ -109,6 +109,12 @@ to not render a label for the CRSFTokenField -->
 {%- endmacro %}
 
 {% macro render_table(table) -%}
+    <h3>
+        {{table.title}}
+        {% if table.newlink is not none %}
+            <a href="{{table.newlink}}">{{table.newtext}}</a>
+        {% endif %}
+    </h3>
     <table class="table table-striped">
         <thead>
             <tr>
@@ -123,6 +129,25 @@ to not render a label for the CRSFTokenField -->
                     {% for entry in row %}
                         <td>{{entry}}</td>
                     {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{%- endmacro %}
+
+{% macro render_single_table(table) -%}
+    <h3>
+        {{table.title}}
+        {% if table.newlink is not none %}
+            <a href="{{table.newlink}}">{{table.newtext}}</a>
+        {% endif %}
+    </h3>
+    <table class="table table-striped">
+        <tbody>
+            {% for key, value in zip(table.headers(), table.row()) %}
+                <tr>
+                    <td>{{key}}</td>
+                    <td>{{value}}</td>
                 </tr>
             {% endfor %}
         </tbody>

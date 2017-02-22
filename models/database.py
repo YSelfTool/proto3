@@ -39,8 +39,27 @@ class ProtocolType(db.Model):
         self.public_mail = public_mail
 
     def __repr__(self):
-        return "<ProtocolType(id={}, short_name={}, name={}, organization={})>".format(
-            self.id, self.short_name, self.name, self.organization)
+        return "<ProtocolType(id={}, short_name={}, name={}, organization={}, is_public={}, private_group={}, public_group={})>".format(
+            self.id, self.short_name, self.name, self.organization, self.is_public, self.private_group, self.public_group)
+
+    def get_latest_protocol(self):
+        candidates = sorted([protocol for protocol in self.protocols if protocol.is_done()], key=lambda p: p.data, reverse=True)
+        if len(candidates) == 0:
+            return None
+        return candidates[0]
+
+    def has_public_view_right(self, user):
+        return (self.is_public
+            or (user is not None and 
+                ((self.public_group != "" and self.public_group in user.groups)
+                or (self.private_group != "" and self.private_group in user.groups))))
+
+    def has_private_view_right(self, user):
+        return (self.private_group != "" and self.private_group in user.groups)
+
+    def has_modify_right(self, user):
+        return self.has_private_view_right(user)
+
 
 class Protocol(db.Model):
     __tablename__ = "protocols"
@@ -53,6 +72,7 @@ class Protocol(db.Model):
     author = db.Column(db.String)
     participants = db.Column(db.String)
     location = db.Column(db.String)
+    done = db.Column(db.Boolean)
 
     tops = relationship("TOP", backref=backref("protocol"), cascade="all, delete-orphan", order_by="TOP.number")
     decisions = relationship("Decision", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Decision.id")
@@ -85,6 +105,9 @@ class Protocol(db.Model):
         self.participants = remarks["Anwesende"].value
         self.location = remarks["Ort"].value
 
+    def is_done(self):
+        return self.done
+
 
 class DefaultTOP(db.Model):
     __tablename__ = "defaulttops"
@@ -103,7 +126,7 @@ class DefaultTOP(db.Model):
             self.id, self.protocoltype_id, self.name, self.number)
 
     def is_at_end(self):
-        return self.number < 0
+        return self.number > 0
 
 class TOP(db.Model):
     __tablename__ = "tops"
