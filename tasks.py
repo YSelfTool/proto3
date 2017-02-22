@@ -3,6 +3,7 @@ from flask import render_template
 import os
 import subprocess
 import shutil
+import tempfile
 
 from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP
 from server import celery, app
@@ -49,7 +50,8 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
             protocol = Protocol.query.filter_by(id=protocol_id).first()
             if protocol is None:
                 raise Exception("No protocol given. Aborting parsing.")
-            for error in protocol.errors:
+            old_errors = list(protocol.errors)
+            for error in old_errors:
                 protocol.errors.remove(error)
             db.session.commit()
             if protocol.source is None:
@@ -158,55 +160,58 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 top = TOP(protocol.id, fork.name, index, False)
                 db.session.add(top)
             db.session.commit()
+
+            latex_source = texenv.get_template("protocol.tex").render(protocol=protocol, tree=tree)
+            compile(latex_source, protocol)
+
             protocol.done = True
             db.session.commit()
 
-
-            
-
+def compile(content, protocol):
+    compile_async.delay(content, protocol.id)
 
 @celery.task
-def compile_async(name, document_id):
-    is_error = False
-    try:
-        current = os.getcwd()
-        os.chdir("latex")
-        os.makedirs("bin", exist_ok=True)
-        command = [
-            "/usr/bin/xelatex",
-            "-halt-on-error",
-            "-file-line-error",
-            "-output-directory", "bin",
-            "{}.tex".format(name)
-        ]
-        subprocess.check_call(command, universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.check_call(command, universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        os.chdir(current)
-        os.makedirs("documents/pdf", exist_ok=True)
-        shutil.copy("latex/bin/{}.pdf".format(name), "documents/pdf/")
-        for typ in ["pdf", "log", "aux", "out"]:
-            silent_remove("latex/bin/{}.{}".format(name, typ))
-        silent_remove("latex/{}.tex".format(name))
-    except subprocess.SubprocessError:
-        is_error = True
-        with app.app_context():
-            document = Document.query.filter_by(id=document_id).first()
-            if document is not None:
-                document.ready = False
-                document.error = True
-                db.session.commit()
-    finally:
-        # TODO: activate deleting files in error case too
-        #for typ in ["pdf", "log", "aux", "out"]:
-        #    silent_remove("latex/bin/{}.{}".format(name, typ))
-        #silent_remove("latex/{}.tex".format(name))
-        os.chdir(current)
-    if not is_error:
-        with app.app_context():
-            document = Document.query.filter_by(id=document_id).first()
-            if document is not None:
-                document.ready = True
-                db.session.commit()
+def compile_async(content, protocol_id):
+    with tempfile.TemporaryDirectory() as compile_dir, app.app_context():
+        protocol = Protocol.query.filter_by(id=protocol_id).first()
+        try:
+            current = os.getcwd()
+            protocol_source_filename = "protocol.tex"
+            protocol_target_filename = "protocol.tex"
+            log_filename = "protocol.log"
+            with open(os.path.join(compile_dir, protocol_source_filename), "w") as source_file:
+                source_file.write(content)
+            shutil.copy("static/tex/protokoll2.cls", compile_dir)
+            os.chdir(compile_dir)
+            command = [
+                "/usr/bin/xelatex",
+                "-halt-on-error",
+                "-file-line-error",
+                protocol_source_filename
+            ]
+            subprocess.check_call(command, universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.check_call(command, universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            os.chdir(current)
+            document = Document(protocol.id, name="protokoll_{}_{}.pdf".format(protocol.protocoltype.short_name, date_filter(protocol.date)), filename="", is_compiled=True)
+            db.session.add(document)
+            db.session.commit()
+            target_filename = "compiled-{}.pdf".format(document.id)
+            document.filename = target_filename
+            shutil.copy(os.path.join(compile_dir, protocol_target_filename), os.path.join("documents", target_filename))
+            db.session.commit()
+        except subprocess.SubprocessError:
+            log = ""
+            total_log_filename = os.path.join(compile_dir, log_filename)
+            if os.path.isfile(total_log_filename):
+                with open(total_log_filename, "r") as log_file:
+                    log = log_file.read()
+            else:
+                log = "Logfile not found."
+            error = protocol.create_error("Compiling", "Compiling LaTeX failed", log)
+            db.session.add(error)
+            db.session.commit()
+        finally:
+            os.chdir(current)
 
 def send_mail(mail):
     send_mail_async.delay(mail.id)

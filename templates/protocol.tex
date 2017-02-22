@@ -33,7 +33,7 @@
 \begin{itemize}
 \ENV{if protocol.decisions|length > 0}
     \ENV{for decision in protocol.decisions}
-        \item \VAR{decisions.content|escape_tex}
+        \item \VAR{decision.content|escape_tex}
     \ENV{endfor}
 \ENV{else}
 	\item Keine Beschlüsse
@@ -43,8 +43,8 @@
 Beginn der Sitzung: \VAR{protocol.start_time|timify}
 
 \ENV{for top in tree.children}
-    \TOP{\VAR{top.name}} % here we probably have information doubly
-    \VAR{top.render()}
+    \TOP{\VAR{top.name|escape_tex}} % here we probably have information doubly
+    \VAR{top.render()|escape_tex}
 \ENV{endfor}
 
 Ende der Sitzung: \VAR{protocol.end_time|timify}

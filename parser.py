@@ -243,7 +243,7 @@ class Remark(Element):
 class Fork(Element):
     def __init__(self, environment, name, parent, linenumber, children=None):
         self.environment = environment if environment is None or len(environment) > 0 else None
-        self.name = name if name is None or len(name) > 0 else None
+        self.name = name.strip() if (name is not None and len(name) > 0) else None
         self.parent = parent
         self.linenumber = linenumber
         self.children = [] if children is None else children
