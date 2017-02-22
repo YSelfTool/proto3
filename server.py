@@ -7,10 +7,12 @@ from flask_script import Manager, prompt
 from flask_migrate import Migrate, MigrateCommand
 #from flask_socketio import SocketIO
 from celery import Celery
+from functools import wraps
 
 import config
-from shared import db, date_filter, datetime_filter
+from shared import db, date_filter, datetime_filter, ldap_manager, security_manager
 from utils import is_past, mail_manager, url_manager
+from views.forms import LoginForm
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -35,26 +37,63 @@ app.jinja_env.lstrip_blocks = True
 app.jinja_env.filters["datify"] = date_filter
 app.jinja_env.filters["datetimify"] = datetime_filter
 app.jinja_env.filters["url_complete"] = url_manager.complete
+app.jinja_env.tests["auth_valid"] = security_manager.check_user
 
 import tasks
+
+from auth import User
+
+def check_login():
+    return "auth" in session and security_manager.check_user(session["auth"])
+def current_user():
+    if not check_login():
+        return None
+    return User.from_hashstring(session["auth"])
+
+def login_required(function):
+    @wraps(function)
+    def decorated_function(*args, **kwargs):
+        if check_login():
+            return function(*args, **kwargs)
+        else:
+            return redirect(url_for("login", next=request.url))
+    return decorated_function
+
+app.jinja_env.globals.update(check_login=check_login)
+app.jinja_env.globals.update(current_user=current_user)
 
 # blueprints here
 
 @app.route("/")
+@login_required
 def index():
     return render_template("index.html")
 
-@app.route("/imprint/")
-def imprint():
-    return render_template("imprint.html")
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if "auth" in session:
+        flash("You are already logged in.", "alert-success")
+        return redirect(url_for(request.args.get("next") or "index"))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = ldap_manager.login(form.username.data, form.password.data)
+        if user is not None:
+            session["auth"] = security_manager.hash_user(user)
+            flash("Login successful, {}!".format(user.username), "alert-success")
+            return redirect(request.args.get("next") or url_for("index"))
+        else:
+            flash("Wrong login data. Try again.", "alert-error")
+    return render_template("login.html", form=form)
 
-@app.route("/contact/")
-def contact():
-    return render_template("contact.html")
+@app.route("/logout")
+@login_required
+def logout():
+    if "auth" in session:
+        session.pop("auth")
+    else:
+        flash("You are not logged in.", "alert-error")
+    return redirect(url_for(".index"))
 
-@app.route("/privacy/")
-def privacy():
-    return render_template("privacy.html")
 
 if __name__ == "__main__":
     manager.run()

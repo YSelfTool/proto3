@@ -71,3 +71,7 @@ def date_filter_long(date):
     return date.strftime("%A, %d.%m.%Y, Kalenderwoche %W")
 def time_filter(time):
     return time.strftime("%H:%m")
+
+from auth import LdapManager, SecurityManager
+ldap_manager = LdapManager(config.LDAP_PROVIDER_URL, config.LDAP_BASE)
+security_manager = SecurityManager(config.SECURITY_KEY)

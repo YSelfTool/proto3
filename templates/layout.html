@@ -29,6 +29,13 @@
                 <li><a href="{{url_for("index")}}">Zuhause</a></li>
                 {# todo: add more links #}
             </ul>
+            <ul class="nav navbar-nav navbar-right">
+                {% if check_login() %}
+                <li><a href="{{url_for("logout")}}">Logout</a></li>
+                {% else %}
+                <li><a href="{{url_for("login")}}">Login</a></li>
+                {% endif %}
+            </ul>
         </div>
     </div>
 </nav>
