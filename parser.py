@@ -100,6 +100,10 @@ class Content(Element):
         for child in self.children:
             child.dump(level + 1)
 
+    def get_tags(self, tags):
+        tags.extend([child for child in self.children if isinstance(child, Tag)])
+        return tags
+
     @staticmethod
     def parse(match, current, linenumber=None):
         linenumber = Element.parse_inner(match, current, linenumber)
@@ -253,6 +257,13 @@ class Fork(Element):
             + r"\begin{itemize}" + "\n"
             + "\n".join(map(lambda e: r"\item {}".format(e.render()), self.children)) + "\n"
             + r"\end{itemize}" + "\n")
+
+    def get_tags(self, tags=None):
+        if tags is None:
+            tags = []
+        for child in self.children:
+            child.get_tags(tags)
+        return tags
 
     def is_anonymous(self):
         return self.environment == None

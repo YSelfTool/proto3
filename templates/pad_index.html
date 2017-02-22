@@ -1,0 +1,12 @@
+{% extends "layout_simple.html" %}
+{% block title %}Pad - Padname?{% endblock %}
+{% block additional_js %}
+<script src="{{ url_for("static", filename="js/socket_io.js") }}"></script>
+<script src="{{ url_for("static", filename="js/pad.js") }}"></script>
+{% endblock %}
+
+{% block content %}
+    <div id="padarea" class="pad-content">
+        
+    </div>
+{% endblock %}

@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+    {% block head %}
+    <meta charset="utf-8" />
+    <meta name="description" content="Protokollsystem" />
+    <link rel="stylesheet" href="{{ url_for("static", filename="css/style.css") }}" />
+    {% block additional_js %}
+    {% endblock %}
+    <title>{% block title %}Unbenannte Seite{% endblock %} - Protokollsystem</title>
+    {% endblock %}
+</head>
+<body>
+<div class="header">
+    <p class="header-title"><a href="{{ url_for("index") }}">Protokollsystem</a></p>
+    {% block additional_links %}
+    {% endblock %}
+</div>
+<div class="main">
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+    <div class="section alert {{ category }}">
+        {{ message }}
+    </div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+{% block content %}
+Diese Seite ist leer.
+{% endblock %}
+{% block footer %}
+<div class="footer">
+    <p class="footer-text">System zur Erstellung und Verwaltung von Sitzungsprotokollen, entwickelt von Robin Sonnabend</p>
+    <p class="footer-link"><a href="{{ url_for("imprint") }}">Impressum</a></p>
+    <p class="footer-link"><a href="{{ url_for("contact") }}">Kontakt</a></p>
+    <p class="footer-link"><a href="{{ url_for("privacy") }}">Datenschutzerklärung</a></p>
+</div>
+{% endblock %}
+</div>
+</body>
