@@ -13,8 +13,8 @@ import config
 from shared import db, date_filter, datetime_filter, ldap_manager, security_manager
 from utils import is_past, mail_manager, url_manager
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm
-from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm
+from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -147,7 +147,69 @@ def show_type(type_id):
         return redirect(request.args.get("next") or url_for("index"))
     protocoltype_table = ProtocolTypeTable(protocoltype)
     default_tops_table = DefaultTOPsTable(protocoltype.default_tops, protocoltype)
-    return render_template("type-show.html", protocoltype=protocoltype, protocoltype_table=protocoltype_table, default_tops_table=default_tops_table)
+    reminders_table = MeetingRemindersTable(protocoltype.reminders, protocoltype)
+    return render_template("type-show.html", protocoltype=protocoltype, protocoltype_table=protocoltype_table, default_tops_table=default_tops_table, reminders_table=reminders_table)
+
+@app.route("/type/reminders/new/<int:type_id>", methods=["GET", "POST"])
+@login_required
+def new_reminder(type_id):
+    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
+    if protocoltype is None:
+        flash("Dieser Protokolltyp existiert nicht.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    user = current_user()
+    if not protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    form = MeetingReminderForm()
+    if form.validate_on_submit():
+        reminder = MeetingReminder(protocoltype.id, form.days_before.data, form.send_public.data, form.send_private.data)
+        db.session.add(reminder)
+        db.session.commit()
+        return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
+    return render_template("reminder-new.html", form=form, protocoltype=protocoltype)
+
+@app.route("/type/reminder/edit/<int:type_id>/<int:reminder_id>", methods=["GET", "POST"])
+@login_required
+def edit_reminder(type_id, reminder_id):
+    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
+    if protocoltype is None:
+        flash("Dieser Protokolltyp existiert nicht.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    user = current_user()
+    if not protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    reminder = MeetingReminder.query.filter_by(id=reminder_id).first()
+    if reminder is None or reminder.protocoltype != protocoltype:
+        flash("Invalide Erinnerung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    form = MeetingReminderForm(obj=reminder)
+    if form.validate_on_submit():
+        form.populate_obj(reminder)
+        db.session.commit()
+        return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
+    return render_template("reminder-edit.html", form=form, protocoltype=protocoltype, reminder=reminder)
+
+@app.route("/type/reminder/delete/<int:type_id>/<int:reminder_id>")
+@login_required
+def delete_reminder(type_id, reminder_id):
+    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
+    if protocoltype is None:
+        flash("Dieser Protokolltyp existiert nicht.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    user = current_user()
+    if not protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    reminder = MeetingReminder.query.filter_by(id=reminder_id).first()
+    if reminder is None or reminder.protocoltype != protocoltype:
+        flash("Invalide Erinnerung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    db.session.delete(reminder)
+    db.session.commit()
+    return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
+
 
 @app.route("/type/tops/new/<int:type_id>", methods=["GET", "POST"])
 @login_required
@@ -183,7 +245,7 @@ def edit_default_top(type_id, top_id):
     default_top = DefaultTOP.query.filter_by(id=top_id).first()
     if default_top is None or default_top.protocoltype != protocoltype:
         flash("Invalider Standard-TOP.", "alert-error")
-        return redirect(request.args.get("nexT") or url_for("index"))
+        return redirect(request.args.get("next") or url_for("index"))
     form = DefaultTopForm(obj=default_top)
     if form.validate_on_submit():
         form.populate_obj(default_top)

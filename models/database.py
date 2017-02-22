@@ -25,7 +25,7 @@ class ProtocolType(db.Model):
 
     protocols = relationship("Protocol", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="Protocol.id")
     default_tops = relationship("DefaultTOP", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="DefaultTOP.number")
-    reminders = relationship("MeetingReminder", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="MeetingReminder.time_before")
+    reminders = relationship("MeetingReminder", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="MeetingReminder.days_before")
 
     def __init__(self, name, short_name, organization,
         is_public, private_group, public_group, private_mail, public_mail):
@@ -207,19 +207,19 @@ class MeetingReminder(db.Model):
     __tablename__ = "meetingreminders"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
-    time_before = db.Column(db.Interval)
+    days_before = db.Column(db.Integer)
     send_public = db.Column(db.Boolean)
     send_private = db.Column(db.Boolean)
 
-    def __init__(self, protocoltype_id, time_before, send_public, send_private):
+    def __init__(self, protocoltype_id, days_before, send_public, send_private):
         self.protocoltype_id = protocoltype_id
-        self.time_before = time_before
+        self.days_before = days_before
         self.send_public = send_public
         self.send_private = send_private
 
     def __repr__(self):
-        return "<MeetingReminder(id={}, protocoltype_id={}, time_before={}, send_public={}, send_private={})>".format(
-            self.id, self.protocoltype_id, self.time_before, self.send_public, self.send_private)
+        return "<MeetingReminder(id={}, protocoltype_id={}, days_before={}, send_public={}, send_private={})>".format(
+            self.id, self.protocoltype_id, self.days_before, self.send_public, self.send_private)
 
 class Error(db.Model):
     __tablename__ = "errors"

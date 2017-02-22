@@ -116,3 +116,29 @@ class DefaultTOPsTable(Table):
                 Table.link(url_for("delete_default_top", type_id=self.protocoltype.id, top_id=top.id), "Löschen", confirm="Bist du dir sicher, dass du den Standard-TOP {} löschen willst?".format(top.name))
             ])
         ]
+
+class MeetingRemindersTable(Table):
+    def __init__(self, reminders, protocoltype=None):
+        super().__init__("Einladungsmails", reminders, newlink=url_for("new_reminder", type_id=protocoltype.id) if protocoltype is not None else None)
+        self.protocoltype = protocoltype
+
+    def headers(self):
+        return ["Zeit", "Einladen", ""]
+
+    def row(self, reminder):
+        return [
+            "{} Tage".format(reminder.days_before),
+            self.get_send_summary(reminder),
+            Table.concat([
+                Table.link(url_for("edit_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Ändern"),
+                Table.link(url_for("delete_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Löschen", confirm="Bist du dir sicher, dass du die Einladungsmail {} Tage vor der Sitzung löschen willst?".format(reminder.days_before))
+            ])
+        ]
+
+    def get_send_summary(self, reminder):
+        parts = []
+        if reminder.send_public:
+            parts.append("Öffentlich")
+        if reminder.send_private:
+            parts.append("Intern")
+        return " und ".join(parts)

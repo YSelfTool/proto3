@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_form %}
+{% block title %}Einladung ändern{% endblock %}
+
+{% block content %}
+<div class="container">
+    {{render_form(form, action_url=url_for("edit_reminder", type_id=protocoltype.id, reminder_id=reminder.id, next=url_for("show_type", type_id=protocoltype.id)), action_text="Ändern")}}
+</div>
+{% endblock %}
