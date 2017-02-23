@@ -1,18 +1,52 @@
 SQLALCHEMY_DATABASE_URI = "postgresql://proto3:@/proto3"
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
 SECRET_KEY = "abc"
+
 DEBUG = False
+
 MAIL_ACTIVE = True
 MAIL_FROM = "protokolle@example.com"
 MAIL_HOST = "mail.example.com:465"
 MAIL_USER = "user"
 MAIL_PASSWORD = "password"
 MAIL_PREFIX = "protokolle"
+
 CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_TASK_SERIALIZER = "pickle"
 CELERY_ACCEPT_CONTENT = ["pickle"]
+
 URL_ROOT = "protokolle.example.com"
 URL_PROTO = "https"
 URL_PATH = "/"
 URL_PARAMS = ""
+
 ERROR_CONTEXT_LINES = 3
+
+# choose something nice from fc-list
+FONTS = {
+    "main": {
+        "regular": "Nimbus Sans",
+        "bold": "NimbusSans",
+        "italic": "NimbusSans",
+        "bolditalic": "NimbusSans"
+    },
+    "roman": {
+        "regular": "Nimbus Roman",
+        "bold": "Nimbus Roman",
+        "italic": "Nimbus Roman",
+        "bolditalic": "Nimbus Roman"
+    },
+    "sans": {
+        "regular": "Nimbus Sans",
+        "bold": "NimbusSans",
+        "italic": "NimbusSans",
+        "bolditalic": "NimbusSans"
+    },
+    "mono": {
+        "regular": "Nimbus Mono PS",
+        "bold": "Nimbus Mono PS",
+        "italic": "Nimbus Mono PS",
+        "bolditalic": "Nimbus Mono PS"
+    }
+}

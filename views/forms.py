@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField
+from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField, FileField
 from wtforms.validators import InputRequired
 
 class LoginForm(FlaskForm):
@@ -32,3 +32,7 @@ class NewProtocolForm(FlaskForm):
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
         self.protocoltype.choices = [(protocoltype.id, protocoltype.short_name) for protocoltype in protocoltypes]
+
+class DocumentUploadForm(FlaskForm):
+    document = FileField("Datei", validators=[InputRequired("Du musst eine Datei angeben.")])
+    private = BooleanField("Intern")

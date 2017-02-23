@@ -3,6 +3,7 @@ import locale
 locale.setlocale(locale.LC_TIME, "de_DE.utf8")
 
 from flask import Flask, g, current_app, request, session, flash, redirect, url_for, abort, render_template, Response, send_file
+from werkzeug.utils import secure_filename
 from flask_script import Manager, prompt
 from flask_migrate import Migrate, MigrateCommand
 #from flask_socketio import SocketIO
@@ -10,13 +11,14 @@ from celery import Celery
 from functools import wraps
 import requests
 from io import StringIO, BytesIO
+import os
 
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager
 from utils import is_past, mail_manager, url_manager
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm
-from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm
+from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -335,7 +337,9 @@ def show_protocol(protocol_id):
         flash("Invalides Protokoll.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     errors_table = ErrorsTable(protocol.errors)
-    return render_template("protocol-show.html", protocol=protocol, errors_table=errors_table)
+    documents_table = DocumentsTable(protocol.documents)
+    document_upload_form = DocumentUploadForm()
+    return render_template("protocol-show.html", protocol=protocol, errors_table=errors_table, documents_table=documents_table, document_upload_form=document_upload_form)
 
 @app.route("/protocol/etherpull/<int:protocol_id>")
 def etherpull_protocol(protocol_id):
@@ -345,10 +349,7 @@ def etherpull_protocol(protocol_id):
         flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     source_req = requests.get(protocol.get_etherpad_source_link())
-    #source = source_req.content.decode("utf-8")
     source = source_req.text
-    print(source.split("\r"))
-    #print(source.split("\n"))
     protocol.source = source
     db.session.commit()
     tasks.parse_protocol(protocol)
@@ -386,6 +387,49 @@ def list_todos():
     todos_table = TodosTable(todos)
     return render_template("todos-list.html", todos=todos, todos_table=todos_table)
 
+@app.route("/document/download/<int:document_id>")
+def download_document(document_id):
+    user = current_user()
+    document = Document.query.filter_by(id=document_id).first()
+    if document is None:
+        flash("Invalides Dokument.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    if ((document.is_private
+            and not document.protocol.protocoltype.has_private_view_right(user))
+        or (not document.is_private
+            and not document.protocol.protocoltype.has_public_view_right(user))):
+        flash("Keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    with open(document.get_filename(), "rb") as file:
+        file_like = BytesIO(file.read())
+        return send_file(file_like, cache_timeout=1, as_attachment=True, attachment_filename=document.name)
+
+@app.route("/document/upload/<int:protocol_id>", methods=["POST"])
+@login_required
+def upload_document(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Insufficient permissions.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    form = DocumentUploadForm()
+    print(form, form.document.data, form.private.data)
+    print(request.files)
+    if form.document.data is None:
+        flash("No file has been selected.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    file = form.document.data
+    if file.filename == "":
+        flash("No file has been selected.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    if file:
+        filename = secure_filename(file.filename)
+        internal_filename = "{}-{}".format(protocol.id, filename)
+        file.save(os.path.join(config.DOCUMENTS_PATH, internal_filename))
+        document = Document(protocol.id, filename, internal_filename, False, form.private.data)
+        db.session.add(document)
+        db.session.commit()
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
 
 
 @app.route("/login", methods=["GET", "POST"])

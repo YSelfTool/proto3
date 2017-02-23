@@ -1,7 +1,7 @@
 # coding: utf-8
 from flask import Markup, url_for, request
 from models.database import Protocol, ProtocolType, DefaultTOP, TOP, Todo, Decision
-from shared import date_filter, datetime_filter
+from shared import date_filter, datetime_filter, date_filter_short
 
 class Table:
     def __init__(self, title, values, newlink=None, newtext=None):
@@ -173,4 +173,18 @@ class TodosTable(Table):
             Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier()),
             todo.who,
             todo.description
+        ]
+
+class DocumentsTable(Table):
+    def __init__(self, documents):
+        super().__init__("Anhang", documents)
+
+    def headers(self):
+        return ["ID", "Name", ""]
+
+    def row(self, document):
+        return [
+            document.id,
+            Table.link(url_for("download_document", document_id=document.id), document.name),
+            ""
         ]

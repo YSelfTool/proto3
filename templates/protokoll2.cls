@@ -14,37 +14,41 @@
 \LoadClass[a4paper]{article}
 
 % so ein paar sachen die wir eh immer brauchen
-%\RequirePackage[T1]{fontenc}
-%\RequirePackage{ngerman}
 \RequirePackage[ngerman]{babel}
-%\RequirePackage[utf8]{inputenc}
 \RequirePackage[vmargin=1.5cm,hmargin={1.5cm,1.2cm},bindingoffset=8mm]{geometry}
 %\RequirePackage{lineno}
 \RequirePackage{longtable}
 \RequirePackage{framed}
 \RequirePackage{eurosym}
 \RequirePackage[babel]{csquotes}
-%\RequirePackage{fontspec}
 \RequirePackage{polyglossia}
 
 \setmainlanguage[babelshorthands=true]{german}
 
 \RequirePackage{fontspec}
-%\setromanfont[Scale=0.925]{DejaVu Serif}
-%\setsansfont[Scale=0.925]{DejaVu Sans}
-%\setmonofont[Scale=0.925]{DejaVu Sans Mono}
-%\setmainfont[Scale=0.925]{DejaVu Sans}
-\setromanfont{Nimbus Roman}
-\setsansfont{Nimbus Sans}
-\setmonofont{Nimbus Mono PS}
+\setromanfont[
+    BoldFont={\VAR{fonts.roman.bold}},
+    ItalicFont={\VAR{fonts.roman.italic}},
+    BoldItalicFont={\VAR{fonts.roman.bolditalic}}
+]{\VAR{fonts.roman.regular}}
+\setsansfont[
+    BoldFont={\VAR{fonts.sans.bold}},
+    ItalicFont={\VAR{fonts.sans.italic}},
+    BoldItalicFont={\VAR{fonts.sans.bolditalic}}
+]{\VAR{fonts.sans.regular}}
+\setmonofont[
+    BoldFont={\VAR{fonts.mono.bold}},
+    ItalicFont={\VAR{fonts.mono.italic}},
+    BoldItalicFont={\VAR{fonts.mono.bolditalic}}
+]{\VAR{fonts.mono.regular}}
 \setmainfont[
-    BoldFont={NimbusSans},
-    ItalicFont={NimbusSans},
-    BoldItalicFont={NimbusSans}
-]{Nimbus Sans} % TODO: make configurable
+    BoldFont={\VAR{fonts.main.bold}},
+    ItalicFont={\VAR{fonts.main.italic}},
+    BoldItalicFont={\VAR{fonts.main.bolditalic}}
+]{\VAR{fonts.main.regular}}
 
 
-% nicht einr�cken und benutzerinnendefinierte kopfzeile
+% nicht einrücken und benutzerinnendefinierte kopfzeile
 \setlength{\parindent}{0cm}
 \setlength{\parskip}{1ex}
 \pagestyle{myheadings}

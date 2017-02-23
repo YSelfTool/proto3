@@ -69,6 +69,8 @@ def datetime_filter(date):
     return date.strftime("%d. %B %Y, %H:%M")
 def date_filter_long(date):
     return date.strftime("%A, %d.%m.%Y, Kalenderwoche %W")
+def date_filter_short(date):
+    return date.strftime("%d.%m.%Y")
 def time_filter(time):
     return time.strftime("%H:%m")
 

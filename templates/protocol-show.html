@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "macros.html" import render_table %}
+{% from "macros.html" import render_table, render_form %}
 {% block title %}Protokoll{% endblock %}
 
 {% block content %}
@@ -71,8 +71,10 @@
                 {{render_table(errors_table)}}
             {% endif %}
             {% if protocol.documents|length > 0 %}
-                <h3>Anhang</h3>
-                {# TODO: render documents table here #}
+                {{render_table(documents_table)}}
+            {% endif %}
+            {% if protocol.is_done() %}
+                {{render_form(document_upload_form, action_url=url_for("upload_document", protocol_id=protocol.id, next=url_for("show_protocol", protocol_id=protocol.id)), action_text="Hochladen", enctype="multipart/form-data")}}
             {% endif %}
         </div>
     </div>

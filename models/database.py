@@ -6,9 +6,10 @@ import math
 from shared import db
 from utils import random_string, url_manager
 
-#from models.tables import TexResponsiblesTable, TexSupportersTable
+import os
 
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy import event
+from sqlalchemy.orm import relationship, backref, sessionmaker
 
 import config
 
@@ -171,16 +172,28 @@ class Document(db.Model):
     name = db.Column(db.String)
     filename = db.Column(db.String, unique=True)
     is_compiled = db.Column(db.Boolean)
+    is_private = db.Column(db.Boolean)
 
-    def __init__(self, protocol_id, name, filename, is_compiled):
+    def __init__(self, protocol_id, name, filename, is_compiled, is_private):
         self.protocol_id = protocol_id
         self.name = name
         self.filename = filename
         self.is_compiled = is_compiled
+        self.is_private = is_private
 
     def __repr__(self):
-        return "<Document(id={}, protocol_id={}, name={}, filename={}, is_compiled={})>".format(
-            self.id, self.protocol_id, self.name, self.filename, self.is_compiled)
+        return "<Document(id={}, protocol_id={}, name={}, filename={}, is_compiled={}, is_private={})>".format(
+            self.id, self.protocol_id, self.name, self.filename, self.is_compiled, self.is_private)
+
+    def get_filename(self):
+        return os.path.join(config.DOCUMENTS_PATH, self.filename)
+
+@event.listens_for(Document, "before_delete")
+def on_delete(mapper, connection, document):
+    if document.filename is not None:
+        document_path = os.path.join(config.DOCUMENTS_PATH, document.filename)
+        if os.path.isfile(document_path):
+            os.remove(document_path)
 
 class Todo(db.Model):
     __tablename__ = "todos"

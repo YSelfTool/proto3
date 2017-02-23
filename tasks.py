@@ -7,7 +7,7 @@ import tempfile
 
 from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP
 from server import celery, app
-from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, time_filter, class_filter
+from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter
 from utils import mail_manager, url_manager, encode_kwargs, decode_kwargs
 from parser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork
 
@@ -27,6 +27,7 @@ texenv.lstrip_blocks = True
 texenv.filters["url_complete"] = url_manager.complete
 texenv.filters["datify"] = date_filter
 texenv.filters["datify_long"] = date_filter_long
+texenv.filters["datify_short"] = date_filter_short
 texenv.filters["datetimify"] = datetime_filter
 texenv.filters["timify"] = time_filter
 texenv.filters["class"] = class_filter
@@ -182,7 +183,9 @@ def compile_async(content, protocol_id):
             log_filename = "protocol.log"
             with open(os.path.join(compile_dir, protocol_source_filename), "w") as source_file:
                 source_file.write(content)
-            shutil.copy("static/tex/protokoll2.cls", compile_dir)
+            protocol2_class_source = texenv.get_template("protokoll2.cls").render(fonts=config.FONTS)
+            with open(os.path.join(compile_dir, "protokoll2.cls"), "w") as protocol2_class_file:
+                protocol2_class_file.write(protocol2_class_source)
             os.chdir(compile_dir)
             command = [
                 "/usr/bin/xelatex",
@@ -196,12 +199,12 @@ def compile_async(content, protocol_id):
             for old_document in [document for document in protocol.documents if document.is_compiled]:
                 protocol.documents.remove(old_document)
             db.session.commit()
-            document = Document(protocol.id, name="protokoll_{}_{}.pdf".format(protocol.protocoltype.short_name, date_filter(protocol.date)), filename="", is_compiled=True)
+            document = Document(protocol.id, name="protokoll_{}_{}.pdf".format(protocol.protocoltype.short_name, date_filter_short(protocol.date)), filename="", is_compiled=True, is_private=False)
             db.session.add(document)
             db.session.commit()
             target_filename = "compiled-{}.pdf".format(document.id)
             document.filename = target_filename
-            shutil.copy(os.path.join(compile_dir, protocol_target_filename), os.path.join("documents", target_filename))
+            shutil.copy(os.path.join(compile_dir, protocol_target_filename), os.path.join(config.DOCUMENTS_PATH, target_filename))
             db.session.commit()
             shutil.copy(os.path.join(compile_dir, log_filename), "/tmp")
         except subprocess.SubprocessError:
