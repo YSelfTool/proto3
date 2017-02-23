@@ -4,9 +4,9 @@
 %\usepackage{palatino}
 \usepackage{pdfpages}
 \usepackage{eurosym}
-\usepackage[utf8]{inputenc}
+%\usepackage[utf8]{inputenc}
 \usepackage[pdfborder={0 0 0}]{hyperref}
-\usepackage{ngerman}
+%\usepackage{ngerman}
 % \usepackage[left]{lineno}
 %\usepackage{footnote}
 %\usepackage{times}
@@ -15,17 +15,18 @@
 %\renewcommand{\familydefault}{\sfdefault}
 \newcommand{\einrueck}[1]{\hfill\begin{minipage}{0.95\linewidth}#1\end{minipage}}
 
+
 \begin{document}
 %\thispagestyle{plain}   %ggf kommentarzeichen entfernen
 \Titel{
 \large Protokoll: \VAR{protocol.protocoltype.name|escape_tex}
 \\\normalsize \VAR{protocol.protocoltype.organization|escape_tex}
 }{}
-\begin{tabular}{rp{15.5cm}}
+\begin{tabular}{rp{14cm}}
 {\bf Datum:} & \VAR{protocol.date|datify_long|escape_tex}\\
 {\bf Ort:} & \VAR{protocol.location|escape_tex}\\
 {\bf Protokollant:} & \VAR{protocol.author|escape_tex}\\
-{\bf Anwesend:} & \VAR{protocol.participants|join(", ")|escape_tex}\\
+{\bf Anwesend:} & \VAR{protocol.participants|escape_tex}\\
 \end{tabular}
 \normalsize
 
@@ -43,8 +44,20 @@
 Beginn der Sitzung: \VAR{protocol.start_time|timify}
 
 \ENV{for top in tree.children}
-    \TOP{\VAR{top.name|escape_tex}} % here we probably have information doubly
-    \VAR{top.render()|escape_tex}
+    \ENV{if top|class == "Fork"}
+        \TOP{\VAR{top.name|escape_tex}} % here we probably have information doubly
+        \ENV{if top.name == "Todos"}
+            \ENV{if protocol.todos|length > 0}
+                \begin{itemize}
+                    \ENV{for todo in protocol.todos}
+                        \item \VAR{todo.who}: \VAR{todo.description} -- \VAR{todo.get_state_tex()}
+                    \ENV{endfor}
+                \end{itemize}
+            \ENV{endif}
+        \ENV{else}
+            \VAR{top.render(toplevel=True)}
+        \ENV{endif}
+    \ENV{endif}
 \ENV{endfor}
 
 Ende der Sitzung: \VAR{protocol.end_time|timify}

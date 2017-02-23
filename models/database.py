@@ -210,6 +210,8 @@ class Todo(db.Model):
 
     def get_state(self):
         return "[Erledigt]" if self.done else "[Offen]"
+    def get_state_tex(self):
+        return "Erledigt" if self.done else "Aktiv"
 
     def render_html(self):
         parts = [

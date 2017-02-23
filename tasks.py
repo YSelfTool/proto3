@@ -7,7 +7,7 @@ import tempfile
 
 from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP
 from server import celery, app
-from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, time_filter
+from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, time_filter, class_filter
 from utils import mail_manager, url_manager, encode_kwargs, decode_kwargs
 from parser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork
 
@@ -29,6 +29,7 @@ texenv.filters["datify"] = date_filter
 texenv.filters["datify_long"] = date_filter_long
 texenv.filters["datetimify"] = datetime_filter
 texenv.filters["timify"] = time_filter
+texenv.filters["class"] = class_filter
 
 mailenv = app.create_jinja_environment()
 mailenv.trim_blocks = True
@@ -177,7 +178,7 @@ def compile_async(content, protocol_id):
         try:
             current = os.getcwd()
             protocol_source_filename = "protocol.tex"
-            protocol_target_filename = "protocol.tex"
+            protocol_target_filename = "protocol.pdf"
             log_filename = "protocol.log"
             with open(os.path.join(compile_dir, protocol_source_filename), "w") as source_file:
                 source_file.write(content)
@@ -192,6 +193,9 @@ def compile_async(content, protocol_id):
             subprocess.check_call(command, universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             subprocess.check_call(command, universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             os.chdir(current)
+            for old_document in [document for document in protocol.documents if document.is_compiled]:
+                protocol.documents.remove(old_document)
+            db.session.commit()
             document = Document(protocol.id, name="protokoll_{}_{}.pdf".format(protocol.protocoltype.short_name, date_filter(protocol.date)), filename="", is_compiled=True)
             db.session.add(document)
             db.session.commit()
@@ -199,6 +203,7 @@ def compile_async(content, protocol_id):
             document.filename = target_filename
             shutil.copy(os.path.join(compile_dir, protocol_target_filename), os.path.join("documents", target_filename))
             db.session.commit()
+            shutil.copy(os.path.join(compile_dir, log_filename), "/tmp")
         except subprocess.SubprocessError:
             log = ""
             total_log_filename = os.path.join(compile_dir, log_filename)

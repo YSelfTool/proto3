@@ -72,6 +72,9 @@ def date_filter_long(date):
 def time_filter(time):
     return time.strftime("%H:%m")
 
+def class_filter(obj):
+    return obj.__class__.__name__
+
 from auth import LdapManager, SecurityManager
 ldap_manager = LdapManager(config.LDAP_PROVIDER_URL, config.LDAP_BASE)
 security_manager = SecurityManager(config.SECURITY_KEY)

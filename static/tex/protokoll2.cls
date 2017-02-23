@@ -14,15 +14,34 @@
 \LoadClass[a4paper]{article}
 
 % so ein paar sachen die wir eh immer brauchen
-\RequirePackage{ngerman}
-\RequirePackage[T1]{fontenc}
-\RequirePackage[utf8]{inputenc}
+%\RequirePackage[T1]{fontenc}
+%\RequirePackage{ngerman}
+\RequirePackage[ngerman]{babel}
+%\RequirePackage[utf8]{inputenc}
 \RequirePackage[vmargin=1.5cm,hmargin={1.5cm,1.2cm},bindingoffset=8mm]{geometry}
 %\RequirePackage{lineno}
 \RequirePackage{longtable}
 \RequirePackage{framed}
 \RequirePackage{eurosym}
-\RequirePackage{csquotes}
+\RequirePackage[babel]{csquotes}
+%\RequirePackage{fontspec}
+\RequirePackage{polyglossia}
+
+\setmainlanguage[babelshorthands=true]{german}
+
+\RequirePackage{fontspec}
+%\setromanfont[Scale=0.925]{DejaVu Serif}
+%\setsansfont[Scale=0.925]{DejaVu Sans}
+%\setmonofont[Scale=0.925]{DejaVu Sans Mono}
+%\setmainfont[Scale=0.925]{DejaVu Sans}
+\setromanfont{Nimbus Roman}
+\setsansfont{Nimbus Sans}
+\setmonofont{Nimbus Mono PS}
+\setmainfont[
+    BoldFont={NimbusSans},
+    ItalicFont={NimbusSans},
+    BoldItalicFont={NimbusSans}
+]{Nimbus Sans} % TODO: make configurable
 
 
 % nicht einr�cken und benutzerinnendefinierte kopfzeile
@@ -30,8 +49,8 @@
 \setlength{\parskip}{1ex}
 \pagestyle{myheadings}
 
-\renewcommand*{\rmdefault}{phv}
-\renewcommand*{\sfdefault}{phv}
+%\renewcommand*{\rmdefault}{phv}
+%\renewcommand*{\sfdefault}{phv}
 
 % Titel
 \newcommand{\Kopf}[1]{\markboth{#1}{#1}}

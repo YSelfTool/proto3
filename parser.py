@@ -2,6 +2,8 @@ import regex as re
 import sys
 from collections import OrderedDict
 
+from shared import escape_tex
+
 class ParserException(Exception):
     name = "Parser Exception"
     has_explanation = False
@@ -143,7 +145,7 @@ class Text:
         self.linenumber = linenumber
 
     def render(self):
-        return self.text
+        return escape_tex(self.text)
 
     def dump(self, level=None):
         if level is None:
@@ -169,7 +171,10 @@ class Tag:
         self.linenumber = linenumber
 
     def render(self):
-        return r"\textbf{{{}:}} {}".format(self.name, "; ".join(self.values));
+        if self.name == "url":
+            return r"\url{{{}}}".format(self.values[0])
+        #return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), "; ".join(map(escape_tex, self.values)));
+        return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(self.values[0]))
 
     def dump(self, level=None):
         if level is None:
@@ -255,8 +260,8 @@ class Fork(Element):
         for child in self.children:
             child.dump(level + 1)
 
-    def render(self):
-        return ((self.name if self.name is not None and len(self.name) > 0 else "")
+    def render(self, toplevel=False):
+        return ((self.name if self.name is not None and len(self.name) > 0 and not toplevel else "")
             + r"\begin{itemize}" + "\n"
             + "\n".join(map(lambda e: r"\item {}".format(e.render()), self.children)) + "\n"
             + r"\end{itemize}" + "\n")
