@@ -5,25 +5,38 @@
 {% block content %}
 <div class="container">
     <div class="btn-group">
-        <a class="btn {% if protocol.source is none %}btn-primary{% else %}btn-default{% endif %}" href="{{url_for("etherpull_protocol", protocol_id=protocol.id)}}">From etherpad</a>
-        {% if protocol.source is not none %}
-            <a class="btn btn-primary" href="{{url_for("get_protocol_source", protocol_id=protocol.id)}}">Download Quelltext</a>
-        {% endif %} 
-        {% if protocol.is_done() %}
-            <a class="btn btn-success" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Protokoll editieren</a>
+        {% if protocol.protocoltype.has_modify_right(current_user()) %}
+            <a class="btn {% if protocol.source is none %}btn-primary{% else %}btn-default{% endif %}" href="{{url_for("etherpull_protocol", protocol_id=protocol.id)}}">From etherpad</a>
+            {% if protocol.source is not none %}
+                <a class="btn btn-primary" href="{{url_for("get_protocol_source", protocol_id=protocol.id)}}">Download Quelltext</a>
+            {% endif %} 
+            {% if protocol.is_done() %}
+                <a class="btn btn-success" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Protokoll editieren</a>
+            {% endif %}
+            <a class="btn btn-default" href="{{protocol.get_etherpad_link()}}" target="_blank">Etherpad</a>
+            <a class="btn btn-default" href="{{url_for("show_type", type_id=protocol.protocoltype.id)}}">Typ</a>
+            <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_identifier()}} löschen möchtest?');">Löschen</a>
         {% endif %}
-        <a class="btn btn-default" href="{{protocol.get_etherpad_link()}}" target="_blank">Etherpad</a>
-        <a class="btn btn-default" href="{{url_for("show_type", type_id=protocol.protocoltype.id)}}">Typ</a>
     </div>
     <div class="row">
         <div id="left-column" class="col-lg-6">
             <h2>Protokoll: {{protocol.protocoltype.name}} vom {{protocol.date|datify}}</h2>
             {% if protocol.is_done() %}
-                <p><strong>Datum:</strong> {{protocol.date|datify_long}}</p>
-                <p><strong>Zeit:</strong> von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}</p>
-                <p><strong>Ort:</strong> {{protocol.location}}</p>
-                <p><strong>Protokollant:</strong> {{protocol.author}}</p>
-                <p><strong>Anwesende:</strong> {{protocol.participants}}</p>
+                {% if protocol.date is not none %}
+                    <p><strong>Datum:</strong> {{protocol.date|datify_long}}</p>
+                {% endif %}
+                {% if protocol.start_time is not none and protocol.end_time is not none %}
+                    <p><strong>Zeit:</strong> von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}</p>
+                {% endif %}
+                {% if protocol.location is not none %}
+                    <p><strong>Ort:</strong> {{protocol.location}}</p>
+                {% endif %}
+                {% if protocol.author is not none %}
+                    <p><strong>Protokollant:</strong> {{protocol.author}}</p>
+                {% endif %}
+                {% if protocol.participants is not none %}
+                    <p><strong>Anwesende:</strong> {{protocol.participants}}</p>
+                {% endif %}
             {% else %}
                 <p><strong>Geplant:</strong> {{protocol.date|datify_long}}</p>
             {% endif %}
@@ -60,25 +73,30 @@
         </div>
         <div id="right-column" class="col-lg-6">
             {% if protocol.is_done() %}
-            <h3>Todos dieser Sitzung <a href="{{url_for("list_todos")}}">Aktuelle Todos</a></h3>
-            <ul>
-                {% if protocol.get_originating_todos()|length > 0 %}
-                    {% for todo in protocol.get_originating_todos() %}
-                        <li>{{todo.render_html()|safe}}</li>
-                    {% endfor %}
-                {% else %}
-                    <li>Keine Todos</li>
-                {% endif %}
-            </ul>
+                <h3>Todos dieser Sitzung <a href="{{url_for("list_todos")}}">Aktuelle Todos</a></h3>
+                <ul>
+                    {% if protocol.get_originating_todos()|length > 0 %}
+                        {% for todo in protocol.get_originating_todos() %}
+                            <li>{{todo.render_html()|safe}}</li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Keine Todos</li>
+                    {% endif %}
+                </ul>
             {% endif %}
-            {% if protocol.errors|length > 0 %}
-                {{render_table(errors_table)}}
+            {% if protocol.protocoltype.has_modify_right(current_user()) %}
+                {% if protocol.errors|length > 0 %}
+                    {{render_table(errors_table)}}
+                {% endif %}
             {% endif %}
             {% if protocol.documents|length > 0 %}
                 {{render_table(documents_table)}}
+            {% else %}
+                <h3>Hochladen</h3>
             {% endif %}
-            {% if protocol.is_done() %}
-                {{render_form(document_upload_form, action_url=url_for("upload_document", protocol_id=protocol.id, next=url_for("show_protocol", protocol_id=protocol.id)), action_text="Hochladen", enctype="multipart/form-data")}}
+            {% if protocol.protocoltype.has_modify_right(current_user()) %}
+            {{render_form(source_upload_form, action_url=url_for("upload_source_to_known_protocol", protocol_id=protocol.id, next=url_for("show_protocol", protocol_id=protocol.id)), action_text="Hochladen", enctype="multipart/form-data")}}
+            {{render_form(document_upload_form, action_url=url_for("upload_document", protocol_id=protocol.id, next=url_for("show_protocol", protocol_id=protocol.id)), action_text="Hochladen", enctype="multipart/form-data")}}
             {% endif %}
         </div>
     </div>

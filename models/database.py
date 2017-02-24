@@ -103,8 +103,11 @@ class Protocol(db.Model):
 
     def fill_from_remarks(self, remarks):
         new_date = datetime.strptime(remarks["Datum"].value, "%d.%m.%Y").date()
-        if new_date != self.date:
-            raise DateNotMatchingException(original_date=self.date, protocol_date=new_date)
+        if self.date is not None:
+            if new_date != self.date:
+                raise DateNotMatchingException(original_date=self.date, protocol_date=new_date)
+        else:
+            self.date = new_date
         self.start_time = datetime.strptime(remarks["Beginn"].value, "%H:%M").time()
         self.end_time = datetime.strptime(remarks["Ende"].value, "%H:%M").time()
         self.author = remarks["Autor"].value
@@ -115,11 +118,16 @@ class Protocol(db.Model):
         return self.done
 
     def get_identifier(self):
+        if self.date is None:
+            return None
         return "{}-{}".format(
             self.protocoltype.short_name.lower(),
             self.date.strftime("%y-%m-%d"))
 
     def get_etherpad_link(self):
+        identifier = self.get_identifier()
+        if identifier is None:
+            return ""
         return config.ETHERPAD_URL + self.get_identifier()
 
     def get_etherpad_source_link(self):
@@ -130,6 +138,28 @@ class Protocol(db.Model):
 
     def get_originating_todos(self):
         return [todo for todo in self.todos if self == todo.get_first_protocol()]
+
+    def has_compiled_document(self):
+        candidates = [
+            document for document in self.documents
+            if document.is_compiled
+        ]
+        return len(candidates) > 0
+
+    def get_compiled_document(self, private=None):
+        candidates = [
+            document for document in self.documents
+            if document.is_compiled
+               and (private is None or document.is_private == private) 
+        ]
+        print(candidates)
+        private_candidates = [document for document in candidates if document.is_private]
+        public_candidates = [document for document in candidates if not document.is_private]
+        if len(private_candidates) > 0:
+            return private_candidates[0]
+        elif len(public_candidates) > 0:
+            return public_candidates[0]
+        return None
 
     def delete_orphan_todos(self):
         orphan_todos = [
@@ -187,7 +217,7 @@ class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     name = db.Column(db.String)
-    filename = db.Column(db.String, unique=True)
+    filename = db.Column(db.String)
     is_compiled = db.Column(db.Boolean)
     is_private = db.Column(db.Boolean)
 

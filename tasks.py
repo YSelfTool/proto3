@@ -172,9 +172,12 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 db.session.add(top)
             db.session.commit()
 
-            for show_private in [True, False]:
-                latex_source = texenv.get_template("protocol.tex").render(protocol=protocol, tree=tree, show_private=show_private)
-                compile(latex_source, protocol, show_private=show_private)
+            latex_source_private = texenv.get_template("protocol.tex").render(protocol=protocol, tree=tree, show_private=True)
+            latex_source_public = texenv.get_template("protocol.tex").render(protocol=protocol, tree=tree, show_private=False)
+            compile(latex_source_public, protocol, show_private=False)
+            if latex_source_private != latex_source_public:
+                compile(latex_source_private, protocol, show_private=True)
+                # TODO compare something that may actually be equal
 
             protocol.done = True
             db.session.commit()

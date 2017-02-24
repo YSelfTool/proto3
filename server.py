@@ -17,7 +17,7 @@ import config
 from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required
 from utils import is_past, mail_manager, url_manager
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable
 
 app = Flask(__name__)
@@ -293,6 +293,7 @@ def new_protocol():
         if protocoltype.has_modify_right(user)
     ]
     form = NewProtocolForm(protocoltypes)
+    upload_form = NewProtocolSourceUploadForm(protocoltypes)
     if form.validate_on_submit():
         protocoltype = ProtocolType.query.filter_by(id=form.protocoltype.data).first()
         if protocoltype is None or not protocoltype.has_modify_right(user):
@@ -305,7 +306,7 @@ def new_protocol():
     type_id = request.args.get("type_id")
     if type_id is not None:
         form.protocoltype.data = type_id
-    return render_template("protocol-new.html", form=form, protocoltypes=protocoltypes)
+    return render_template("protocol-new.html", form=form, upload_form=upload_form, protocoltypes=protocoltypes)
 
 @app.route("/protocol/show/<int:protocol_id>")
 def show_protocol(protocol_id):
@@ -322,7 +323,8 @@ def show_protocol(protocol_id):
     ]
     documents_table = DocumentsTable(visible_documents)
     document_upload_form = DocumentUploadForm()
-    return render_template("protocol-show.html", protocol=protocol, errors_table=errors_table, documents_table=documents_table, document_upload_form=document_upload_form)
+    source_upload_form = KnownProtocolSourceUploadForm()
+    return render_template("protocol-show.html", protocol=protocol, errors_table=errors_table, documents_table=documents_table, document_upload_form=document_upload_form, source_upload_form=source_upload_form)
 
 @app.route("/protocol/delete/<int:protocol_id>")
 @login_required
@@ -339,6 +341,7 @@ def delete_protocol(protocol_id):
     return redirect(request.args.get("next") or url_for("list_protocols"))
 
 @app.route("/protocol/etherpull/<int:protocol_id>")
+@login_required
 def etherpull_protocol(protocol_id):
     user = current_user()
     protocol = Protocol.query.filter_by(id=protocol_id).first()
@@ -352,6 +355,64 @@ def etherpull_protocol(protocol_id):
     tasks.parse_protocol(protocol)
     flash("Das Protokoll wird kompiliert.", "alert-success")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+
+@app.route("/protocol/upload/known/<int:protocol_id>", methods=["POST"])
+@login_required
+def upload_source_to_known_protocol(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    form = KnownProtocolSourceUploadForm()
+    if form.validate_on_submit():
+        if form.source.data is None:
+            flash("Es wurde keine Datei ausgewählt.", "alert-error")
+        else:
+            file = form.source.data
+            if file.filename == "":
+                flash("Es wurde keine Datei ausgewählt.", "alert-error")
+            else:
+                # todo: Prüfen, ob es Text ist?
+                source = file.stream.read().decode("utf-8")
+                protocol.source = source
+                db.session.commit()
+                tasks.parse_protocol(protocol)
+                flash("Das Protokoll wird kompiliert.", "alert-success")
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+
+@app.route("/protocol/upload/new/", methods=["POST"])
+@login_required
+def upload_new_protocol():
+    user = current_user()
+    available_types = [
+        protocoltype for protocoltype in ProtocolType.query.all()
+        if protocoltype.has_modify_right(user)
+    ]
+    form = NewProtocolSourceUploadForm(protocoltypes=available_types)
+    if form.validate_on_submit():
+        if form.source.data is None:
+            flash("Es wurde keine Datei ausgewählt.", "alert-error")
+        else:
+            print(form.source.data)
+            file = form.source.data
+            if file.filename == "":
+                flash("Es wurde keine Datei ausgewählt.", "alert-error")
+            else:
+                source = file.stream.read().decode("utf-8")
+                protocoltype = ProtocolType.query.filter_by(id=form.protocoltype.data).first()
+                if protocoltype is None or not protocoltype.has_modify_right(user):
+                    flash("Invalider Protokolltyp oder keine Rechte.", "alert-error")
+                else:
+                    protocol = Protocol(protocoltype.id, None, source)
+                    db.session.add(protocol)
+                    db.session.commit()
+                    tasks.parse_protocol(protocol)
+                    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    return redirect(request.args.get("fail") or url_for("new_protocol"))
+        
+    
+
 
 @app.route("/protocol/source/<int:protocol_id>")
 @login_required
@@ -372,8 +433,8 @@ def update_protocol(protocol_id):
     if protocol is None or not protocol.protocoltype.has_modify_right(user):
         flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
-    # TODO: render form to upload a new version
-
+    upload_form = KnownProtocolSourceUploadForm()
+    return render_template("protocol-update.html", upload_form=upload_form, protocol=protocol)
 
 @app.route("/todos/list")
 def list_todos():
