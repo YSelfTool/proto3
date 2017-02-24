@@ -1,7 +1,7 @@
 # coding: utf-8
 from flask import Markup, url_for, request
 from models.database import Protocol, ProtocolType, DefaultTOP, TOP, Todo, Decision
-from shared import date_filter, datetime_filter, date_filter_short
+from shared import date_filter, datetime_filter, date_filter_short, current_user, check_login 
 
 class Table:
     def __init__(self, title, values, newlink=None, newtext=None):
@@ -52,15 +52,24 @@ class ProtocolsTable(Table):
         super().__init__("Protokolle", protocols, newlink=url_for("new_protocol"))
 
     def headers(self):
-        return ["ID", "Sitzung", "Status", "Datum"]
+        result = ["ID", "Sitzung", "Datum", "Status"]
+        optional_part = ["Typ", "Löschen"]
+        if check_login():
+            result += optional_part
+        return result
 
     def row(self, protocol):
-        return [
+        user = current_user()
+        result = [
             Table.link(url_for("show_protocol", protocol_id=protocol.id), str(protocol.id)),
-            Table.link(url_for("show_type", type_id=protocol.protocoltype.id), protocol.protocoltype.name),
-            Table.link(url_for("show_protocol", protocol_id=protocol.id), "Fertig" if protocol.is_done() else "Geplant"),
-            date_filter(protocol.date)
+            Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.protocoltype.name),
+            date_filter(protocol.date),
+            "Fertig" if protocol.is_done() else "Geplant"
         ]
+        if user is not None and protocol.protocoltype.has_private_view_right(user):
+            result.append(Table.link(url_for("show_type", type_id=protocol.protocoltype.id), protocol.protocoltype.short_name))
+            result.append(Table.link(url_for("delete_protocol", protocol_id=protocol.id), "Löschen", confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?".format(protocol.get_identifier())))
+        return result
 
 class ProtocolTypesTable(Table):
     def __init__(self, types):
@@ -70,11 +79,15 @@ class ProtocolTypesTable(Table):
         return ["Typ", "Name", "Neuestes Protokoll", ""]
 
     def row(self, protocoltype):
+        protocol = protocoltype.get_latest_protocol()
+        user = current_user()
+        has_modify_right = protocoltype.has_modify_right(user)
         return [
-            Table.link(url_for("show_type", type_id=protocoltype.id), protocoltype.short_name),
+            Table.link(url_for("show_type", type_id=protocoltype.id), protocoltype.short_name) if has_modify_right else protocoltype.short_name,
             protocoltype.name,
-            protocoltype.get_latest_protocol() or "Noch kein Protokoll",
-            "" # TODO: add links for new, modify, delete
+            Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier()) if protocol is not None else "Noch kein Protokoll",
+            Table.link(url_for("new_protocol", type_id=protocoltype.id), "Neues Protokoll") if has_modify_right else ""
+            "" # TODO: add link for modify, delete
         ]
 
 class ProtocolTypeTable(SingleValueTable):
@@ -170,7 +183,7 @@ class TodosTable(Table):
         protocol = todo.get_first_protocol()
         return [
             todo.get_state(),
-            Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier()),
+            Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier()) if protocol is not None else "",
             todo.who,
             todo.description
         ]
@@ -183,8 +196,11 @@ class DocumentsTable(Table):
         return ["ID", "Name", ""]
 
     def row(self, document):
+        user = current_user()
         return [
             document.id,
             Table.link(url_for("download_document", document_id=document.id), document.name),
-            ""
+            (Table.link(url_for("delete_document", document_id=document.id), "Löschen", confirm="Bist du dir sicher, dass du das Dokument {} löschen willst?".format(document.name))
+                if document.protocol.protocoltype.has_modify_right(user)
+                else "")
         ]

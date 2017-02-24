@@ -4,6 +4,8 @@ from collections import OrderedDict
 
 from shared import escape_tex
 
+import config
+
 class ParserException(Exception):
     name = "Parser Exception"
     has_explanation = False
@@ -27,7 +29,7 @@ class Element:
     Generic (abstract) base element. Should never really exist.
     Template for what an element class should contain.
     """
-    def render(self):
+    def render(self, show_private):
         """
         Renders the element to TeX.
         Returns:
@@ -92,8 +94,8 @@ class Content(Element):
         self.children = children
         self.linenumber = linenumber
 
-    def render(self):
-        return "".join(map(lambda e: e.render(), self.children))
+    def render(self, show_private):
+        return "".join(map(lambda e: e.render(show_private), self.children))
 
     def dump(self, level=None):
         if level is None:
@@ -144,7 +146,7 @@ class Text:
         self.text = text
         self.linenumber = linenumber
 
-    def render(self):
+    def render(self, show_private):
         return escape_tex(self.text)
 
     def dump(self, level=None):
@@ -170,7 +172,7 @@ class Tag:
         self.values = values
         self.linenumber = linenumber
 
-    def render(self):
+    def render(self, show_private):
         if self.name == "url":
             return r"\url{{{}}}".format(self.values[0])
         #return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), "; ".join(map(escape_tex, self.values)));
@@ -197,7 +199,7 @@ class Empty(Element):
     def __init__(self, linenumber):
         linenumber = linenumber
 
-    def render(self):
+    def render(self, show_private):
         return ""
 
     def dump(self, level=None):
@@ -218,7 +220,7 @@ class Remark(Element):
         self.value = value
         self.linenumber = linenumber
 
-    def render(self):
+    def render(self, show_private):
         return r"\textbf{{{}}}: {}".format(self.name, self.value)
 
     def dump(self, level=None):
@@ -260,11 +262,32 @@ class Fork(Element):
         for child in self.children:
             child.dump(level + 1)
 
-    def render(self, toplevel=False):
-        return ((self.name if self.name is not None and len(self.name) > 0 and not toplevel else "")
-            + r"\begin{itemize}" + "\n"
-            + "\n".join(map(lambda e: r"\item {}".format(e.render()), self.children)) + "\n"
-            + r"\end{itemize}" + "\n")
+    def test_private(self, name):
+        stripped_name = name.replace(":", "").strip()
+        return stripped_name in config.PRIVATE_KEYS
+
+    def render(self, show_private, toplevel=False):
+        name_line = self.name if self.name is not None and len(self.name) > 0 else ""
+        begin_line = r"\begin{itemize}"
+        end_line = r"\end{itemize}"
+        content_parts = []
+        for child in self.children:
+            part = child.render(show_private)
+            if len(part.strip()) == 0:
+                continue
+            if not part.startswith(r"\item"):
+                part = r"\item {}".format(part)
+            content_parts.append(part)
+        content_lines = "\n".join(content_parts)
+        if toplevel:
+            return "\n".join([begin_line, content_lines, end_line])
+        elif self.test_private(self.name):
+            if show_private:
+                return content_lines
+            else:
+                return ""
+        else:
+            return "\n".join([name_line, begin_line, content_lines, end_line])
 
     def get_tags(self, tags=None):
         if tags is None:

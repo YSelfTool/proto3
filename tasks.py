@@ -6,6 +6,7 @@ import shutil
 import tempfile
 
 from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP
+from models.errors import DateNotMatchingException
 from server import celery, app
 from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter
 from utils import mail_manager, url_manager, encode_kwargs, decode_kwargs
@@ -94,6 +95,14 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 db.session.add(error)
                 db.session.commit()
                 return
+            except DateNotMatchingException as exc:
+                error = protocol.create_error("Parsing", "Date not matching",
+                    "This protocol's date should be {}, but the protocol source says {}.".format(date_filter(exc.original_date), date_filter(exc.protocol_date)))
+                db.session.add(error)
+                db.session.commit()
+                return
+            protocol.delete_orphan_todos()
+            db.session.commit()
             old_todos = list(protocol.todos)
             for todo in old_todos:
                 protocol.todos.remove(todo)
@@ -163,17 +172,18 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 db.session.add(top)
             db.session.commit()
 
-            latex_source = texenv.get_template("protocol.tex").render(protocol=protocol, tree=tree)
-            compile(latex_source, protocol)
+            for show_private in [True, False]:
+                latex_source = texenv.get_template("protocol.tex").render(protocol=protocol, tree=tree, show_private=show_private)
+                compile(latex_source, protocol, show_private=show_private)
 
             protocol.done = True
             db.session.commit()
 
-def compile(content, protocol):
-    compile_async.delay(content, protocol.id)
+def compile(content, protocol, show_private):
+    compile_async.delay(content, protocol.id, show_private)
 
 @celery.task
-def compile_async(content, protocol_id):
+def compile_async(content, protocol_id, show_private):
     with tempfile.TemporaryDirectory() as compile_dir, app.app_context():
         protocol = Protocol.query.filter_by(id=protocol_id).first()
         try:
@@ -196,17 +206,17 @@ def compile_async(content, protocol_id):
             subprocess.check_call(command, universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             subprocess.check_call(command, universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             os.chdir(current)
-            for old_document in [document for document in protocol.documents if document.is_compiled]:
+            for old_document in [document for document in protocol.documents if document.is_compiled and document.is_private == show_private]:
                 protocol.documents.remove(old_document)
             db.session.commit()
-            document = Document(protocol.id, name="protokoll_{}_{}.pdf".format(protocol.protocoltype.short_name, date_filter_short(protocol.date)), filename="", is_compiled=True, is_private=False)
+            document = Document(protocol.id, name="protokoll{}_{}_{}.pdf".format("_intern" if show_private else "", protocol.protocoltype.short_name, date_filter_short(protocol.date)), filename="", is_compiled=True, is_private=show_private)
             db.session.add(document)
             db.session.commit()
-            target_filename = "compiled-{}.pdf".format(document.id)
+            target_filename = "compiled-{}-{}.pdf".format(document.id, "internal" if show_private else "public")
             document.filename = target_filename
             shutil.copy(os.path.join(compile_dir, protocol_target_filename), os.path.join(config.DOCUMENTS_PATH, target_filename))
             db.session.commit()
-            shutil.copy(os.path.join(compile_dir, log_filename), "/tmp")
+            #shutil.copy(os.path.join(compile_dir, log_filename), "/tmp")
         except subprocess.SubprocessError:
             log = ""
             total_log_filename = os.path.join(compile_dir, log_filename)

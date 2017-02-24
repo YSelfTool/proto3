@@ -1,6 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask import session, redirect, url_for, request
 
 import re
+from functools import wraps
 
 import config
 
@@ -77,6 +79,35 @@ def time_filter(time):
 def class_filter(obj):
     return obj.__class__.__name__
 
-from auth import LdapManager, SecurityManager
+from auth import LdapManager, SecurityManager, User
 ldap_manager = LdapManager(config.LDAP_PROVIDER_URL, config.LDAP_BASE)
 security_manager = SecurityManager(config.SECURITY_KEY)
+
+from auth import User
+
+def check_login():
+    return "auth" in session and security_manager.check_user(session["auth"])
+def current_user():
+    if not check_login():
+        return None
+    return User.from_hashstring(session["auth"])
+
+def login_required(function):
+    @wraps(function)
+    def decorated_function(*args, **kwargs):
+        if check_login():
+            return function(*args, **kwargs)
+        else:
+            return redirect(url_for("login", next=request.url))
+    return decorated_function
+
+def group_required(function, group):
+    @wraps(function)
+    def decorated_function(*args, **kwargs):
+        if group in current_user.groups:
+            return function(*args, **kwargs)
+        else:
+            flash("You do not have the necessary permissions to view this page.")
+            return redirect(request.args.get("next") or url_for("index"))
+    return decorated_function
+

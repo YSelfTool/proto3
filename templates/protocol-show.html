@@ -62,9 +62,13 @@
             {% if protocol.is_done() %}
             <h3>Todos dieser Sitzung <a href="{{url_for("list_todos")}}">Aktuelle Todos</a></h3>
             <ul>
-                {% for todo in protocol.get_originating_todos() %}
-                    <li>{{todo.render_html()|safe}}</li>
-                {% endfor %}
+                {% if protocol.get_originating_todos()|length > 0 %}
+                    {% for todo in protocol.get_originating_todos() %}
+                        <li>{{todo.render_html()|safe}}</li>
+                    {% endfor %}
+                {% else %}
+                    <li>Keine Todos</li>
+                {% endif %}
             </ul>
             {% endif %}
             {% if protocol.errors|length > 0 %}

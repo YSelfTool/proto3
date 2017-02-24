@@ -8,13 +8,13 @@ from flask_script import Manager, prompt
 from flask_migrate import Migrate, MigrateCommand
 #from flask_socketio import SocketIO
 from celery import Celery
-from functools import wraps
 import requests
 from io import StringIO, BytesIO
 import os
+from datetime import datetime
 
 import config
-from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager
+from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required
 from utils import is_past, mail_manager, url_manager
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm
@@ -48,34 +48,6 @@ app.jinja_env.filters["url_complete"] = url_manager.complete
 app.jinja_env.tests["auth_valid"] = security_manager.check_user
 
 import tasks
-
-from auth import User
-
-def check_login():
-    return "auth" in session and security_manager.check_user(session["auth"])
-def current_user():
-    if not check_login():
-        return None
-    return User.from_hashstring(session["auth"])
-
-def login_required(function):
-    @wraps(function)
-    def decorated_function(*args, **kwargs):
-        if check_login():
-            return function(*args, **kwargs)
-        else:
-            return redirect(url_for("login", next=request.url))
-    return decorated_function
-
-def group_required(function, group):
-    @wraps(function)
-    def decorated_function(*args, **kwargs):
-        if group in current_user.groups:
-            return function(*args, **kwargs)
-        else:
-            flash("You do not have the necessary permissions to view this page.")
-            return redirect(request.args.get("next") or url_for("index"))
-    return decorated_function
 
 app.jinja_env.globals.update(check_login=check_login)
 app.jinja_env.globals.update(current_user=current_user)
@@ -316,7 +288,10 @@ def list_protocols():
 @login_required
 def new_protocol():
     user = current_user()
-    protocoltypes = ProtocolType.query.all()
+    protocoltypes = [
+        protocoltype for protocoltype in ProtocolType.query.all()
+        if protocoltype.has_modify_right(user)
+    ]
     form = NewProtocolForm(protocoltypes)
     if form.validate_on_submit():
         protocoltype = ProtocolType.query.filter_by(id=form.protocoltype.data).first()
@@ -327,6 +302,9 @@ def new_protocol():
         db.session.add(protocol)
         db.session.commit()
         return redirect(request.args.get("next") or url_for("list_protocols"))
+    type_id = request.args.get("type_id")
+    if type_id is not None:
+        form.protocoltype.data = type_id
     return render_template("protocol-new.html", form=form, protocoltypes=protocoltypes)
 
 @app.route("/protocol/show/<int:protocol_id>")
@@ -337,9 +315,28 @@ def show_protocol(protocol_id):
         flash("Invalides Protokoll.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     errors_table = ErrorsTable(protocol.errors)
-    documents_table = DocumentsTable(protocol.documents)
+    visible_documents = [
+        document for document in protocol.documents
+        if (not document.is_private and document.protocol.protocoltype.has_public_view_right(user))
+        or (document.is_private and document.protocol.protocoltype.has_private_view_right(user))
+    ]
+    documents_table = DocumentsTable(visible_documents)
     document_upload_form = DocumentUploadForm()
     return render_template("protocol-show.html", protocol=protocol, errors_table=errors_table, documents_table=documents_table, document_upload_form=document_upload_form)
+
+@app.route("/protocol/delete/<int:protocol_id>")
+@login_required
+def delete_protocol(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    name = protocol.get_identifier()
+    db.session.delete(protocol)
+    db.session.commit()
+    flash("Protokoll {} ist gelöscht.".format(name), "alert-success")
+    return redirect(request.args.get("next") or url_for("list_protocols"))
 
 @app.route("/protocol/etherpull/<int:protocol_id>")
 def etherpull_protocol(protocol_id):
@@ -382,8 +379,8 @@ def update_protocol(protocol_id):
 def list_todos():
     is_logged_in = check_login()
     user = current_user()
-    todos = Todos.query.all()
-    # TODO: paginate
+    todos = Todo.query.all()
+    # TODO: paginate and search
     todos_table = TodosTable(todos)
     return render_template("todos-list.html", todos=todos, todos_table=todos_table)
 
@@ -410,25 +407,43 @@ def upload_document(protocol_id):
     user = current_user()
     protocol = Protocol.query.filter_by(id=protocol_id).first()
     if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Insufficient permissions.", "alert-error")
+        flash("Unzureichende Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     form = DocumentUploadForm()
-    print(form, form.document.data, form.private.data)
-    print(request.files)
     if form.document.data is None:
-        flash("No file has been selected.", "alert-error")
+        flash("Es wurde keine Datei ausgewählt.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     file = form.document.data
     if file.filename == "":
-        flash("No file has been selected.", "alert-error")
+        flash("Es wurde keine Datei ausgewählt.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
+    # todo: Dateitypen einschränken?
     if file:
         filename = secure_filename(file.filename)
-        internal_filename = "{}-{}".format(protocol.id, filename)
-        file.save(os.path.join(config.DOCUMENTS_PATH, internal_filename))
-        document = Document(protocol.id, filename, internal_filename, False, form.private.data)
+        document = Document(protocol.id, filename, "", False, form.private.data)
         db.session.add(document)
         db.session.commit()
+        internal_filename = "{}-{}-{}".format(protocol.id, document.id, filename)
+        document.filename = internal_filename
+        file.save(os.path.join(config.DOCUMENTS_PATH, internal_filename))
+        if datetime.now().date() >= protocol.date:
+            protocol.done = True
+        db.session.commit()
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+
+@app.route("/document/delete/<int:document_id>")
+@login_required
+def delete_document(document_id):
+    user = current_user()
+    document = Document.query.filter_by(id=document_id).first()
+    if document is None or not document.protocol.protocoltype.has_modify_right(user):
+        flash("Unzureichende Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    name = document.name
+    protocol = document.protocol
+    db.session.delete(document)
+    db.session.commit()
+    flash("Das Dokument {} wurde gelöscht.".format(name), "alert-success")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
 
 

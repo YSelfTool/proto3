@@ -5,6 +5,7 @@ import math
 
 from shared import db
 from utils import random_string, url_manager
+from models.errors import DateNotMatchingException
 
 import os
 
@@ -45,7 +46,7 @@ class ProtocolType(db.Model):
             self.id, self.short_name, self.name, self.organization, self.is_public, self.private_group, self.public_group)
 
     def get_latest_protocol(self):
-        candidates = sorted([protocol for protocol in self.protocols if protocol.is_done()], key=lambda p: p.data, reverse=True)
+        candidates = sorted([protocol for protocol in self.protocols if protocol.is_done()], key=lambda p: p.date, reverse=True)
         if len(candidates) == 0:
             return None
         return candidates[0]
@@ -57,7 +58,7 @@ class ProtocolType(db.Model):
                 or (self.private_group != "" and self.private_group in user.groups))))
 
     def has_private_view_right(self, user):
-        return (self.private_group != "" and self.private_group in user.groups)
+        return (user is not None and self.private_group != "" and self.private_group in user.groups)
 
     def has_modify_right(self, user):
         return self.has_private_view_right(user)
@@ -101,7 +102,9 @@ class Protocol(db.Model):
         return Error(self.id, action, name, now, description)
 
     def fill_from_remarks(self, remarks):
-        self.date = datetime.strptime(remarks["Datum"].value, "%d.%m.%Y")
+        new_date = datetime.strptime(remarks["Datum"].value, "%d.%m.%Y").date()
+        if new_date != self.date:
+            raise DateNotMatchingException(original_date=self.date, protocol_date=new_date)
         self.start_time = datetime.strptime(remarks["Beginn"].value, "%H:%M").time()
         self.end_time = datetime.strptime(remarks["Ende"].value, "%H:%M").time()
         self.author = remarks["Autor"].value
@@ -127,6 +130,20 @@ class Protocol(db.Model):
 
     def get_originating_todos(self):
         return [todo for todo in self.todos if self == todo.get_first_protocol()]
+
+    def delete_orphan_todos(self):
+        orphan_todos = [
+            todo for todo in self.todos
+            if len(todo.protocols) == 1
+        ]
+        for todo in orphan_todos:
+            self.todos.remove(todo)
+            db.session.delete(todo)
+
+@event.listens_for(Protocol, "before_delete")
+def on_protocol_delete(mapper, connection, protocol):
+    protocol.delete_orphan_todos()
+
 
 class DefaultTOP(db.Model):
     __tablename__ = "defaulttops"
@@ -189,7 +206,7 @@ class Document(db.Model):
         return os.path.join(config.DOCUMENTS_PATH, self.filename)
 
 @event.listens_for(Document, "before_delete")
-def on_delete(mapper, connection, document):
+def on_document_delete(mapper, connection, document):
     if document.filename is not None:
         document_path = os.path.join(config.DOCUMENTS_PATH, document.filename)
         if os.path.isfile(document_path):

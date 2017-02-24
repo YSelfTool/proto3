@@ -19,7 +19,7 @@
 \begin{document}
 %\thispagestyle{plain}   %ggf kommentarzeichen entfernen
 \Titel{
-\large Protokoll: \VAR{protocol.protocoltype.name|escape_tex}
+\large \ENV{if show_private}Internes \ENV{endif} Protokoll: \VAR{protocol.protocoltype.name|escape_tex}
 \\\normalsize \VAR{protocol.protocoltype.organization|escape_tex}
 }{}
 \begin{tabular}{rp{14cm}}
@@ -55,7 +55,7 @@ Beginn der Sitzung: \VAR{protocol.start_time|timify}
                 \end{itemize}
             \ENV{endif}
         \ENV{else}
-            \VAR{top.render(toplevel=True)}
+            \VAR{top.render(toplevel=True, show_private=show_private)}
         \ENV{endif}
     \ENV{endif}
 \ENV{endfor}
