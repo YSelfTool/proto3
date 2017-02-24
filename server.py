@@ -8,14 +8,13 @@ from flask_script import Manager, prompt
 from flask_migrate import Migrate, MigrateCommand
 #from flask_socketio import SocketIO
 from celery import Celery
-import requests
 from io import StringIO, BytesIO
 import os
 from datetime import datetime
 
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required
-from utils import is_past, mail_manager, url_manager, get_first_unused_int
+from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable
@@ -351,9 +350,7 @@ def etherpull_protocol(protocol_id):
     if protocol is None or not protocol.protocoltype.has_modify_right(user):
         flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
-    source_req = requests.get(protocol.get_etherpad_source_link())
-    source = source_req.text
-    protocol.source = source
+    protocol.source = get_etherpad_text(protocol.get_identifier())
     db.session.commit()
     tasks.parse_protocol(protocol)
     flash("Das Protokoll wird kompiliert.", "alert-success")
@@ -434,6 +431,20 @@ def get_protocol_template(protocol_id):
         return redirect(request.args.get("next") or url_for("index"))
     file_like = BytesIO(protocol.get_template().encode("utf-8"))
     return send_file(file_like, cache_timeout=1, as_attachment=True, attachment_filename="{}-template.txt".format(protocol.get_identifier()))
+
+@app.route("/protocol/etherpush/<int:protocol_id>")
+@login_required
+def etherpush_protocol(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    if set_etherpad_text(protocol.get_identifier(), protocol.get_template()):
+        flash("Vorlage von {} in Etherpad hochgeladen.".format(protocol.get_identifier()), "alert-success")
+    else:
+        flash("Das Etherpad wurde bereits bearbeitet.", "alert-error")
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
 
 @app.route("/protocol/update/<int:protocol_id>", methods=["GET", "POST"])
 @login_required

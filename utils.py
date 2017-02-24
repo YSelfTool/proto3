@@ -7,6 +7,8 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime, date, timedelta
+import requests
+from io import BytesIO
 
 import config
 
@@ -100,3 +102,25 @@ def get_first_unused_int(numbers):
         if linear < given:
             return linear
     return highest + 1
+
+def get_etherpad_url(pad):
+    return "{}/p/{}".format(config.ETHERPAD_URL, pad)
+def get_etherpad_export_url(pad):
+    return "{}/p/{}/export/txt".format(config.ETHERPAD_URL, pad)
+def get_etherpad_import_url(pad):
+    return "{}/p/{}/import".format(config.ETHERPAD_URL, pad)
+
+def get_etherpad_text(pad):
+    req = requests.get("{}/p/{}/export/txt".format(config.ETHERPAD_URL, pad))
+    return req.text
+
+def set_etherpad_text(pad, text, only_if_default=True):
+    if only_if_default:
+        current_text = get_etherpad_text(pad)
+        if current_text != config.EMPTY_ETHERPAD and len(current_text.strip()) > 0:
+            return False
+    file_like = BytesIO(text.encode("utf-8"))
+    files = {"file": file_like}
+    req = requests.post(get_etherpad_import_url(pad), files=files)
+    return req.status_code == 200
+    

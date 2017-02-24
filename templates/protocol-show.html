@@ -18,7 +18,8 @@
             {% endif %} 
             <a class="btn {% if protocol.is_done() %}btn-success{% else %}btn-default{% endif %}" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Protokoll editieren</a>
             {% if not protocol.is_done() %}
-                <a class="btn btn-default" href="{{url_for("get_protocol_template", protocol_id=protocol.id)}}">Vorlage herunterladen</a>
+                <a class="btn btn-default" href="{{url_for("get_protocol_template", protocol_id=protocol.id)}}">Vorlage</a>
+                <a class="btn btn-primary" href="{{url_for("etherpush_protocol", protocol_id=protocol.id)}}">In Etherpad</a>
             {% endif %}
             <a class="btn btn-default" href="{{protocol.get_etherpad_link()}}" target="_blank">Etherpad</a>
             <a class="btn btn-default" href="{{url_for("show_type", type_id=protocol.protocoltype.id)}}">Typ</a>

@@ -111,9 +111,4 @@ def group_required(function, group):
             return redirect(request.args.get("next") or url_for("index"))
     return decorated_function
 
-EMPTY_ETHERPAD = """Welcome to Etherpad!
 
-This pad text is synchronized as you type, so that everyone viewing this page sees the same text. This allows you to collaborate seamlessly on documents!
-
-Get involved with Etherpad at http://etherpad.org
-"""

@@ -4,7 +4,7 @@ from datetime import datetime, time, date, timedelta
 import math
 
 from shared import db
-from utils import random_string, url_manager
+from utils import random_string, url_manager, get_etherpad_url
 from models.errors import DateNotMatchingException
 
 import os
@@ -128,10 +128,7 @@ class Protocol(db.Model):
         identifier = self.get_identifier()
         if identifier is None:
             return ""
-        return config.ETHERPAD_URL + self.get_identifier()
-
-    def get_etherpad_source_link(self):
-        return self.get_etherpad_link() + "/export/txt"
+        return get_etherpad_url(self.get_identifier())
 
     def has_nonplanned_tops(self):
         return len([top for top in self.tops if not top.planned]) > 0
