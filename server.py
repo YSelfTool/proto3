@@ -538,35 +538,28 @@ def _get_page():
     except ValueError:
         return 0
 
-@app.route("/todos/list", methods=["GET", "POST"])
+@app.route("/todos/list")
 def list_todos():
     is_logged_in = check_login()
     user = current_user()
     protocoltype = None
     protocoltype_id = None
     try:
-        protocoltype_id = int(request.args.get("type_id"))
+        protocoltype_id = int(request.args.get("protocoltype"))
     except (ValueError, TypeError):
         pass
     search_term = request.args.get("search")
     protocoltypes = ProtocolType.get_available_protocoltypes(user)
     search_form = SearchForm(protocoltypes)
-    if search_form.validate_on_submit():
-        if search_form.search.data is not None:
-            search_term = search_form.search.data.strip()
-        if search_form.protocoltype.data is not None:
-            protocoltype_id = search_form.protocoltype.data
-    else:
-        if protocoltype_id is not None:
-            search_form.protocoltype.data = protocoltype_id
-        if search_term is not None:
-            search_form.search.data = search_term
     if protocoltype_id is not None:
+        print(protocoltype_id)
+        search_form.protocoltype.data = protocoltype_id
         protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
-    base_query = Todo.query
+    if search_term is not None:
+        search_form.search.data = search_term
+    base_query = Todo.query.order_by(Todo.done).order_by(Todo.number.desc())
     if protocoltype_id is not None and protocoltype_id != -1:
         base_query = base_query.filter(ProtocolType.id == protocoltype_id)
-    print(search_term)
     if search_term is not None and len(search_term.strip()) > 0:
         base_query = base_query.filter(Todo.description.match("%{}%".format(search_term)))
     page = _get_page()

@@ -259,7 +259,6 @@ class Todo(db.Model):
     description = db.Column(db.String)
     tags = db.Column(db.String)
     done = db.Column(db.Boolean)
-    is_id_fixed = db.Column(db.Boolean, default=False)
 
     protocols = relationship("Protocol", secondary="todoprotocolassociations", backref="todos")
 

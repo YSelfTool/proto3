@@ -3,12 +3,12 @@
 {% block title %}Todos{% endblock %}
 
 {% macro page_link(page, text) %}
-    <a href="{{url_for(request.endpoint, page=page, type_id=protocoltype_id, search=search_term)}}">{{text}}</a>
+    <a href="{{url_for(request.endpoint, page=page, protocoltype=protocoltype_id, search=search_term)}}">{{text}}</a>
 {% endmacro %}
 
 {% block content %}
 <div class="container">
-    {{render_form(search_form, class_="form-inline", labels_visible=False)}}
+    {{render_form(search_form, class_="form-inline", action_url=url_for("list_todos"), action_text="Suchen", labels_visible=False, method="GET")}}
     {{render_table(todos_table)}}
     <div class="centered">
         {% if page > page_diff %}
