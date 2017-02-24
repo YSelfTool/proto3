@@ -57,3 +57,7 @@ class ProtocolForm(FlaskForm):
     participants = StringField("Anwesende")
     done = BooleanField("Fertig")
 
+class TopForm(FlaskForm):
+    name = StringField("TOP", validators=[InputRequired("Du musst den Namen des TOPs angeben.")])
+    number = IntegerField("Sortierung", validators=[InputRequired("Du musst eine Sortierung in der Reihenfolge angebene.")])
+

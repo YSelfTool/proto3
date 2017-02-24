@@ -2,10 +2,16 @@
 {% from "macros.html" import render_table, render_form %}
 {% block title %}Protokoll{% endblock %}
 
+{% set loggedin = check_login() %}
+{% set user = current_user() %}
+{% set has_public_view_right = protocol.protocoltype.has_public_view_right(user) %}
+{% set has_private_view_right = protocol.protocoltype.has_private_view_right(user) %}
+{% set has_modify_right = protocol.protocoltype.has_modify_right(user) %}
+
 {% block content %}
 <div class="container">
     <div class="btn-group">
-        {% if protocol.protocoltype.has_modify_right(current_user()) %}
+        {% if has_modify_right %}
             <a class="btn {% if protocol.source is none %}btn-primary{% else %}btn-default{% endif %}" href="{{url_for("etherpull_protocol", protocol_id=protocol.id)}}">From etherpad</a>
             {% if protocol.source is not none %}
                 <a class="btn btn-primary" href="{{url_for("get_protocol_source", protocol_id=protocol.id)}}">Download Quelltext</a>
@@ -39,26 +45,8 @@
                 {% if protocol.date is not none %}<p><strong>Geplant:</strong> {{protocol.date|datify_long}}{% endif %}</p>
             {% endif %}
 
-            <h3>Tagesordnung</h3>
-            <ul>
-            {% if not protocol.has_nonplanned_tops() %}
-                {% for default_top in protocol.protocoltype.default_tops %}
-                    {% if not default_top.is_at_end() %}
-                        <li>{{default_top.name}}</li>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-            {% for top in protocol.tops %}
-                <li>{{top.name}}</li>
-            {% endfor %}
-            {% if not protocol.has_nonplanned_tops() %}
-                {% for default_top in protocol.protocoltype.default_tops %}
-                    {% if default_top.is_at_end() %}
-                        <li>{{default_top.name}}</li>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-            </ul>
+            <h3>Tagesordnung{% if has_modify_right and not protocol.has_nonplanned_tops() %} <a href="{{url_for("new_top", protocol_id=protocol.id)}}">Top hinzufügen</a>{% endif %}</h3>
+            {% include "protocol-tops-include.html" %}
 
             {% if protocol.is_done() %}
             <h3>Beschlüsse</h3>
@@ -82,7 +70,7 @@
                     {% endif %}
                 </ul>
             {% endif %}
-            {% if protocol.protocoltype.has_modify_right(current_user()) %}
+            {% if has_modify_right %}
                 {% if protocol.errors|length > 0 %}
                     {{render_table(errors_table)}}
                 {% endif %}
@@ -90,9 +78,11 @@
             {% if protocol.documents|length > 0 %}
                 {{render_table(documents_table)}}
             {% else %}
-                <h3>Hochladen</h3>
+                {% if has_modify_right %}
+                    <h3>Hochladen</h3>
+                {% endif %}
             {% endif %}
-            {% if protocol.protocoltype.has_modify_right(current_user()) %}
+            {% if has_modify_right %}
             {{render_form(source_upload_form, action_url=url_for("upload_source_to_known_protocol", protocol_id=protocol.id, next=url_for("show_protocol", protocol_id=protocol.id)), action_text="Hochladen", enctype="multipart/form-data")}}
             {{render_form(document_upload_form, action_url=url_for("upload_document", protocol_id=protocol.id, next=url_for("show_protocol", protocol_id=protocol.id)), action_text="Hochladen", enctype="multipart/form-data")}}
             {% endif %}

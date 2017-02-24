@@ -15,9 +15,9 @@ from datetime import datetime
 
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required
-from utils import is_past, mail_manager, url_manager
+from utils import is_past, mail_manager, url_manager, get_first_unused_int
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable
 
 app = Flask(__name__)
@@ -188,7 +188,6 @@ def delete_reminder(type_id, reminder_id):
     db.session.commit()
     return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
 
-
 @app.route("/type/tops/new/<int:type_id>", methods=["GET", "POST"])
 @login_required
 def new_default_top(type_id):
@@ -265,8 +264,11 @@ def move_default_top(type_id, top_id, diff):
     if default_top is None or default_top.protocoltype != protocoltype:
         flash("Invalider Standard-TOP.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
-    default_top.number += int(diff)
-    db.session.commit()
+    try:
+        default_top.number += int(diff)
+        db.session.commit()
+    except ValueError:
+        flash("Die angegebene Differenz ist keine Zahl.", "alert-error")
     return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
 
 
@@ -425,9 +427,6 @@ def upload_new_protocol():
                     tasks.parse_protocol(protocol)
                     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     return redirect(request.args.get("fail") or url_for("new_protocol"))
-        
-    
-
 
 @app.route("/protocol/source/<int:protocol_id>")
 @login_required
@@ -451,6 +450,73 @@ def update_protocol(protocol_id):
     upload_form = KnownProtocolSourceUploadForm()
     edit_form = ProtocolForm(obj=protocol)
     return render_template("protocol-update.html", upload_form=upload_form, edit_form=edit_form, protocol=protocol)
+
+@app.route("/protocol/tops/new/<int:protocol_id>", methods=["GET", "POST"])
+@login_required
+def new_top(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    form = TopForm()
+    if form.validate_on_submit():
+        top = TOP(protocol_id=protocol.id, name=form.name.data, number=form.number.data, planned=True)
+        db.session.add(top)
+        db.session.commit()
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    else:
+        print(form.number.data)
+        current_numbers = list(map(lambda t: t.number, protocol.tops))
+        suggested_number = get_first_unused_int(current_numbers)
+        form.number.data = suggested_number
+    return render_template("top-new.html", form=form, protocol=protocol)
+
+@app.route("/protocol/top/edit/<int:top_id>", methods=["GET", "POST"])
+@login_required
+def edit_top(top_id):
+    user = current_user()
+    top = TOP.query.filter_by(id=top_id).first()
+    if top is None or not top.protocol.protocoltype.has_modify_right(user):
+        flash("Invalider TOP oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    form = TopForm(obj=top)
+    if form.validate_on_submit():
+        form.populate_obj(top)
+        db.session.commit()
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=top.protocol.id))
+    return render_template("top-edit.html", form=form, top=top)
+
+@app.route("/protocol/top/delete/<int:top_id>")
+@login_required
+def delete_top(top_id):
+    user = current_user()
+    top = TOP.query.filter_by(id=top_id).first()
+    if top is None or not top.protocol.protocoltype.has_modify_right(user):
+        flash("Invalider TOP oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    name = top.name
+    protocol_id = top.protocol.id
+    db.session.delete(top)
+    db.session.commit()
+    flash("Der TOP {} wurde gelöscht.".format(name), "alert-success")
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
+
+@app.route("/protocol/top/move/<int:top_id>/<diff>")
+@login_required
+def move_top(top_id, diff):
+    user = current_user()
+    top = TOP.query.filter_by(id=top_id).first()
+    if top is None or not top.protocol.protocoltype.has_modify_right(user):
+        flash("Invalider TOP oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    try:
+        top.number += int(diff)
+        db.session.commit()
+    except ValueError:
+        flash("Die angegebene Differenz ist keine Zahl.", "alert-error")
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=top.protocol.id))
+        
 
 @app.route("/todos/list")
 def list_todos():

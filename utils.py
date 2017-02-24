@@ -90,3 +90,13 @@ class MailManager:
         return True
 
 mail_manager = MailManager(config)
+
+def get_first_unused_int(numbers):
+    positive_numbers = [number for number in numbers if number >= 0]
+    if len(positive_numbers) == 0:
+        return 0
+    highest = max(positive_numbers)
+    for given, linear in zip(positive_numbers, range(highest+1)):
+        if linear < given:
+            return linear
+    return highest + 1
