@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField, FileField, DateTimeField
-from wtforms.validators import InputRequired
+from wtforms.validators import InputRequired, Optional
 
 class LoginForm(FlaskForm):
     username = StringField("Benutzer", validators=[InputRequired("Bitte gib deinen Benutzernamen ein.")])
@@ -50,8 +50,8 @@ class NewProtocolSourceUploadForm(FlaskForm):
 
 class ProtocolForm(FlaskForm):
     date = DateField("Datum", validators=[InputRequired("Bitte gib das Datum des Protkolls an.")], format="%d.%m.%Y")
-    start_time = DateTimeField("Beginn", format="%H:%M")
-    end_time = DateTimeField("Ende", format="%H:%M")
+    start_time = DateTimeField("Beginn", format="%H:%M", validators=[Optional()])
+    end_time = DateTimeField("Ende", format="%H:%M", validators=[Optional()])
     location = StringField("Ort")
     author = StringField("Protokollant")
     participants = StringField("Anwesende")

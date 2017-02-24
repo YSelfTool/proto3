@@ -9,10 +9,10 @@
     {% for top in protocol.tops %}
         <li>
             {{top.name}}
-            {% if has_private_view_right %}
+            {% if not protocol.is_done() and has_private_view_right %}
                 ({{top.number}})
             {% endif %}
-            {% if has_modify_right %}
+            {% if not protocol.is_done() and has_modify_right %}
                 <a href="{{url_for('edit_top', top_id=top.id)}}">Ändern</a>
                 <a href="{{url_for('move_top', top_id=top.id, diff=1)}}">Runter</a>
                 <a href="{{url_for('move_top', top_id=top.id, diff=-1)}}">Hoch</a>

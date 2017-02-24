@@ -304,26 +304,11 @@ def new_protocol():
         protocol = Protocol(protocoltype.id, form.date.data)
         db.session.add(protocol)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("list_protocols"))
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     type_id = request.args.get("type_id")
     if type_id is not None:
         form.protocoltype.data = type_id
     return render_template("protocol-new.html", form=form, upload_form=upload_form, protocoltypes=protocoltypes)
-
-@app.route("/protocol/edit/<int:protocol_id>", methods=["POST"])
-@login_required
-def edit_protocol(protocol_id):
-    user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Protokoll oder fehlende Zugriffsrechte.", "alert-error")
-        return redirect(request.args.get("next") or url_for("list_protocols"))
-    form = ProtocolForm(obj=protocol)
-    if form.validate_on_submit():
-        form.populate_obj(protocol)
-        db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
-    return redirect(request.args.get("fail") or url_for("update_protocol", protocol_id=protocol.id))
 
 @app.route("/protocol/show/<int:protocol_id>")
 def show_protocol(protocol_id):
@@ -439,7 +424,18 @@ def get_protocol_source(protocol_id):
     file_like = BytesIO(protocol.source.encode("utf-8"))
     return send_file(file_like, cache_timeout=1, as_attachment=True, attachment_filename="{}.txt".format(protocol.get_identifier()))
 
-@app.route("/protocol/update/<int:protocol_id>")
+@app.route("/protocol/template/<int:protocol_id>")
+@login_required
+def get_protocol_template(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    file_like = BytesIO(protocol.get_template().encode("utf-8"))
+    return send_file(file_like, cache_timeout=1, as_attachment=True, attachment_filename="{}-template.txt".format(protocol.get_identifier()))
+
+@app.route("/protocol/update/<int:protocol_id>", methods=["GET", "POST"])
 @login_required
 def update_protocol(protocol_id):
     user = current_user()
@@ -449,6 +445,10 @@ def update_protocol(protocol_id):
         return redirect(request.args.get("next") or url_for("index"))
     upload_form = KnownProtocolSourceUploadForm()
     edit_form = ProtocolForm(obj=protocol)
+    if edit_form.validate_on_submit():
+        edit_form.populate_obj(protocol)
+        db.session.commit()
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     return render_template("protocol-update.html", upload_form=upload_form, edit_form=edit_form, protocol=protocol)
 
 @app.route("/protocol/tops/new/<int:protocol_id>", methods=["GET", "POST"])

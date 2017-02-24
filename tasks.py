@@ -121,9 +121,9 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 who = todo_tag.values[0]
                 what = todo_tag.values[1]
                 todo = None
+                field_id = None
                 for other_field in todo_tag.values[2:]:
                     if other_field.startswith(ID_FIELD_BEGINNING):
-                        field_id = 0
                         try:
                             field_id = int(other_field[len(ID_FIELD_BEGINNING):])
                         except ValueError:
@@ -133,10 +133,27 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                             db.session.add(error)
                             db.session.commit()
                             return
-                        todo = Todo.query.filter_by(id=field_id).first()
+                        todo = Todo.query.filter_by(number=field_id).first()
+                who = who.strip()
+                what = what.strip()
                 if todo is None:
-                    todo = Todo(who=who, description=what, tags="", done=False)
-                    db.session.add(todo)
+                    if field_id is not None:
+                        candidate = Todo.query.filter_by(who=who, description=what, number=None).first()
+                        if candidate is None:
+                            candidate = Todo.query.filter_by(description=what, number=None).first()
+                        if candidate is not None:
+                            candidate.number = field_id
+                            todo = candidate
+                        else:
+                            todo = Todo(who=who, description=what, tags="", done=False)
+                            todo.number = field_id
+                    else:
+                        candidate = Todo.query.filter_by(who=who, description=what).first()
+                        if candidate is not None:
+                            todo = candidate
+                        else:
+                            todo = Todo(who=who, description=what, tags="", done=False)
+                            db.session.add(todo)
                 todo.protocols.append(protocol)
                 todo_tags_internal = todo.tags.split(";")
                 for other_field in todo_tag.values[2:]:

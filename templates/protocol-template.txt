@@ -1,0 +1,40 @@
+#Datum;{{protocol.date|datify}}
+#Anwesende;
+#Beginn;
+#Ende;
+#Autor;
+#Ort;
+
+{% macro render_top(top) %}
+{TOP {{top.name}}
+            {% if top.name == "Todos" %}
+                {% if protocol.todos|length > 0 %}
+                    {% for todo in protocol.todos %}
+    [todo;{{todo.who}};{{todo.description}};id {{todo.get_number()}}];
+                    {% endfor %}
+                {% else %}
+
+                {% endif %}
+            {% else %}
+
+            {% endif %}
+}
+{% endmacro -%}
+
+{% if not protocol.has_nonplanned_tops() %}
+    {% for default_top in protocol.protocoltype.default_tops %}
+        {% if not default_top.is_at_end() %}
+            {{-render_top(default_top)}}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+{% for top in protocol.tops %}
+    {{-render_top(top)}}
+{% endfor %}
+{% if not protocol.has_nonplanned_tops() %}
+    {% for default_top in protocol.protocoltype.default_tops %}
+        {% if default_top.is_at_end() %}
+            {{-render_top(default_top)}}
+        {% endif %}
+    {% endfor %}
+{% endif %}

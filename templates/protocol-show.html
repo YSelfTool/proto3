@@ -12,11 +12,14 @@
 <div class="container">
     <div class="btn-group">
         {% if has_modify_right %}
-            <a class="btn {% if protocol.source is none %}btn-primary{% else %}btn-default{% endif %}" href="{{url_for("etherpull_protocol", protocol_id=protocol.id)}}">From etherpad</a>
+            <a class="btn {% if protocol.source is none %}btn-primary{% else %}btn-default{% endif %}" href="{{url_for("etherpull_protocol", protocol_id=protocol.id)}}">Aus Etherpad</a>
             {% if protocol.source is not none %}
                 <a class="btn btn-primary" href="{{url_for("get_protocol_source", protocol_id=protocol.id)}}">Download Quelltext</a>
             {% endif %} 
             <a class="btn {% if protocol.is_done() %}btn-success{% else %}btn-default{% endif %}" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Protokoll editieren</a>
+            {% if not protocol.is_done() %}
+                <a class="btn btn-default" href="{{url_for("get_protocol_template", protocol_id=protocol.id)}}">Vorlage herunterladen</a>
+            {% endif %}
             <a class="btn btn-default" href="{{protocol.get_etherpad_link()}}" target="_blank">Etherpad</a>
             <a class="btn btn-default" href="{{url_for("show_type", type_id=protocol.protocoltype.id)}}">Typ</a>
             <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_identifier()}} löschen möchtest?');">Löschen</a>

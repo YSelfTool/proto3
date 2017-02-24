@@ -102,17 +102,17 @@ class Protocol(db.Model):
         return Error(self.id, action, name, now, description)
 
     def fill_from_remarks(self, remarks):
-        new_date = datetime.strptime(remarks["Datum"].value, "%d.%m.%Y").date()
+        new_date = datetime.strptime(remarks["Datum"].value.strip(), "%d.%m.%Y").date()
         if self.date is not None:
             if new_date != self.date:
                 raise DateNotMatchingException(original_date=self.date, protocol_date=new_date)
         else:
             self.date = new_date
-        self.start_time = datetime.strptime(remarks["Beginn"].value, "%H:%M").time()
-        self.end_time = datetime.strptime(remarks["Ende"].value, "%H:%M").time()
-        self.author = remarks["Autor"].value
-        self.participants = remarks["Anwesende"].value
-        self.location = remarks["Ort"].value
+        self.start_time = datetime.strptime(remarks["Beginn"].value.strip(), "%H:%M").time()
+        self.end_time = datetime.strptime(remarks["Ende"].value.strip(), "%H:%M").time()
+        self.author = remarks["Autor"].value.strip()
+        self.participants = remarks["Anwesende"].value.strip()
+        self.location = remarks["Ort"].value.strip()
 
     def is_done(self):
         return self.done
@@ -159,6 +159,9 @@ class Protocol(db.Model):
         elif len(public_candidates) > 0:
             return public_candidates[0]
         return None
+
+    def get_template(self):
+        return render_template("protocol-template.txt", protocol=self)
 
     def delete_orphan_todos(self):
         orphan_todos = [
@@ -244,22 +247,28 @@ def on_document_delete(mapper, connection, document):
 class Todo(db.Model):
     __tablename__ = "todos"
     id = db.Column(db.Integer, primary_key=True)
+    number = db.Column(db.Integer)
     who = db.Column(db.String)
     description = db.Column(db.String)
     tags = db.Column(db.String)
     done = db.Column(db.Boolean)
+    is_id_fixed = db.Column(db.Boolean, default=False)
 
     protocols = relationship("Protocol", secondary="todoprotocolassociations", backref="todos")
 
-    def __init__(self, who, description, tags, done):
+    def __init__(self, who, description, tags, done, number=None):
         self.who = who
         self.description = description
         self.tags = tags
         self.done = done
+        self.number = number
 
     def __repr__(self):
-        return "<Todo(id={}, who={}, description={}, tags={}, done={})>".format(
-            self.id, self.who, self.description, self.tags, self.done)
+        return "<Todo(id={}, number={}, who={}, description={}, tags={}, done={})>".format(
+            self.id, self.number, self.who, self.description, self.tags, self.done)
+
+    def get_id(self):
+        return self.number if self.number is not None else self.id
 
     def get_first_protocol(self):
         candidates = sorted(self.protocols, key=lambda p: p.date)

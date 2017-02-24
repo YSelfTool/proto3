@@ -177,11 +177,12 @@ class TodosTable(Table):
         super().__init__("Todos", todos)
 
     def headers(self):
-        return ["Status", "Sitzung", "Name", "Aufgabe"]
+        return ["ID", "Status", "Sitzung", "Name", "Aufgabe"]
 
     def row(self, todo):
         protocol = todo.get_first_protocol()
         return [
+            todo.get_id(),
             todo.get_state(),
             Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier()) if protocol is not None else "",
             todo.who,
