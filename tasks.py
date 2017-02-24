@@ -145,14 +145,14 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                             candidate.number = field_id
                             todo = candidate
                         else:
-                            todo = Todo(who=who, description=what, tags="", done=False)
+                            todo = Todo(type_id=protocol.protocoltype.id, who=who, description=what, tags="", done=False)
                             todo.number = field_id
                     else:
                         candidate = Todo.query.filter_by(who=who, description=what).first()
                         if candidate is not None:
                             todo = candidate
                         else:
-                            todo = Todo(who=who, description=what, tags="", done=False)
+                            todo = Todo(type_id=protocol.protocoltype.id, who=who, description=what, tags="", done=False)
                             db.session.add(todo)
                 todo.protocols.append(protocol)
                 todo_tags_internal = todo.tags.split(";")

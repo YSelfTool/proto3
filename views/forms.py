@@ -61,3 +61,12 @@ class TopForm(FlaskForm):
     name = StringField("TOP", validators=[InputRequired("Du musst den Namen des TOPs angeben.")])
     number = IntegerField("Sortierung", validators=[InputRequired("Du musst eine Sortierung in der Reihenfolge angebene.")])
 
+class SearchForm(FlaskForm):
+    search = StringField("Suchbegriff")
+    protocoltype = SelectField("Typ", choices=[], coerce=int)
+
+    def __init__(self, protocoltypes, **kwargs):
+        super().__init__(**kwargs)
+        choices = [(protocoltype.id, protocoltype.short_name) for protocoltype in protocoltypes]
+        choices.insert(0, (-1, ""))
+        self.protocoltype.choices = choices

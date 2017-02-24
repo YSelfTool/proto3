@@ -1,9 +1,29 @@
 {% extends "layout.html" %}
-{% from "macros.html" import render_table %}
+{% from "macros.html" import render_table, render_form %}
 {% block title %}Todos{% endblock %}
+
+{% macro page_link(page, text) %}
+    <a href="{{url_for(request.endpoint, page=page, type_id=protocoltype_id, search=search_term)}}">{{text}}</a>
+{% endmacro %}
 
 {% block content %}
 <div class="container">
+    {{render_form(search_form, class_="form-inline", labels_visible=False)}}
     {{render_table(todos_table)}}
+    <div class="centered">
+        {% if page > page_diff %}
+            {{page_link(0, "<<")}}
+        {% endif %}
+        {% for p in range(max(0, page - page_diff), min(page_count, page + page_diff)) %}
+            {% if p != page %}
+                {{page_link(p, p + 1)}}
+            {% else %}
+                Seite {{p + 1}}
+            {% endif %}
+        {% endfor %}
+        {% if page < page_count - page_diff %}
+            {{page_link(page_count - 1, ">>")}}
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

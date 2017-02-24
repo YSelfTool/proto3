@@ -29,6 +29,7 @@ class ProtocolType(db.Model):
     protocols = relationship("Protocol", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="Protocol.id")
     default_tops = relationship("DefaultTOP", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="DefaultTOP.number")
     reminders = relationship("MeetingReminder", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="MeetingReminder.days_before")
+    todos = relationship("Todo", backref=backref("protocoltype"), order_by="Todo.id")
 
     def __init__(self, name, short_name, organization,
         is_public, private_group, public_group, private_mail, public_mail):
@@ -62,6 +63,14 @@ class ProtocolType(db.Model):
 
     def has_modify_right(self, user):
         return self.has_private_view_right(user)
+
+    @staticmethod
+    def get_available_protocoltypes(user):
+        return [
+            protocoltype for protocoltype in ProtocolType.query.all()
+            if protocoltype.has_modify_right(user)
+        ]
+
 
 
 class Protocol(db.Model):
@@ -244,6 +253,7 @@ def on_document_delete(mapper, connection, document):
 class Todo(db.Model):
     __tablename__ = "todos"
     id = db.Column(db.Integer, primary_key=True)
+    protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     number = db.Column(db.Integer)
     who = db.Column(db.String)
     description = db.Column(db.String)
@@ -253,7 +263,8 @@ class Todo(db.Model):
 
     protocols = relationship("Protocol", secondary="todoprotocolassociations", backref="todos")
 
-    def __init__(self, who, description, tags, done, number=None):
+    def __init__(self, type_id, who, description, tags, done, number=None):
+        self.protocoltype_id = type_id
         self.who = who
         self.description = description
         self.tags = tags

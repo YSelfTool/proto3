@@ -23,11 +23,20 @@ h3 > a {
     font-size: 18px;
 }
 
-form {
+form:not(.form-inline) {
     max-width: 350px;
     margin: 0 auto;
 }
 
 input[type="file"] {
     padding: 0;
+}
+
+.centered {
+    margin: 0 auto;
+    max-width: 300px;
+}
+
+.centered > a {
+    margin: 10px;
 }

@@ -11,12 +11,13 @@ from celery import Celery
 from io import StringIO, BytesIO
 import os
 from datetime import datetime
+import math
 
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable
 
 app = Flask(__name__)
@@ -51,6 +52,9 @@ import tasks
 app.jinja_env.globals.update(check_login=check_login)
 app.jinja_env.globals.update(current_user=current_user)
 app.jinja_env.globals.update(zip=zip)
+app.jinja_env.globals.update(min=min)
+app.jinja_env.globals.update(max=max)
+app.jinja_env.globals.update(dir=dir)
 
 # blueprints here
 
@@ -289,10 +293,7 @@ def list_protocols():
 @login_required
 def new_protocol():
     user = current_user()
-    protocoltypes = [
-        protocoltype for protocoltype in ProtocolType.query.all()
-        if protocoltype.has_modify_right(user)
-    ]
+    protocoltypes = ProtocolType.get_available_protocoltypes(user)
     form = NewProtocolForm(protocoltypes)
     upload_form = NewProtocolSourceUploadForm(protocoltypes)
     if form.validate_on_submit():
@@ -527,16 +528,57 @@ def move_top(top_id, diff):
     except ValueError:
         flash("Die angegebene Differenz ist keine Zahl.", "alert-error")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=top.protocol.id))
-        
 
-@app.route("/todos/list")
+def _get_page():
+    try:
+        page = request.args.get("page")
+        if page is None:
+            return 0
+        return int(page)
+    except ValueError:
+        return 0
+
+@app.route("/todos/list", methods=["GET", "POST"])
 def list_todos():
     is_logged_in = check_login()
     user = current_user()
-    todos = Todo.query.all()
+    protocoltype = None
+    protocoltype_id = None
+    try:
+        protocoltype_id = int(request.args.get("type_id"))
+    except (ValueError, TypeError):
+        pass
+    search_term = request.args.get("search")
+    protocoltypes = ProtocolType.get_available_protocoltypes(user)
+    search_form = SearchForm(protocoltypes)
+    if search_form.validate_on_submit():
+        if search_form.search.data is not None:
+            search_term = search_form.search.data.strip()
+        if search_form.protocoltype.data is not None:
+            protocoltype_id = search_form.protocoltype.data
+    else:
+        if protocoltype_id is not None:
+            search_form.protocoltype.data = protocoltype_id
+        if search_term is not None:
+            search_form.search.data = search_term
+    if protocoltype_id is not None:
+        protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
+    base_query = Todo.query
+    if protocoltype_id is not None and protocoltype_id != -1:
+        base_query = base_query.filter(ProtocolType.id == protocoltype_id)
+    print(search_term)
+    if search_term is not None and len(search_term.strip()) > 0:
+        base_query = base_query.filter(Todo.description.match("%{}%".format(search_term)))
+    page = _get_page()
+    page_count = int(math.ceil(base_query.count() / config.PAGE_LENGTH))
+    if page >= page_count:
+        page = 0
+    begin_index = page * config.PAGE_LENGTH
+    end_index = (page + 1) * config.PAGE_LENGTH
+    todos = base_query.slice(begin_index, end_index).all()
     # TODO: paginate and search
     todos_table = TodosTable(todos)
-    return render_template("todos-list.html", todos=todos, todos_table=todos_table)
+    return render_template("todos-list.html", todos=todos, todos_table=todos_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term)
 
 @app.route("/document/download/<int:document_id>")
 def download_document(document_id):
