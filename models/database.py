@@ -152,7 +152,6 @@ class Protocol(db.Model):
             if document.is_compiled
                and (private is None or document.is_private == private) 
         ]
-        print(candidates)
         private_candidates = [document for document in candidates if document.is_private]
         public_candidates = [document for document in candidates if not document.is_private]
         if len(private_candidates) > 0:
@@ -164,7 +163,7 @@ class Protocol(db.Model):
     def delete_orphan_todos(self):
         orphan_todos = [
             todo for todo in self.todos
-            if len(todo.protocols) == 1
+            if len(todo.protocols) <= 1
         ]
         for todo in orphan_todos:
             self.todos.remove(todo)

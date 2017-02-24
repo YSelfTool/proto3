@@ -10,9 +10,7 @@
             {% if protocol.source is not none %}
                 <a class="btn btn-primary" href="{{url_for("get_protocol_source", protocol_id=protocol.id)}}">Download Quelltext</a>
             {% endif %} 
-            {% if protocol.is_done() %}
-                <a class="btn btn-success" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Protokoll editieren</a>
-            {% endif %}
+            <a class="btn {% if protocol.is_done() %}btn-success{% else %}btn-default{% endif %}" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Protokoll editieren</a>
             <a class="btn btn-default" href="{{protocol.get_etherpad_link()}}" target="_blank">Etherpad</a>
             <a class="btn btn-default" href="{{url_for("show_type", type_id=protocol.protocoltype.id)}}">Typ</a>
             <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_identifier()}} löschen möchtest?');">Löschen</a>
@@ -20,7 +18,7 @@
     </div>
     <div class="row">
         <div id="left-column" class="col-lg-6">
-            <h2>Protokoll: {{protocol.protocoltype.name}} vom {{protocol.date|datify}}</h2>
+            <h2>Protokoll: {{protocol.protocoltype.name}} {% if protocol.date is not none %}vom {{protocol.date|datify}}{% endif %}</h2>
             {% if protocol.is_done() %}
                 {% if protocol.date is not none %}
                     <p><strong>Datum:</strong> {{protocol.date|datify_long}}</p>
@@ -38,7 +36,7 @@
                     <p><strong>Anwesende:</strong> {{protocol.participants}}</p>
                 {% endif %}
             {% else %}
-                <p><strong>Geplant:</strong> {{protocol.date|datify_long}}</p>
+                {% if protocol.date is not none %}<p><strong>Geplant:</strong> {{protocol.date|datify_long}}{% endif %}</p>
             {% endif %}
 
             <h3>Tagesordnung</h3>

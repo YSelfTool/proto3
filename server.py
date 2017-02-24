@@ -17,7 +17,7 @@ import config
 from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required
 from utils import is_past, mail_manager, url_manager
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable
 
 app = Flask(__name__)
@@ -308,6 +308,21 @@ def new_protocol():
         form.protocoltype.data = type_id
     return render_template("protocol-new.html", form=form, upload_form=upload_form, protocoltypes=protocoltypes)
 
+@app.route("/protocol/edit/<int:protocol_id>", methods=["POST"])
+@login_required
+def edit_protocol(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder fehlende Zugriffsrechte.", "alert-error")
+        return redirect(request.args.get("next") or url_for("list_protocols"))
+    form = ProtocolForm(obj=protocol)
+    if form.validate_on_submit():
+        form.populate_obj(protocol)
+        db.session.commit()
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    return redirect(request.args.get("fail") or url_for("update_protocol", protocol_id=protocol.id))
+
 @app.route("/protocol/show/<int:protocol_id>")
 def show_protocol(protocol_id):
     user = current_user()
@@ -335,6 +350,7 @@ def delete_protocol(protocol_id):
         flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     name = protocol.get_identifier()
+    protocol.delete_orphan_todos()
     db.session.delete(protocol)
     db.session.commit()
     flash("Protokoll {} ist gelöscht.".format(name), "alert-success")
@@ -394,7 +410,6 @@ def upload_new_protocol():
         if form.source.data is None:
             flash("Es wurde keine Datei ausgewählt.", "alert-error")
         else:
-            print(form.source.data)
             file = form.source.data
             if file.filename == "":
                 flash("Es wurde keine Datei ausgewählt.", "alert-error")
@@ -434,7 +449,8 @@ def update_protocol(protocol_id):
         flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     upload_form = KnownProtocolSourceUploadForm()
-    return render_template("protocol-update.html", upload_form=upload_form, protocol=protocol)
+    edit_form = ProtocolForm(obj=protocol)
+    return render_template("protocol-update.html", upload_form=upload_form, edit_form=edit_form, protocol=protocol)
 
 @app.route("/todos/list")
 def list_todos():

@@ -74,7 +74,7 @@ def date_filter_long(date):
 def date_filter_short(date):
     return date.strftime("%d.%m.%Y")
 def time_filter(time):
-    return time.strftime("%H:%m")
+    return time.strftime("%H:%M")
 
 def class_filter(obj):
     return obj.__class__.__name__

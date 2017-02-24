@@ -6,6 +6,9 @@
 <div class="container">
     <div class="row">
         <div id="left-column" class="col-lg-6">
+            {{render_form(edit_form, action_url=url_for("edit_protocol", protocol_id=protocol.id), action_text="Ändern")}}
+        </div>
+        <div id="right-column" class="col-lg-6">
             <h3>Protokoll herunterladen</h3>
             <div class="btn-group">
                 {% if protocol.source is not none %}
@@ -16,8 +19,6 @@
                     <a class="btn btn-success" href="{{url_for("download_document", document_id=protocol.get_compiled_document().id)}}">Download PDF</a>
                 {% endif %}
             </div>
-        </div>
-        <div id="right-column" class="col-lg-6">
             <h3>Neue Version hochladen</h3>
             {{render_form(upload_form, action_url=url_for("upload_source_to_known_protocol", protocol_id=protocol.id), action_text="Hochladen", enctype="multipart/form-data")}}
         </div>
