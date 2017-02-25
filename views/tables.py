@@ -188,6 +188,19 @@ class TodosTable(Table):
             todo.description
         ]
 
+class DecisionsTable(Table):
+    def __init__(self, decisions):
+        super().__init__("Beschlüsse", decisions)
+
+    def headers(self):
+        return ["Sitzung", "Beschluss"]
+
+    def row(self, decision):
+        return [
+            Table.link(url_for("show_protocol", protocol_id=decision.protocol.id), decision.protocol.get_identifier()),
+            decision.content
+        ]
+
 class DocumentsTable(Table):
     def __init__(self, documents):
         super().__init__("Anhang", documents)

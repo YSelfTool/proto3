@@ -18,7 +18,7 @@ from shared import db, date_filter, datetime_filter, date_filter_long, time_filt
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm
-from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable
+from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -293,7 +293,7 @@ def list_protocols():
 @login_required
 def new_protocol():
     user = current_user()
-    protocoltypes = ProtocolType.get_available_protocoltypes(user)
+    protocoltypes = ProtocolType.get_modifiable_protocoltypes(user)
     form = NewProtocolForm(protocoltypes)
     upload_form = NewProtocolSourceUploadForm(protocoltypes)
     if form.validate_on_submit():
@@ -549,29 +549,79 @@ def list_todos():
     except (ValueError, TypeError):
         pass
     search_term = request.args.get("search")
-    protocoltypes = ProtocolType.get_available_protocoltypes(user)
+    protocoltypes = ProtocolType.get_public_protocoltypes(user)
     search_form = SearchForm(protocoltypes)
     if protocoltype_id is not None:
-        print(protocoltype_id)
         search_form.protocoltype.data = protocoltype_id
         protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
     if search_term is not None:
         search_form.search.data = search_term
-    base_query = Todo.query.order_by(Todo.done).order_by(Todo.number.desc())
+    todos = [
+        todo for todo in Todo.query.all()
+        if todo.protocoltype.has_public_view_right(user)
+    ]
     if protocoltype_id is not None and protocoltype_id != -1:
-        base_query = base_query.filter(ProtocolType.id == protocoltype_id)
+        todos = [
+            todo for todo in todos
+            if todo.protocoltype.id == protocoltype_id
+        ]
     if search_term is not None and len(search_term.strip()) > 0:
-        base_query = base_query.filter(Todo.description.match("%{}%".format(search_term)))
+        todos = [
+            todo for todo in todos
+            if search_term.lower() in todo.description.lower()
+        ]
     page = _get_page()
-    page_count = int(math.ceil(base_query.count() / config.PAGE_LENGTH))
+    page_count = int(math.ceil(len(todos) / config.PAGE_LENGTH))
     if page >= page_count:
         page = 0
     begin_index = page * config.PAGE_LENGTH
     end_index = (page + 1) * config.PAGE_LENGTH
-    todos = base_query.slice(begin_index, end_index).all()
-    # TODO: paginate and search
+    todos = todos[begin_index:end_index]
     todos_table = TodosTable(todos)
     return render_template("todos-list.html", todos=todos, todos_table=todos_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term)
+
+@app.route("/decisions/list")
+def list_decisions():
+    is_logged_In = check_login()
+    user = current_user()
+    protocoltype = None
+    protocoltype_id = None
+    try:
+        protocoltype_id = int(request.args.get("protocoltype"))
+    except (ValueError, TypeError):
+        pass
+    search_term = request.args.get("search")
+    protocoltypes = ProtocolType.get_public_protocoltypes(user)
+    search_form = SearchForm(protocoltypes)
+    if protocoltype_id is not None:
+        search_form.protocoltype.data = protocoltype_id
+        protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
+    if search_term is not None:
+        search_form.search.data = search_term
+    decisions = [
+        decision for decision in Decision.query.all()
+        if decision.protocol.protocoltype.has_public_view_right(user)
+    ]
+    if protocoltype_id is not None and protocoltype_id != -1:
+        decisions = [
+            decision for decision in decisions 
+            if decision.protocol.protocoltype.id == protocoltype_id
+        ]
+    if search_term is not None and len(search_term.strip()) > 0:
+        decisions = [
+            decision for decision in decisions
+            if search_term.lower() in decision.content.lower()
+        ]
+    page = _get_page()
+    page_count = int(math.ceil(len(decisions) / config.PAGE_LENGTH))
+    if page >= page_count:
+        page = 0
+    begin_index = page * config.PAGE_LENGTH
+    end_index = (page + 1) * config.PAGE_LENGTH
+    decisions = decisions[begin_index:end_index]
+    decisions_table = DecisionsTable(decisions)
+    return render_template("decisions-list.html", decisions=decisions, decisions_table=decisions_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term)
+
 
 @app.route("/document/download/<int:document_id>")
 def download_document(document_id):

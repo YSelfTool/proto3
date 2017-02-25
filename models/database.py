@@ -11,6 +11,7 @@ import os
 
 from sqlalchemy import event
 from sqlalchemy.orm import relationship, backref, sessionmaker
+from sqlalchemy.ext.hybrid import hybrid_method
 
 import config
 
@@ -52,6 +53,7 @@ class ProtocolType(db.Model):
             return None
         return candidates[0]
 
+    @hybrid_method
     def has_public_view_right(self, user):
         return (self.is_public
             or (user is not None and 
@@ -65,10 +67,24 @@ class ProtocolType(db.Model):
         return self.has_private_view_right(user)
 
     @staticmethod
-    def get_available_protocoltypes(user):
+    def get_modifiable_protocoltypes(user):
         return [
             protocoltype for protocoltype in ProtocolType.query.all()
             if protocoltype.has_modify_right(user)
+        ]
+
+    @staticmethod
+    def get_public_protocoltypes(user):
+        return [
+            protocoltype for protocoltype in ProtocolType.query.all()
+            if protocoltype.has_public_view_right(user)
+        ]
+
+    @staticmethod
+    def get_private_protocoltypes(user):
+        return [
+            protocoltype for protocoltype in ProtocolType.query.all()
+            if protocoltype.has_private_view_right(user)
         ]
 
 
