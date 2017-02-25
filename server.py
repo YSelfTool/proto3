@@ -8,6 +8,7 @@ from flask_script import Manager, prompt
 from flask_migrate import Migrate, MigrateCommand
 #from flask_socketio import SocketIO
 from celery import Celery
+from sqlalchemy import or_, and_
 from io import StringIO, BytesIO
 import os
 from datetime import datetime
@@ -297,24 +298,74 @@ def list_protocols():
     if search_term is not None:
         search_form.search.data = search_term
     protocol_query = Protocol.query
-    if search_term is not None:
-        match_target = Protocol.content_public
-        if protocoltype is not None and protocoltype.has_private_view_right(user):
-            match_target = Protocol.content_private
-        for term in split_terms(search_term):
-            protocol_query = protocol_query.filter(match_target.match("%{}%".format(term)))
+    shall_search = search_term is not None and len(search_term.strip()) > 0
+    search_terms = []
+    if shall_search:
+        search_terms = list(map(str.lower, split_terms(search_term)))
+        for term in search_terms:
+            protocol_query = protocol_query.filter(or_(
+                Protocol.content_public.ilike("%{}%".format(term)),
+                Protocol.content_private.ilike("%{}%".format(term))
+            ))
     protocols = [
         protocol for protocol in protocol_query.all()
         if (not is_logged_in and protocol.protocoltype.is_public)
         or (is_logged_in and (
             protocol.protocoltype.public_group in user.groups
             or protocol.protocoltype.private_group in user.groups))]
+    def _matches_search(content):
+        content = content.lower()
+        for search_term in search_terms:
+            if search_term.lower() not in content:
+                return False
+        return True
+    def _matches_search_lazy(content):
+        content = content.lower()
+        for search_term in search_terms:
+            if search_term.lower() in content:
+                return True
+        return False
+    search_results = {} if shall_search else None
     if protocoltype_id is not None and protocoltype_id != -1:
         protocols = [
             protocol for protocol in protocols
             if protocol.protocoltype.id == protocoltype_id
         ]
-    protocols = sorted(protocols, key=lambda protocol: protocol.date, reverse=True)
+    if shall_search:
+        protocols = [
+            protocol for protocol in protocols
+            if (protocol.protocoltype.has_private_view_right(user)
+                and _matches_search(protocol.content_private))
+            or (protocol.protocoltype.has_public_view_right(user)
+                and _matches_search(protocol.content_public))
+        ]
+        for protocol in protocols:
+            content = protocol.content_private if protocol.protocoltype.has_private_view_right(user) else protocol.content_public
+            lines = content.splitlines()
+            matches = [line for line in lines if _matches_search_lazy(line)]
+            formatted_lines = []
+            for line in matches:
+                parts = []
+                lower_line = line.lower()
+                last_index = 0
+                while last_index < len(line):
+                    index_candidates = list(filter(lambda t: t[0] != -1, 
+                        [(lower_line.find(term, last_index), term) for term in search_terms]))
+                    if len(index_candidates) == 0:
+                        parts.append((line[last_index:], False))
+                        break
+                    else:
+                        new_index, term = min(index_candidates, key=lambda t: t[0])
+                        new_end_index = new_index + len(term)
+                        parts.append((line[last_index:new_index], False))
+                        parts.append((line[new_index:new_end_index], True))
+                        last_index = new_end_index
+                formatted_lines.append("".join([
+                    "<b>{}</b>".format(text) if matched else text
+                    for text, matched in parts
+                ]))
+            search_results[protocol] = "<br />\n".join(formatted_lines)
+        protocols = sorted(protocols, key=lambda protocol: protocol.date, reverse=True)
     page = _get_page()
     page_count = int(math.ceil(len(protocols)) / config.PAGE_LENGTH)
     if page >= page_count:
@@ -322,7 +373,7 @@ def list_protocols():
     begin_index = page * config.PAGE_LENGTH
     end_index = (page + 1) * config.PAGE_LENGTH
     protocols = protocols[begin_index:end_index]
-    protocols_table = ProtocolsTable(protocols)
+    protocols_table = ProtocolsTable(protocols, search_results=search_results)
     return render_template("protocols-list.html", protocols=protocols, protocols_table=protocols_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term)
 
 @app.route("/protocol/new", methods=["GET", "POST"])

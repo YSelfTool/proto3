@@ -48,14 +48,21 @@ class SingleValueTable:
         return [self.row()]
 
 class ProtocolsTable(Table):
-    def __init__(self, protocols):
+    def __init__(self, protocols, search_results=None):
         super().__init__("Protokolle", protocols, newlink=url_for("new_protocol"))
+        self.search_results = search_results
 
     def headers(self):
-        result = ["ID", "Sitzung", "Datum", "Status"]
-        optional_part = ["Typ", "Löschen"]
+        result = ["ID", "Sitzung", "Datum"]
+        state_part = ["Status"]
+        search_part = ["Suchergebnis"]
+        login_part = ["Typ", "Löschen"]
+        if self.search_results is None:
+            result.extend(state_part)
+        else:
+            result.extend(search_part)
         if check_login():
-            result += optional_part
+            result.extend(login_part)
         return result
 
     def row(self, protocol):
@@ -64,8 +71,11 @@ class ProtocolsTable(Table):
             Table.link(url_for("show_protocol", protocol_id=protocol.id), str(protocol.id)),
             Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.protocoltype.name),
             date_filter(protocol.date),
-            "Fertig" if protocol.is_done() else "Geplant"
         ]
+        if self.search_results is None:
+            result.append("Fertig" if protocol.is_done() else "Geplant")
+        elif protocol in self.search_results:
+            result.append(Markup(self.search_results[protocol]))
         if user is not None and protocol.protocoltype.has_private_view_right(user):
             result.append(Table.link(url_for("show_type", type_id=protocol.protocoltype.id), protocol.protocoltype.short_name))
             result.append(Table.link(url_for("delete_protocol", protocol_id=protocol.id), "Löschen", confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?".format(protocol.get_identifier())))
