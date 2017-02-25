@@ -93,7 +93,9 @@ class Protocol(db.Model):
     __tablename__ = "protocols"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
-    source = db.Column(db.String, nullable=True)
+    source = db.Column(db.String)
+    content_public = db.Column(db.String)
+    content_private = db.Column(db.String)
     date = db.Column(db.Date)
     start_time = db.Column(db.Time)
     end_time = db.Column(db.Time)
@@ -107,10 +109,12 @@ class Protocol(db.Model):
     documents = relationship("Document", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Document.is_compiled")
     errors = relationship("Error", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Error.id")
 
-    def __init__(self, protocoltype_id, date, source=None, start_time=None, end_time=None, author=None, participants=None, location=None, done=False):
+    def __init__(self, protocoltype_id, date, source=None, content_public=None, content_private=None, start_time=None, end_time=None, author=None, participants=None, location=None, done=False):
         self.protocoltype_id = protocoltype_id
         self.date = date
         self.source = source
+        self.content_private = content_private
+        self.content_public = content_public
         self.start_time = start_time
         self.end_time = end_time
         self.author = author

@@ -14,7 +14,7 @@ from datetime import datetime
 import math
 
 import config
-from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required
+from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm
@@ -45,6 +45,7 @@ app.jinja_env.filters["datetimify"] = datetime_filter
 app.jinja_env.filters["timify"] = time_filter
 app.jinja_env.filters["datify_long"] = date_filter_long
 app.jinja_env.filters["url_complete"] = url_manager.complete
+app.jinja_env.filters["class"] = class_filter
 app.jinja_env.tests["auth_valid"] = security_manager.check_user
 
 import tasks

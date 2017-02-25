@@ -160,7 +160,7 @@ class Text:
             return escape_tex(self.text)
         elif render_type == RenderType.wikitext:
             return self.text
-        elif render_Type == RenderType.plaintext:
+        elif render_type == RenderType.plaintext:
             return self.text
         else:
             raise _not_implemented(self, render_type)
@@ -195,6 +195,8 @@ class Tag:
             elif self.name == "todo":
                 return self.todo.render_latex(current_protocol=protocol)
             return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(self.values[0]))
+        elif render_type == RenderType.plaintext:
+            return "{}: {}".format(self.name.capitalize(), self.values[0])
         else:
             raise _not_implemented(self, render_type)
 
@@ -331,7 +333,7 @@ class Fork(Element):
             title_line = "{} {}".format("#" * (level + 1), name_line)
             content_parts = []
             for child in self.children:
-                part = child.render(render_Type, show_private, level=level+1, protocol=protocol)
+                part = child.render(render_type, show_private, level=level+1, protocol=protocol)
                 if len(part.strip()) == 0:
                     continue
                 content_parts.append(part)

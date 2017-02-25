@@ -55,9 +55,13 @@
             {% if protocol.is_done() %}
             <h3>Beschlüsse</h3>
             <ul>
-                {% for decision in protocol.decisions %}
-                    <li>{{decision.content}}</li>
-                {% endfor %}
+                {% if protocol.decisions|length > 0 %}
+                    {% for decision in protocol.decisions %}
+                        <li>{{decision.content}}</li>
+                    {% endfor %}
+                {% else %}
+                    <li>Keine Beschlüsse</li>
+                {% endif %}
             </ul>
             {% endif %}
         </div>

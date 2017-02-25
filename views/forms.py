@@ -68,5 +68,5 @@ class SearchForm(FlaskForm):
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
         choices = [(protocoltype.id, protocoltype.short_name) for protocoltype in protocoltypes]
-        choices.insert(0, (-1, ""))
+        choices.insert(0, (-1, "Alle"))
         self.protocoltype.choices = choices

@@ -190,15 +190,23 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 db.session.add(top)
             db.session.commit()
 
-            private_states = [False]
+            render_kwargs = {
+                "protocol": protocol,
+                "tree": tree
+            }
+            privacy_states = [False]
+            content_private = render_template("protocol.txt", render_type=RenderType.plaintext, show_private=True, **render_kwargs)
+            content_public = render_template("protocol.txt", render_type=RenderType.plaintext, show_private=False, **render_kwargs)
+            if content_private != content_public:
+                print("different")
+                privacy_states.append(True)
+            protocol.content_private = content_private
+            protocol.content_public = content_public
 
-            latex_source_private = texenv.get_template("protocol.tex").render(protocol=protocol, tree=tree, show_private=True, render_type=RenderType.latex)
-            latex_source_public = texenv.get_template("protocol.tex").render(protocol=protocol, tree=tree, show_private=False, render_type=RenderType.latex)
-            compile(latex_source_public, protocol, show_private=False)
-            if latex_source_private != latex_source_public:
-                compile(latex_source_private, protocol, show_private=True)
-                # TODO compare something that may actually be equal
-
+            for show_private in privacy_states:
+                latex_source = texenv.get_template("protocol.tex").render(render_type=RenderType.latex, show_private=show_private, **render_kwargs)
+                compile(latex_source, protocol, show_private=show_private)
+                # TODO render and push wiki
             protocol.done = True
             db.session.commit()
 
