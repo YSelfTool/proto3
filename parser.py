@@ -196,6 +196,8 @@ class Tag:
                 return self.todo.render_latex(current_protocol=protocol)
             return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(self.values[0]))
         elif render_type == RenderType.plaintext:
+            if self.name == "url":
+                return self.values[0]
             return "{}: {}".format(self.name.capitalize(), self.values[0])
         elif render_type == RenderType.wikitext:
             if self.name == "url":

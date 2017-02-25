@@ -14,14 +14,14 @@
         {% if page > page_diff %}
             {{page_link(0, "<<")}}
         {% endif %}
-        {% for p in range(max(0, page - page_diff), min(page_count, page + page_diff)) %}
+        {% for p in range(max(0, page - page_diff), min(page_count, page + page_diff + 1)) %}
             {% if p != page %}
                 {{page_link(p, p + 1)}}
             {% else %}
                 Seite {{p + 1}}
             {% endif %}
         {% endfor %}
-        {% if page < page_count - page_diff %}
+        {% if page < page_count - page_diff - 1 %}
             {{page_link(page_count - 1, ">>")}}
         {% endif %}
     </div>

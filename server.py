@@ -15,7 +15,7 @@ import math
 
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter
-from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text
+from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable
@@ -282,15 +282,48 @@ def move_default_top(type_id, top_id, diff):
 def list_protocols():
     is_logged_in = check_login()
     user = current_user()
+    protocoltype = None
+    protocoltype_id = None
+    try:
+        protocoltype_id = int(request.args.get("protocoltype"))
+    except (ValueError, TypeError):
+        pass
+    search_term = request.args.get("search")
+    protocoltypes = ProtocolType.get_public_protocoltypes(user)
+    search_form = SearchForm(protocoltypes)
+    if protocoltype_id is not None:
+        search_form.protocoltype.data = protocoltype_id
+        protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
+    if search_term is not None:
+        search_form.search.data = search_term
+    protocol_query = Protocol.query
+    if search_term is not None:
+        match_target = Protocol.content_public
+        if protocoltype is not None and protocoltype.has_private_view_right(user):
+            match_target = Protocol.content_private
+        for term in split_terms(search_term):
+            protocol_query = protocol_query.filter(match_target.match("%{}%".format(term)))
     protocols = [
-        protocol for protocol in Protocol.query.all()
+        protocol for protocol in protocol_query.all()
         if (not is_logged_in and protocol.protocoltype.is_public)
         or (is_logged_in and (
             protocol.protocoltype.public_group in user.groups
             or protocol.protocoltype.private_group in user.groups))]
-    # TODO: sort by date and paginate
+    if protocoltype_id is not None and protocoltype_id != -1:
+        protocols = [
+            protocol for protocol in protocols
+            if protocol.protocoltype.id == protocoltype_id
+        ]
+    protocols = sorted(protocols, key=lambda protocol: protocol.date, reverse=True)
+    page = _get_page()
+    page_count = int(math.ceil(len(protocols)) / config.PAGE_LENGTH)
+    if page >= page_count:
+        page = 0
+    begin_index = page * config.PAGE_LENGTH
+    end_index = (page + 1) * config.PAGE_LENGTH
+    protocols = protocols[begin_index:end_index]
     protocols_table = ProtocolsTable(protocols)
-    return render_template("protocols-list.html", protocols=protocols, protocols_table=protocols_table)
+    return render_template("protocols-list.html", protocols=protocols, protocols_table=protocols_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term)
 
 @app.route("/protocol/new", methods=["GET", "POST"])
 @login_required

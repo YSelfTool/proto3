@@ -124,3 +124,31 @@ def set_etherpad_text(pad, text, only_if_default=True):
     req = requests.post(get_etherpad_import_url(pad), files=files)
     return req.status_code == 200
     
+def split_terms(text, quote_chars="\"'", separators=" \t\n"):
+    terms = []
+    in_quote = False
+    last_quote_char = ""
+    current_term = ""
+    for char in text:
+        if in_quote:
+            if char != last_quote_char:
+                current_term += char
+            else:
+                in_quote = False
+                last_quote_char = ""
+                terms.append(current_term)
+                current_term = ""
+        else:
+            if char in separators:
+                if len(current_term) > 0:
+                    terms.append(current_term)
+                    current_term = ""
+            else:
+                if char in quote_chars and len(current_term) == 0:
+                    in_quote = True
+                    last_quote_char = char
+                else:
+                    current_term += char
+    if len(current_term) > 0:
+        terms.append(current_term)
+    return terms
