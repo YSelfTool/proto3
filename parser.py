@@ -1,6 +1,7 @@
 import regex as re
 import sys
 from collections import OrderedDict
+from enum import Enum
 
 from shared import escape_tex
 
@@ -24,12 +25,20 @@ class ParserException(Exception):
             result += "\n" + self.explanation
         return result
 
+class RenderType(Enum):
+    latex = 0
+    wikitext = 1
+    plaintext = 2
+
+def _not_implemented(self, render_type):
+    return NotImplementedError("The rendertype {} has not been implemented for {}.".format(render_type.name, self.__class__.__name__))
+
 class Element:
     """
     Generic (abstract) base element. Should never really exist.
     Template for what an element class should contain.
     """
-    def render(self, show_private):
+    def render(self, render_type, show_private, level=None, protocol=None):
         """
         Renders the element to TeX.
         Returns:
@@ -94,8 +103,8 @@ class Content(Element):
         self.children = children
         self.linenumber = linenumber
 
-    def render(self, show_private):
-        return "".join(map(lambda e: e.render(show_private), self.children))
+    def render(self, render_type, show_private, level=None, protocol=None):
+        return "".join(map(lambda e: e.render(render_type, show_private, level=level, protocol=protocol), self.children))
 
     def dump(self, level=None):
         if level is None:
@@ -146,8 +155,15 @@ class Text:
         self.text = text
         self.linenumber = linenumber
 
-    def render(self, show_private):
-        return escape_tex(self.text)
+    def render(self, render_type, show_private, level=None, protocol=None):
+        if render_type == RenderType.latex:
+            return escape_tex(self.text)
+        elif render_type == RenderType.wikitext:
+            return self.text
+        elif render_Type == RenderType.plaintext:
+            return self.text
+        else:
+            raise _not_implemented(self, render_type)
 
     def dump(self, level=None):
         if level is None:
@@ -172,11 +188,15 @@ class Tag:
         self.values = values
         self.linenumber = linenumber
 
-    def render(self, show_private):
-        if self.name == "url":
-            return r"\url{{{}}}".format(self.values[0])
-        #return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), "; ".join(map(escape_tex, self.values)));
-        return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(self.values[0]))
+    def render(self, render_type, show_private, level=None, protocol=None):
+        if render_type == RenderType.latex:
+            if self.name == "url":
+                return r"\url{{{}}}".format(self.values[0])
+            elif self.name == "todo":
+                return self.todo.render_latex(current_protocol=protocol)
+            return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(self.values[0]))
+        else:
+            raise _not_implemented(self, render_type)
 
     def dump(self, level=None):
         if level is None:
@@ -199,7 +219,7 @@ class Empty(Element):
     def __init__(self, linenumber):
         linenumber = linenumber
 
-    def render(self, show_private):
+    def render(self, render_type, show_private, level=None, protocol=None):
         return ""
 
     def dump(self, level=None):
@@ -220,8 +240,13 @@ class Remark(Element):
         self.value = value
         self.linenumber = linenumber
 
-    def render(self, show_private):
-        return r"\textbf{{{}}}: {}".format(self.name, self.value)
+    def render(self, render_type, show_private, level=None, protocol=None):
+        if render_type == RenderType.latex:
+            return r"\textbf{{{}}}: {}".format(self.name, self.value)
+        elif render_type == RenderType.wikitext:
+            return "{}: {}".format(self.name, self.value)
+        elif render_type == RenderType.plaintext:
+            return "{}: {}".format(RenderType.plaintex)
 
     def dump(self, level=None):
         if level is None:
@@ -266,28 +291,58 @@ class Fork(Element):
         stripped_name = name.replace(":", "").strip()
         return stripped_name in config.PRIVATE_KEYS
 
-    def render(self, show_private, toplevel=False):
+    def render(self, render_type, show_private, level, protocol=None):
         name_line = self.name if self.name is not None and len(self.name) > 0 else ""
-        begin_line = r"\begin{itemize}"
-        end_line = r"\end{itemize}"
-        content_parts = []
-        for child in self.children:
-            part = child.render(show_private)
-            if len(part.strip()) == 0:
-                continue
-            if not part.startswith(r"\item"):
-                part = r"\item {}".format(part)
-            content_parts.append(part)
-        content_lines = "\n".join(content_parts)
-        if toplevel:
-            return "\n".join([begin_line, content_lines, end_line])
-        elif self.test_private(self.name):
-            if show_private:
-                return content_lines
+        if render_type == RenderType.latex:
+            begin_line = r"\begin{itemize}"
+            end_line = r"\end{itemize}"
+            content_parts = []
+            for child in self.children:
+                part = child.render(render_type, show_private, level=level+1, protocol=protocol)
+                if len(part.strip()) == 0:
+                    continue
+                if not part.startswith(r"\item"):
+                    part = r"\item {}".format(part)
+                content_parts.append(part)
+            content_lines = "\n".join(content_parts)
+            if level == 0:
+                return "\n".join([begin_line, content_lines, end_line])
+            elif self.test_private(self.name):
+                if show_private:
+                    return content_lines
+                else:
+                    return ""
             else:
+                return "\n".join([name_line, begin_line, content_lines, end_line])
+        elif render_type == RenderType.wikitext:
+            title_line = "{0}{1}{0}".format("=" * (level + 2), name_line)
+            content_parts = []
+            for child in self.children:
+                part = child.render(render_type, show_private, level=level+1, protocol=protocol)
+                if len(part.strip()) == 0:
+                    continue
+                content_parts.append(part)
+            content_lines = "{}\n{}".format(title_line, "\n".join(content_parts))
+            if self.test_private(self.name) and not show_private:
                 return ""
+            else:
+                return content_lines
+        elif render_type == RenderType.plaintext:
+            title_line = "{} {}".format("#" * (level + 1), name_line)
+            content_parts = []
+            for child in self.children:
+                part = child.render(render_Type, show_private, level=level+1, protocol=protocol)
+                if len(part.strip()) == 0:
+                    continue
+                content_parts.append(part)
+            content_lines = "{}\n{}".format(title_line, "\n".join(content_parts))
+            if self.test_private(self.name) and not show_private:
+                return ""
+            else:
+                return content_lines
         else:
-            return "\n".join([name_line, begin_line, content_lines, end_line])
+            raise _not_implemented(self, render_type)
+
 
     def get_tags(self, tags=None):
         if tags is None:

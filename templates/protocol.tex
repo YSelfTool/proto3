@@ -45,18 +45,8 @@ Beginn der Sitzung: \VAR{protocol.start_time|timify}
 
 \ENV{for top in tree.children}
     \ENV{if top|class == "Fork"}
-        \TOP{\VAR{top.name|escape_tex}} % here we probably have information doubly
-        \ENV{if top.name == "Todos"}
-            \ENV{if protocol.todos|length > 0}
-                \begin{itemize}
-                    \ENV{for todo in protocol.todos}
-                        \item \VAR{todo.who}: \VAR{todo.description} -- \VAR{todo.get_state_tex()}
-                    \ENV{endfor}
-                \end{itemize}
-            \ENV{endif}
-        \ENV{else}
-            \VAR{top.render(toplevel=True, show_private=show_private)}
-        \ENV{endif}
+        \TOP{\VAR{top.name|escape_tex}}
+        \VAR{top.render(render_type=render_type, level=0, show_private=show_private, protocol=protocol)}
     \ENV{endif}
 \ENV{endfor}
 

@@ -312,6 +312,18 @@ class Todo(db.Model):
         ]
         return " ".join(parts)
 
+    def render_latex(self, current_protocol=None):
+        is_new = len(self.protocols) == 1
+        if current_protocol is not None:
+            is_new = self.get_first_protocol() == current_protocol
+        return r"\textbf{{{}}}: {}: {} -- {}".format(
+            "Neuer Todo" if is_new else "Todo",
+            self.who,
+            self.description,
+            self.get_state_tex()
+        )
+
+
 
 class TodoProtocolAssociation(db.Model):
     __tablename__ = "todoprotocolassociations"

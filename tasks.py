@@ -10,7 +10,7 @@ from models.errors import DateNotMatchingException
 from server import celery, app
 from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter
 from utils import mail_manager, url_manager, encode_kwargs, decode_kwargs
-from parser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork
+from parser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork, RenderType
 
 import config
 
@@ -164,6 +164,7 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                     elif other_field not in todo_tags_internal:
                         todo_tags_internal.append(other_field)
                 todo.tags = ";".join(todo_tags_internal)
+                todo_tag.todo = todo
                 db.session.commit()
             old_decisions = list(protocol.decisions)
             for decision in old_decisions:
@@ -189,8 +190,10 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 db.session.add(top)
             db.session.commit()
 
-            latex_source_private = texenv.get_template("protocol.tex").render(protocol=protocol, tree=tree, show_private=True)
-            latex_source_public = texenv.get_template("protocol.tex").render(protocol=protocol, tree=tree, show_private=False)
+            private_states = [False]
+
+            latex_source_private = texenv.get_template("protocol.tex").render(protocol=protocol, tree=tree, show_private=True, render_type=RenderType.latex)
+            latex_source_public = texenv.get_template("protocol.tex").render(protocol=protocol, tree=tree, show_private=False, render_type=RenderType.latex)
             compile(latex_source_public, protocol, show_private=False)
             if latex_source_private != latex_source_public:
                 compile(latex_source_private, protocol, show_private=True)
