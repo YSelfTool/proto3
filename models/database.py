@@ -29,6 +29,7 @@ class ProtocolType(db.Model):
     use_wiki = db.Column(db.Boolean)
     wiki_category = db.Column(db.String)
     wiki_only_public = db.Column(db.Boolean)
+    printer = db.Column(db.String)
 
     protocols = relationship("Protocol", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="Protocol.id")
     default_tops = relationship("DefaultTOP", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="DefaultTOP.number")
@@ -37,7 +38,7 @@ class ProtocolType(db.Model):
 
     def __init__(self, name, short_name, organization,
             is_public, private_group, public_group, private_mail, public_mail,
-            use_wiki, wiki_category, wiki_only_public):
+            use_wiki, wiki_category, wiki_only_public, printer):
         self.name = name
         self.short_name = short_name
         self.organization = organization
@@ -49,16 +50,17 @@ class ProtocolType(db.Model):
         self.use_wiki = use_wiki
         self.wiki_category = wiki_category
         self.wiki_only_public = wiki_only_public
+        self.printer = printer
 
     def __repr__(self):
         return ("<ProtocolType(id={}, short_name={}, name={}, "
                 "organization={}, is_public={}, private_group={}, "
                 "public_group={}, use_wiki={}, wiki_category='{}', "
-                "wiki_only_public={})>".format(
+                "wiki_only_public={}, printer={})>".format(
             self.id, self.short_name, self.name,
             self.organization, self.is_public, self.private_group,
             self.public_group, self.use_wiki, self.wiki_category,
-            self.wiki_only_public))
+            self.wiki_only_public, self.printer))
 
     def get_latest_protocol(self):
         candidates = sorted([protocol for protocol in self.protocols if protocol.is_done()], key=lambda p: p.date, reverse=True)

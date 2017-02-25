@@ -25,6 +25,14 @@ LDAP_PROVIDER_URL = "ldaps://auth.example.com:389"
 LDAP_BASE = "dc=example,dc=example,dc=com"
 LDAP_PROTOCOL_VERSION = 3 # do not change
 
+PRINTING_ACTIVE = True
+PRINTING_SERVER = "printsrv.example.com:631"
+PRINTING_USER = "protocols"
+PRINTING_PRINTERS = [
+    "example_printer": ["Duplex=DuplexNoTumble", "option2=value"],
+    "other_printer": ["list", "of", "options"]
+]
+
 ETHERPAD_URL = "https://fachschaften.rwth-aachen.de/etherpad"
 EMPTY_ETHERPAD = """Welcome to Etherpad!
 

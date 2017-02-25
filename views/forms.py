@@ -2,6 +2,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField, FileField, DateTimeField
 from wtforms.validators import InputRequired, Optional
 
+import config
+
 class LoginForm(FlaskForm):
     username = StringField("Benutzer", validators=[InputRequired("Bitte gib deinen Benutzernamen ein.")])
     password = PasswordField("Passwort", validators=[InputRequired("Bitte gib dein Passwort ein.")])
@@ -18,6 +20,7 @@ class ProtocolTypeForm(FlaskForm):
     wiki_category = StringField("Wiki-Kategorie")
     use_wiki = BooleanField("Wiki benutzen")
     wiki_only_public = BooleanField("Wiki ist öffentlich")
+    printer = SelectField("Drucker", choices=list(zip(config.PRINTING_PRINTERS, config.PRINTING_PRINTERS)))
 
 class DefaultTopForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Du musst einen Namen angeben.")])

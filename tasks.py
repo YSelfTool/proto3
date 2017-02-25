@@ -281,6 +281,33 @@ def compile_async(content, protocol_id, show_private):
         finally:
             os.chdir(current)
 
+def print_file(filename, protocol):
+    if config.PRINTING_ACTIVE:
+        print_file_async.delay(filename, protocol.id)
+
+@celery.task
+def print_file_async(filename, protocol_id):
+    with app.app_context():
+        protocol = Protocol.query.filter_by(id=protocol_id).first()
+        if protocol.protocoltype.printer is None:
+            error = protocol.create_error("Printing", "No printer configured.", "You don't have any printer configured for the protocoltype {}. Please do so before printing a protocol.".format(protocol.protocoltype.name))
+        try:
+            command = [
+                "/usr/bin/lpr",
+                "-H", config.PRINTING_SERVER,
+                "-P", protocol.protocoltype.printer,
+                "-U", config.PRINTING_USER,
+                "-T", protocol.get_identifier(),
+            ]
+            for option in config.PRINTING_PRINTERS[protocol.protocoltype.printer]:
+                command.extend(["-o", '"{}"'.format(option) if " " in option else option])
+            command.append(filename)
+            subprocess.check_call(command, universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except subprocess.SubprocessError:
+            error = protocol.create_error("Printing", "Printing {} failed.".format(protocol.get_identifier()), "")
+            db.session.add(error)
+            db.session.commit()
+
 def send_mail(mail):
     send_mail_async.delay(mail.id)
 

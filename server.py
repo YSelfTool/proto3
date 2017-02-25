@@ -90,7 +90,7 @@ def new_type():
                 form.private_group.data, form.public_group.data,
                 form.private_mail.data, form.public_mail.data,
                 form.use_wiki.data, form.wiki_category.data,
-                form.wiki_only_public.data)
+                form.wiki_only_public.data, form.printer.data)
             db.session.add(protocoltype)
             db.session.commit()
             flash("Der Protokolltyp {} wurde angelegt.".format(protocoltype.name), "alert-success")
@@ -688,6 +688,17 @@ def delete_document(document_id):
     flash("Das Dokument {} wurde gelöscht.".format(name), "alert-success")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
 
+@app.route("/document/print/<int:document_id>")
+@login_required
+def print_document(document_id):
+    user = current_user()
+    document = Document.query.filter_by(id=document_id).first()
+    if document is None or not document.protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    tasks.print_file(document.get_filename(), document.protocol)
+    flash("Das Dokument {} wird gedruckt.".format(document.name), "alert-success")
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.protocol.id))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

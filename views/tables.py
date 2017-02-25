@@ -98,7 +98,7 @@ class ProtocolTypeTable(SingleValueTable):
         headers = ["Name", "Abkürzung", "Organisation", "Öffentlich",
             "Interne Gruppe", "Öffentliche Gruppe",
             "Interner Verteiler", "Öffentlicher Verteiler",
-            "Wiki"]
+            "Drucker", "Wiki"]
         if self.value.use_wiki:
             headers.append("Wiki-Kategorie")
         return headers
@@ -113,7 +113,8 @@ class ProtocolTypeTable(SingleValueTable):
             self.value.public_group,
             self.value.private_mail,
             self.value.public_mail,
-            Table.bool(self.value.use_wiki) + (", " + ("Öffentlich" if self.value.wiki_only_public else "Intern")) if self.value.use_wiki else ""
+            self.value.printer,
+            (Table.bool(self.value.use_wiki) + ((", " + ("Öffentlich" if self.value.wiki_only_public else "Intern")) if self.value.use_wiki else ""))
         ]
         if self.value.use_wiki:
             row.append(self.value.wiki_category)
@@ -221,7 +222,10 @@ class DocumentsTable(Table):
         return [
             document.id,
             Table.link(url_for("download_document", document_id=document.id), document.name),
-            (Table.link(url_for("delete_document", document_id=document.id), "Löschen", confirm="Bist du dir sicher, dass du das Dokument {} löschen willst?".format(document.name))
-                if document.protocol.protocoltype.has_modify_right(user)
-                else "")
+            Table.concat([
+                Table.link(url_for("delete_document", document_id=document.id), "Löschen", confirm="Bist du dir sicher, dass du das Dokument {} löschen willst?".format(document.name)),
+                Table.link(url_for("print_document", document_id=document.id), "Drucken")
+            ])
+            if document.protocol.protocoltype.has_modify_right(user)
+            else ""
         ]

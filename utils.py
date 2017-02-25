@@ -124,4 +124,3 @@ def set_etherpad_text(pad, text, only_if_default=True):
     req = requests.post(get_etherpad_import_url(pad), files=files)
     return req.status_code == 200
     
-
