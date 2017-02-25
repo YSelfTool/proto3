@@ -15,6 +15,9 @@ class ProtocolTypeForm(FlaskForm):
     public_group = StringField("Öffentliche Gruppe")
     private_mail = StringField("Interner Verteiler")
     public_mail = StringField("Öffentlicher Verteiler")
+    wiki_category = StringField("Wiki-Kategorie")
+    use_wiki = BooleanField("Wiki benutzen")
+    wiki_only_public = BooleanField("Wiki ist öffentlich")
 
 class DefaultTopForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Du musst einen Namen angeben.")])

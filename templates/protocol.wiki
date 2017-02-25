@@ -1,0 +1,24 @@
+{{'{{'}}Infobox Protokoll
+| name = {{protocol.protocoltype.name}}
+| datum = {{protocol.date|datify}}
+| zeit = von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}
+| protokollant = {{protocol.author}}
+| anwesende = {{protocol.participants}}
+{{'}}'}}
+
+== Beschlüsse ==
+{% if protocol.decisions|length > 0 %}
+    {% for decision in protocol.decisions %}
+* {{decision.content}}
+    {% endfor %}
+{% else %}
+* keine Beschlüsse
+{% endif %}
+
+{% for top in tree.children %}
+    {% if top|class == "Fork" %}
+{{top.render(render_type=render_type, level=0, show_private=show_private, protocol=protocol)}}
+    {% endif %}
+{% endfor %}
+
+[[Kategorie:{{protocol.protocoltype.wiki_category}}]]

@@ -1,7 +1,7 @@
-SQLALCHEMY_DATABASE_URI = "postgresql://proto3:@/proto3"
-SQLALCHEMY_TRACK_MODIFICATIONS = False
+SQLALCHEMY_DATABASE_URI = "postgresql://proto3:@/proto3" # change
+SQLALCHEMY_TRACK_MODIFICATIONS = False # do not change
 
-SECRET_KEY = "abc"
+SECRET_KEY = "something random"
 
 DEBUG = False
 
@@ -13,15 +13,43 @@ MAIL_PASSWORD = "password"
 MAIL_PREFIX = "protokolle"
 
 CELERY_BROKER_URL = "redis://localhost:6379/0"
-CELERY_TASK_SERIALIZER = "pickle"
-CELERY_ACCEPT_CONTENT = ["pickle"]
+CELERY_TASK_SERIALIZER = "pickle" # do not change
+CELERY_ACCEPT_CONTENT = ["pickle"] # do not change
 
 URL_ROOT = "protokolle.example.com"
 URL_PROTO = "https"
 URL_PATH = "/"
 URL_PARAMS = ""
 
+LDAP_PROVIDER_URL = "ldaps://auth.example.com:389"
+LDAP_BASE = "dc=example,dc=example,dc=com"
+LDAP_PROTOCOL_VERSION = 3 # do not change
+
+ETHERPAD_URL = "https://fachschaften.rwth-aachen.de/etherpad"
+EMPTY_ETHERPAD = """Welcome to Etherpad!
+
+This pad text is synchronized as you type, so that everyone viewing this page sees the same text. This allows you to collaborate seamlessly on documents!
+
+Get involved with Etherpad at http://etherpad.org
+
+""" # do not change
+
+WIKI_ACTIVE = True
+WIKI_API_URL = "https://wiki.example.com/wiki/api.php"
+WIKI_ANONYMOUS = False
+WIKI_USER = "user"
+WIKI_PASSWORD = "password"
+WIKI_DOMAIN = "domain" # set to None if not necessary
+
+SESSION_PROTECTION = "strong"
+
+SECURITY_KEY = "some other random string"
+
 ERROR_CONTEXT_LINES = 3
+
+PAGE_LENGTH = 20
+PAGE_DIFF = 3
+
 
 # choose something nice from fc-list
 FONTS = {
@@ -50,3 +78,8 @@ FONTS = {
         "bolditalic": "Nimbus Mono PS"
     }
 }
+
+DOCUMENTS_PATH = "documents"
+
+PRIVATE_KEYWORDS = ["private", "internal", "privat", "intern"]
+

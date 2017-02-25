@@ -95,12 +95,16 @@ class ProtocolTypeTable(SingleValueTable):
         super().__init__(protocoltype.name, protocoltype, newlink=url_for("edit_type", type_id=protocoltype.id))
 
     def headers(self):
-        return ["Name", "Abkürzung", "Organisation", "Öffentlich",
+        headers = ["Name", "Abkürzung", "Organisation", "Öffentlich",
             "Interne Gruppe", "Öffentliche Gruppe",
-            "Interner Verteiler", "Öffentlicher Verteiler"]
+            "Interner Verteiler", "Öffentlicher Verteiler",
+            "Wiki"]
+        if self.value.use_wiki:
+            headers.append("Wiki-Kategorie")
+        return headers
 
     def row(self):
-        return [
+        row = [
             self.value.name,
             self.value.short_name,
             self.value.organization,
@@ -108,8 +112,12 @@ class ProtocolTypeTable(SingleValueTable):
             self.value.private_group,
             self.value.public_group,
             self.value.private_mail,
-            self.value.public_mail
+            self.value.public_mail,
+            Table.bool(self.value.use_wiki) + (", " + ("Öffentlich" if self.value.wiki_only_public else "Intern")) if self.value.use_wiki else ""
         ]
+        if self.value.use_wiki:
+            row.append(self.value.wiki_category)
+        return row
 
 class DefaultTOPsTable(Table):
     def __init__(self, tops, protocoltype=None):

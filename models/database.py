@@ -26,6 +26,9 @@ class ProtocolType(db.Model):
     public_group = db.Column(db.String)
     private_mail = db.Column(db.String)
     public_mail = db.Column(db.String)
+    use_wiki = db.Column(db.Boolean)
+    wiki_category = db.Column(db.String)
+    wiki_only_public = db.Column(db.Boolean)
 
     protocols = relationship("Protocol", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="Protocol.id")
     default_tops = relationship("DefaultTOP", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="DefaultTOP.number")
@@ -33,7 +36,8 @@ class ProtocolType(db.Model):
     todos = relationship("Todo", backref=backref("protocoltype"), order_by="Todo.id")
 
     def __init__(self, name, short_name, organization,
-        is_public, private_group, public_group, private_mail, public_mail):
+            is_public, private_group, public_group, private_mail, public_mail,
+            use_wiki, wiki_category, wiki_only_public):
         self.name = name
         self.short_name = short_name
         self.organization = organization
@@ -42,10 +46,19 @@ class ProtocolType(db.Model):
         self.public_group = public_group
         self.private_mail = private_mail
         self.public_mail = public_mail
+        self.use_wiki = use_wiki
+        self.wiki_category = wiki_category
+        self.wiki_only_public = wiki_only_public
 
     def __repr__(self):
-        return "<ProtocolType(id={}, short_name={}, name={}, organization={}, is_public={}, private_group={}, public_group={})>".format(
-            self.id, self.short_name, self.name, self.organization, self.is_public, self.private_group, self.public_group)
+        return ("<ProtocolType(id={}, short_name={}, name={}, "
+                "organization={}, is_public={}, private_group={}, "
+                "public_group={}, use_wiki={}, wiki_category='{}', "
+                "wiki_only_public={})>".format(
+            self.id, self.short_name, self.name,
+            self.organization, self.is_public, self.private_group,
+            self.public_group, self.use_wiki, self.wiki_category,
+            self.wiki_only_public))
 
     def get_latest_protocol(self):
         candidates = sorted([protocol for protocol in self.protocols if protocol.is_done()], key=lambda p: p.date, reverse=True)
@@ -152,6 +165,9 @@ class Protocol(db.Model):
         return "{}-{}".format(
             self.protocoltype.short_name.lower(),
             self.date.strftime("%y-%m-%d"))
+
+    def get_wiki_title(self):
+        return "Protokoll:{}-{:%Y-%m-%d}".format(self.protocoltype.short_name, self.date)
 
     def get_etherpad_link(self):
         identifier = self.get_identifier()
@@ -305,8 +321,15 @@ class Todo(db.Model):
 
     def get_state(self):
         return "[Erledigt]" if self.done else "[Offen]"
-    def get_state_tex(self):
+    def get_state_plain(self):
         return "Erledigt" if self.done else "Aktiv"
+    def get_state_tex(self):
+        return self.get_state_plain()
+
+    def is_new(self, current_protocol=None):
+        if current_protocol is not None:
+            return self.get_first_protocol() == current_protocol
+        return len(self.protocols) == 1
 
     def render_html(self):
         parts = [
@@ -317,14 +340,19 @@ class Todo(db.Model):
         return " ".join(parts)
 
     def render_latex(self, current_protocol=None):
-        is_new = len(self.protocols) == 1
-        if current_protocol is not None:
-            is_new = self.get_first_protocol() == current_protocol
         return r"\textbf{{{}}}: {}: {} -- {}".format(
-            "Neuer Todo" if is_new else "Todo",
+            "Neuer Todo" if self.is_new(current_protocol) else "Todo",
             self.who,
             self.description,
             self.get_state_tex()
+        )
+
+    def render_wikitext(self, current_protocol=None):
+        return "'''{}:''' {}: {} - {}".format(
+            "Neuer Todo" if self.is_new(current_protocol) else "Todo",
+            self.who,
+            self.description,
+            self.get_state_plain()
         )
 
 

@@ -197,6 +197,12 @@ class Tag:
             return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(self.values[0]))
         elif render_type == RenderType.plaintext:
             return "{}: {}".format(self.name.capitalize(), self.values[0])
+        elif render_type == RenderType.wikitext:
+            if self.name == "url":
+                return "[{0} {0}]".format(self.values[0])
+            elif self.name == "todo":
+                return self.todo.render_wikitext(current_protocol=protocol)
+            return "'''{}:''' {}".format(self.name.capitalize(), self.values[0])
         else:
             raise _not_implemented(self, render_type)
 
@@ -291,7 +297,7 @@ class Fork(Element):
 
     def test_private(self, name):
         stripped_name = name.replace(":", "").strip()
-        return stripped_name in config.PRIVATE_KEYS
+        return stripped_name in config.PRIVATE_KEYWORDS
 
     def render(self, render_type, show_private, level, protocol=None):
         name_line = self.name if self.name is not None and len(self.name) > 0 else ""
@@ -317,14 +323,14 @@ class Fork(Element):
             else:
                 return "\n".join([name_line, begin_line, content_lines, end_line])
         elif render_type == RenderType.wikitext:
-            title_line = "{0}{1}{0}".format("=" * (level + 2), name_line)
+            title_line = "{0} {1} {0}".format("=" * (level + 2), name_line)
             content_parts = []
             for child in self.children:
                 part = child.render(render_type, show_private, level=level+1, protocol=protocol)
                 if len(part.strip()) == 0:
                     continue
                 content_parts.append(part)
-            content_lines = "{}\n{}".format(title_line, "\n".join(content_parts))
+            content_lines = "{}\n\n{}\n".format(title_line, "\n\n".join(content_parts))
             if self.test_private(self.name) and not show_private:
                 return ""
             else:

@@ -11,6 +11,7 @@ from server import celery, app
 from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter
 from utils import mail_manager, url_manager, encode_kwargs, decode_kwargs
 from parser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork, RenderType
+from wiki import WikiClient, WikiException
 
 import config
 
@@ -206,9 +207,27 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
             for show_private in privacy_states:
                 latex_source = texenv.get_template("protocol.tex").render(render_type=RenderType.latex, show_private=show_private, **render_kwargs)
                 compile(latex_source, protocol, show_private=show_private)
-                # TODO render and push wiki
+
+            if protocol.protocoltype.use_wiki:
+                wiki_source = render_template("protocol.wiki", render_type=RenderType.wikitext, show_private=not protocol.protocoltype.wiki_only_public, **render_kwargs).replace("\n\n\n", "\n\n")
+                push_to_wiki(protocol, wiki_source, "Automatisch generiert vom Protokollsystem 3.0")
             protocol.done = True
             db.session.commit()
+
+def push_to_wiki(protocol, content, summary):
+    push_to_wiki_async.delay(protocol.id, content, summary)
+
+@celery.task
+def push_to_wiki_async(protocol_id, content, summary):
+    with WikiClient() as wiki_client, app.app_context():
+        protocol = Protocol.query.filter_by(id=protocol_id).first()
+        try:
+            wiki_client.edit_page(
+                title=protocol.get_wiki_title(),
+                content=content,
+                summary="Automatisch generiert vom Protokollsystem 3.")
+        except WikiException as exc:
+            error = protocol.create_error("Pushing to Wiki", "Pushing to Wiki failed.", str(exc))
 
 def compile(content, protocol, show_private):
     compile_async.delay(content, protocol.id, show_private)
