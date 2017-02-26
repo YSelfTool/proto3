@@ -3,6 +3,8 @@ from flask import Markup, url_for, request
 from models.database import Protocol, ProtocolType, DefaultTOP, TOP, Todo, Decision
 from shared import date_filter, datetime_filter, date_filter_short, current_user, check_login 
 
+import config
+
 class Table:
     def __init__(self, title, values, newlink=None, newtext=None):
         self.title = title
@@ -105,16 +107,21 @@ class ProtocolTypeTable(SingleValueTable):
         super().__init__(protocoltype.name, protocoltype, newlink=url_for("edit_type", type_id=protocoltype.id))
 
     def headers(self):
-        headers = ["Name", "Abkürzung", "Organisation", "Beginn",
-            "Öffentlich", "Interne Gruppe", "Öffentliche Gruppe",
-            "Interner Verteiler", "Öffentlicher Verteiler",
-            "Drucker", "Wiki"]
+        general_headers = ["Name", "Abkürzung", "Organisation", "Beginn",
+            "Öffentlich", "Interne Gruppe", "Öffentliche Gruppe"]
+        mail_headers = ["Interner Verteiler", "Öffentlicher Verteiler"]
+        if not config.MAIL_ACTIVE:
+            mail_headers = []
+        printing_headers = ["Drucker"] if config.PRINTING_ACTIVE else []
+        wiki_headers = ["Wiki"]
         if self.value.use_wiki:
-            headers.append("Wiki-Kategorie")
-        return headers
+            wiki_headers.append("Wiki-Kategorie")
+        if not config.WIKI_ACTIVE:
+            wiki_headers = []
+        return general_headers + mail_headers + printing_headers + wiki_headers
 
     def row(self):
-        row = [
+        general_part = [
             self.value.name,
             self.value.short_name,
             self.value.organization,
@@ -122,14 +129,24 @@ class ProtocolTypeTable(SingleValueTable):
             Table.bool(self.value.is_public),
             self.value.private_group,
             self.value.public_group,
+        ]
+        mail_part = [
             self.value.private_mail,
             self.value.public_mail,
-            self.value.printer,
+        ]
+        if not config.MAIL_ACTIVE:
+            mail_part = []
+        printing_part = [self.value.printer]
+        if not config.PRINTING_ACTIVE:
+            printing_part = []
+        wiki_part = [
             (Table.bool(self.value.use_wiki) + ((", " + ("Öffentlich" if self.value.wiki_only_public else "Intern")) if self.value.use_wiki else ""))
         ]
         if self.value.use_wiki:
-            row.append(self.value.wiki_category)
-        return row
+            wiki_part.append(self.value.wiki_category)
+        if not config.WIKI_ACTIVE:
+            wiki_part = []
+        return general_part + mail_part + printing_part + wiki_part
 
 class DefaultTOPsTable(Table):
     def __init__(self, tops, protocoltype=None):
@@ -287,13 +304,13 @@ class DocumentsTable(Table):
 
     def row(self, document):
         user = current_user()
+        links = [Table.link(url_for("delete_document", document_id=document.id), "Löschen", confirm="Bist du dir sicher, dass du das Dokument {} löschen willst?".format(document.name))]
+        if config.PRINTING_ACTIVE:
+            links.append(Table.link(url_for("print_document", document_id=document.id), "Drucken"))
         return [
             document.id,
             Table.link(url_for("download_document", document_id=document.id), document.name),
-            Table.concat([
-                Table.link(url_for("delete_document", document_id=document.id), "Löschen", confirm="Bist du dir sicher, dass du das Dokument {} löschen willst?".format(document.name)),
-                Table.link(url_for("print_document", document_id=document.id), "Drucken")
-            ])
-            if document.protocol.protocoltype.has_modify_right(user)
-            else ""
+            Table.concat(links)
+                if document.protocol.protocoltype.has_modify_right(user)
+                else ""
         ]

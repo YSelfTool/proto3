@@ -148,7 +148,7 @@ def show_type(type_id):
     protocoltype_table = ProtocolTypeTable(protocoltype)
     default_tops_table = DefaultTOPsTable(protocoltype.default_tops, protocoltype)
     reminders_table = MeetingRemindersTable(protocoltype.reminders, protocoltype)
-    return render_template("type-show.html", protocoltype=protocoltype, protocoltype_table=protocoltype_table, default_tops_table=default_tops_table, reminders_table=reminders_table)
+    return render_template("type-show.html", protocoltype=protocoltype, protocoltype_table=protocoltype_table, default_tops_table=default_tops_table, reminders_table=reminders_table, mail_active=config.MAIL_ACTIVE)
 
 @app.route("/type/reminders/new/<int:type_id>", methods=["GET", "POST"])
 @login_required
@@ -455,6 +455,9 @@ def etherpull_protocol(protocol_id):
     if protocol is None or not protocol.protocoltype.has_modify_right(user):
         flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
+    if not config.ETHERPAD_ACTIVE:
+        flash("Die Etherpadfunktion ist nicht aktiviert.", "alert-error")
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
     protocol.source = get_etherpad_text(protocol.get_identifier())
     db.session.commit()
     tasks.parse_protocol(protocol)
@@ -576,6 +579,9 @@ def etherpush_protocol(protocol_id):
     if protocol is None or not protocol.protocoltype.has_modify_right(user):
         flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
+    if not config.ETHERPAD_ACTIVE:
+        flash("Die Etherpadfunktion ist nicht aktiviert.", "alert-error")
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
     if set_etherpad_text(protocol.get_identifier(), protocol.get_template()):
         flash("Vorlage von {} in Etherpad hochgeladen.".format(protocol.get_identifier()), "alert-success")
     else:
@@ -606,6 +612,9 @@ def send_protocol(protocol_id):
     if protocol is None or not protocol.protocoltype.has_modify_right(user):
         flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
+    if not config.MAIL_ACTIVE:
+        flash("Die Mailfunktion ist nicht aktiviert.", "alert-error")
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
     tasks.send_protocol(protocol)
     flash("Das Protokoll wurde versandt.", "alert-success")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
@@ -926,6 +935,9 @@ def print_document(document_id):
     if document is None or not document.protocol.protocoltype.has_modify_right(user):
         flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
+    if not config.PRINTING_ACTIVE:
+        flash("Die Druckfunktion ist nicht aktiviert.", "alert-error")
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.protocol.id))
     tasks.print_file(document.get_filename(), document.protocol)
     flash("Das Dokument {} wird gedruckt.".format(document.name), "alert-success")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.protocol.id))
@@ -993,6 +1005,8 @@ def logout():
     return redirect(url_for(".index"))
 
 def check_and_send_reminders():
+    if not config.MAIL_ACTIVE:
+        return
     with app.app_context():
         current_time = datetime.now()
         current_day = current_time.date()
