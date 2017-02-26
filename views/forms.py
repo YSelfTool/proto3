@@ -104,7 +104,7 @@ class NewTodoForm(FlaskForm):
         self.protocoltype_id.choices = get_protocoltype_choices(protocoltypes, add_all=False)
 
 class TodoForm(FlaskForm):
-    who = StringField("Person", validators=[InputRequired("Bitte gib an, wer das Todo erledigen soll.")])
+    who = StringField("Person")
     description = StringField("Aufgabe", validators=[InputRequired("Bitte gib an, was erledigt werden soll.")])
     tags = StringField("Weitere Tags")
     done = BooleanField("Erledigt")

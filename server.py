@@ -109,8 +109,13 @@ def index():
     todos_table = TodosTable(todos) if todos is not None else None
     return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos, todos_table=todos_table)
 
+@app.route("/documentation")
 @login_required
+def documentation():
+    return render_template("documentation.html")
+
 @app.route("/types/list")
+@login_required
 def list_types():
     is_logged_in = check_login()
     user = current_user()
