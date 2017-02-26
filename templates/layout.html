@@ -36,6 +36,7 @@
                 <li><a href="{{url_for("list_decisions")}}">Beschlüsse</a></li>
                 {% if check_login() %}
                 <li><a href="{{url_for("list_types")}}">Typen</a></li>
+                <li><a href="{{url_for("list_errors")}}">Fehler</a></li>
                 {% endif %}
                 {# todo: add more links #}
             </ul>

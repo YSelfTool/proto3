@@ -183,14 +183,32 @@ class ErrorsTable(Table):
         super().__init__("Fehler", errors)
 
     def headers(self):
-        return ["Protokoll", "Fehler", "Zeitpunkt", "Beschreibung"]
+        return ["Protokoll", "Aktion", "Fehler", "Zeitpunkt", "Beschreibung", ""]
 
     def row(self, error):
         return [
             Table.link(url_for("show_protocol", protocol_id=error.protocol.id), error.protocol.get_identifier()),
-            error.name,
+            error.action,
+            Table.link(url_for("show_error", error_id=error.id), error.name),
             datetime_filter(error.datetime),
-            error.description
+            error.get_short_description(),
+            Table.link(url_for("delete_error", error_id=error.id), "Löschen", confirm="Bist du dir sicher, dass du den Fehler löschen möchtest?")
+        ]
+
+class ErrorTable(SingleValueTable):
+    def __init__(self, error):
+        super().__init__(error.action, error)
+
+    def headers(self):
+        return ["Protokoll", "Aktion", "Fehler", "Zeitpunkt", "Beschreibung"]
+
+    def row(self):
+        return [
+            Table.link(url_for("show_protocol", protocol_id=self.value.protocol.id), self.value.protocol.get_identifier()),
+            self.value.action,
+            self.value.name,
+            datetime_filter(self.value.datetime),
+            Markup("<pre>{}</pre>".format(self.value.description))
         ]
 
 class TodosTable(Table):

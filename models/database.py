@@ -422,3 +422,9 @@ class Error(db.Model):
     def __repr__(self):
         return "<Error(id={}, protocol_id={}, action={}, name={}, datetime={})>".format(
             self.id, self.protocol_id, self.action, self.name, self.datetime)
+
+    def get_short_description(self):
+        lines = self.description.splitlines()
+        if len(lines) <= 4:
+            return "\n".join(lines)
+        return "\n".join(lines[:2], "…", lines[-2:])

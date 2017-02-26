@@ -23,7 +23,7 @@ from shared import db, date_filter, datetime_filter, date_filter_long, time_filt
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm
-from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable
+from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -929,6 +929,43 @@ def print_document(document_id):
     tasks.print_file(document.get_filename(), document.protocol)
     flash("Das Dokument {} wird gedruckt.".format(document.name), "alert-success")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.protocol.id))
+
+@app.route("/errors/list")
+@login_required
+def list_errors():
+    user = current_user()
+    errors = [
+        error for error in Error.query.all()
+        if error.protocol.protocoltype.has_private_view_right(user)
+    ]
+    errors_table = ErrorsTable(errors)
+    return render_template("errors-list.html", errros=errors, errors_table=errors_table)
+
+@app.route("/error/show/<int:error_id>")
+@login_required
+def show_error(error_id):
+    user = current_user()
+    error = Error.query.filter_by(id=error_id).first()
+    if error is None or not error.protocol.protocoltype.has_modify_right(user):
+        flash("Invalider Fehler oder fehlende Zugriffsrechte.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    error_table = ErrorTable(error)
+    return render_template("error-show.html", error=error, error_table=error_table)
+
+@app.route("/error/delete/<int:error_id>")
+@login_required
+def delete_error(error_id):
+    user = current_user()
+    error = Error.query.filter_by(id=error_id).first()
+    if error is None or not error.protocol.protocoltype.has_modify_right(user):
+        flash("Invalider Fehler oder fehlende Zugriffsrechte.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    name = error.name
+    db.session.delete(error)
+    db.session.commit()
+    flash("Fehler {} gelöscht.".format(name), "alert-success")
+    return redirect(request.args.get("next") or url_for("list_errors"))
+    
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
