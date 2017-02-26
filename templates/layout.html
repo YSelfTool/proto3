@@ -30,7 +30,9 @@
                 <li><a href="{{url_for("new_protocol")}}">Neues Protokoll</a></li>
                 {% endif %}
                 <li><a href="{{url_for("list_protocols")}}">Protokolle</a></li>
+                {% if check_login() %}
                 <li><a href="{{url_for("list_todos")}}">Todos</a></li>
+                {% endif %}
                 <li><a href="{{url_for("list_decisions")}}">Beschlüsse</a></li>
                 {% if check_login() %}
                 <li><a href="{{url_for("list_types")}}">Typen</a></li>

@@ -687,8 +687,8 @@ def _get_page():
         return 0
 
 @app.route("/todos/list")
+@login_required
 def list_todos():
-    is_logged_in = check_login()
     user = current_user()
     protocoltype = None
     protocoltype_id = None

@@ -68,7 +68,7 @@
             {% endif %}
         </div>
         <div id="right-column" class="col-lg-6">
-            {% if protocol.is_done() %}
+            {% if protocol.is_done() and has_public_view_right and logged_in %}
                 <h3>Todos dieser Sitzung <a href="{{url_for("list_todos")}}">Aktuelle Todos</a></h3>
                 <ul>
                     {% if protocol.get_originating_todos()|length > 0 %}

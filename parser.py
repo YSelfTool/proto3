@@ -193,16 +193,24 @@ class Tag:
             if self.name == "url":
                 return r"\url{{{}}}".format(self.values[0])
             elif self.name == "todo":
+                if not show_private:
+                    return ""
                 return self.todo.render_latex(current_protocol=protocol)
             return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(self.values[0]))
         elif render_type == RenderType.plaintext:
             if self.name == "url":
+                return self.values[0]
+            elif self.name == "todo":
+                if not show_private:
+                    return ""
                 return self.values[0]
             return "{}: {}".format(self.name.capitalize(), self.values[0])
         elif render_type == RenderType.wikitext:
             if self.name == "url":
                 return "[{0} {0}]".format(self.values[0])
             elif self.name == "todo":
+                if not show_private:
+                    return ""
                 return self.todo.render_wikitext(current_protocol=protocol)
             return "'''{}:''' {}".format(self.name.capitalize(), self.values[0])
         else:
@@ -303,6 +311,8 @@ class Fork(Element):
 
     def render(self, render_type, show_private, level, protocol=None):
         name_line = self.name if self.name is not None and len(self.name) > 0 else ""
+        if level == 0 and self.name == "Todos" and not show_private:
+            return ""
         if render_type == RenderType.latex:
             begin_line = r"\begin{itemize}"
             end_line = r"\end{itemize}"
