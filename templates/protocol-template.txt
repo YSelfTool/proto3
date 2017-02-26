@@ -10,7 +10,7 @@
             {% if top.name == "Todos" %}
                 {% if protocol.todos|length > 0 %}
                     {% for todo in protocol.todos %}
-    [todo;{{todo.who}};{{todo.description}};id {{todo.get_number()}}];
+    [todo;{{todo.who}};{{todo.description}};id {{todo.get_id()}}];
                     {% endfor %}
                 {% else %}
 

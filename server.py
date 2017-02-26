@@ -20,10 +20,10 @@ import math
 
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter
-from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms
+from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm
-from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm
+from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -718,6 +718,11 @@ def list_todos():
             todo for todo in todos
             if search_term.lower() in todo.description.lower()
         ]
+    def _sort_key(todo):
+        first_protocol = todo.get_first_protocol()
+        result = (not todo.done, first_protocol.date if first_protocol is not None else datetime.now().date())
+        return result
+    todos = sorted(todos, key=_sort_key, reverse=True)
     page = _get_page()
     page_count = int(math.ceil(len(todos) / config.PAGE_LENGTH))
     if page >= page_count:
@@ -727,6 +732,88 @@ def list_todos():
     todos = todos[begin_index:end_index]
     todos_table = TodosTable(todos)
     return render_template("todos-list.html", todos=todos, todos_table=todos_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term)
+
+@app.route("/todo/new", methods=["GET", "POST"])
+@login_required
+def new_todo():
+    user = current_user()
+    protocoltype_id = optional_int_arg("type_id")
+    protocol_id = optional_int_arg("protocol_id")
+    protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocoltype is not None and protocol is not None:
+        if protocol.protocoltype != protocoltype:
+            flash("Ungültige Protokoll-Typ-Kombination", "alert-error")
+            return redirect(request.args.get("next") or url_for("index"))
+    if protocoltype is None and protocol is not None:
+        protocoltype = protocol.protocoltype
+    protocoltypes = ProtocolType.get_modifiable_protocoltypes(user)
+    form = NewTodoForm(protocoltypes)
+    if form.validate_on_submit():
+        added_protocoltype = ProtocolType.query.filter_by(id=form.protocoltype_id.data).first()
+        if added_protocoltype is None or not added_protocoltype.has_modify_right(user):
+            flash("Invalider Protokolltyp.")
+            return redirect(request.args.get("next") or url_for("index"))
+        todo = Todo(type_id=form.protocoltype_id.data, who=form.who.data,
+            description=form.description.data, tags=form.tags.data,
+            done=form.done.data)
+        if protocol is not None:
+            todo.protocols.append(protocol)
+        db.session.add(todo)
+        db.session.commit()
+        todo.number = todo.id
+        db.session.commit()
+        flash("Todo wurde angelegt.", "alert-success")
+        if protocol is not None:
+            return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+        else:
+            return redirect(request.args.get("next") or url_for("list_todos", protocoltype_id=protocoltype_id))
+    else:
+        if protocoltype is not None:
+            form.protocoltype_id.data = protocoltype.id
+    return render_template("todo-new.html", form=form, protocol=protocol, protocoltype=protocoltype)
+
+@app.route("/todo/edit/<int:todo_id>", methods=["GET", "POST"])
+@login_required
+def edit_todo(todo_id):
+    user = current_user()
+    todo = Todo.query.filter_by(id=todo_id).first()
+    if todo is None or not todo.protocoltype.has_modify_right(user):
+        flash("Invalides Todo oder unzureichende Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    form = TodoForm(obj=todo)
+    if form.validate_on_submit():
+        form.populate_obj(todo)
+        db.session.commit()
+        return redirect(request.args.get("next") or url_for("list_todos", protocoltype=todo.protocoltype.id))
+    return render_template("todo-edit.html", form=form, todo=todo)
+
+@app.route("/todo/show/<int:todo_id>")
+@login_required
+def show_todo(todo_id):
+    user = current_user()
+    todo = Todo.query.filter_by(id=todo_id).first()
+    if todo is None or not todo.protocoltype.has_private_view_right(user):
+        flash("Invalides Todo oder unzureichende Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    todo_table = TodoTable(todo)
+    return render_template("todo-show.html", todo=todo, todo_table=todo_table)
+
+@app.route("/todo/delete/<int:todo_id>")
+@login_required
+def delete_todo(todo_id):
+    user = current_user()
+    todo = Todo.query.filter_by(id=todo_id).first()
+    if todo is None or not todo.protocoltype.has_private_view_right(user):
+        flash("Invalides Todo oder unzureichende Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    type_id = todo.protocoltype.id
+    db.session.delete(todo)
+    db.session.commit()
+    flash("Todo gelöscht.", "alert-success")
+    return redirect(request.args.get("next") or url_for("list_todos", protocoltype=type_id))
+    
+
 
 @app.route("/decisions/list")
 def list_decisions():

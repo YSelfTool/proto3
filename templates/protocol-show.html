@@ -2,7 +2,7 @@
 {% from "macros.html" import render_table, render_form %}
 {% block title %}Protokoll{% endblock %}
 
-{% set loggedin = check_login() %}
+{% set logged_in = check_login() %}
 {% set user = current_user() %}
 {% set has_public_view_right = protocol.protocoltype.has_public_view_right(user) %}
 {% set has_private_view_right = protocol.protocoltype.has_private_view_right(user) %}
@@ -69,7 +69,7 @@
         </div>
         <div id="right-column" class="col-lg-6">
             {% if protocol.is_done() and has_public_view_right and logged_in %}
-                <h3>Todos dieser Sitzung <a href="{{url_for("list_todos")}}">Aktuelle Todos</a></h3>
+                <h3>Todos dieser Sitzung <a href="{{url_for("list_todos")}}">Aktuelle Todos</a> <a href="{{url_for("new_todo", protocol_id=protocol.id)}}">Neu</a></h3>
                 <ul>
                     {% if protocol.get_originating_todos()|length > 0 %}
                         {% for todo in protocol.get_originating_todos() %}

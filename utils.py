@@ -1,4 +1,4 @@
-from flask import render_template
+from flask import render_template, request
 
 import random
 import string
@@ -152,3 +152,9 @@ def split_terms(text, quote_chars="\"'", separators=" \t\n"):
     if len(current_term) > 0:
         terms.append(current_term)
     return terms
+
+def optional_int_arg(name):
+    try:
+        return int(request.args.get(name))
+    except (ValueError, TypeError):
+        return None

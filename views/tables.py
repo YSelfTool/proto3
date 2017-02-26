@@ -195,19 +195,57 @@ class ErrorsTable(Table):
 
 class TodosTable(Table):
     def __init__(self, todos):
-        super().__init__("Todos", todos)
+        super().__init__("Todos", todos, newlink=url_for("new_todo"))
 
     def headers(self):
-        return ["Status", "Sitzung", "Name", "Aufgabe"]
+        return ["ID", "Status", "Sitzung", "Name", "Aufgabe", ""]
 
     def row(self, todo):
+        user = current_user()
         protocol = todo.get_first_protocol()
-        return [
+        row = [
+            Table.link(url_for("show_todo", todo_id=todo.id), todo.get_id()),
             todo.get_state(),
-            Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier()) if protocol is not None else "",
+            Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier())
+                if protocol is not None
+                else Table.link(url_for("list_protocols", protocoltype=todo.protocoltype.id), todo.protocoltype.short_name),
             todo.who,
-            todo.description
+            todo.description,
         ]
+        if todo.protocoltype.has_modify_right(user):
+            row.append(Table.link(url_for("edit_todo", todo_id=todo.id), "Ändern"))
+        else:
+            row.append("")
+        return row
+
+class TodoTable(SingleValueTable):
+    def __init__(self, todo):
+        super().__init__("Todo", todo)
+
+    def headers(self):
+        return ["ID", "Status", "Sitzung", "Name", "Aufgabe", "Tags", ""]
+
+    def row(self):
+        user = current_user()
+        protocol = self.value.get_first_protocol()
+        row = [
+            self.value.get_id(),
+            self.value.get_state_plain(),
+            Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier())
+                if protocol is not None
+                else Table.link(url_for("list_protocols", protocolttype=self.value.protocoltype.id), self.value.protocoltype.short_name),
+            self.value.who,
+            self.value.description,
+            self.value.tags
+        ]
+        if self.value.protocoltype.has_modify_right(user):
+            row.append(Table.concat([
+                Table.link(url_for("edit_todo", todo_id=self.value.id), "Ändern"),
+                Table.link(url_for("delete_todo", todo_id=self.value.id), "Löschen", confirm="Bist du dir sicher, dass du das Todo löschen willst?")
+            ]))
+        else:
+            row.append("")
+        return row
 
 class DecisionsTable(Table):
     def __init__(self, decisions):

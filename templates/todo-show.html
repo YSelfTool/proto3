@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_single_table %}
+{% block title %}Todo{% endblock %}
+
+{% block content %}
+<div class="container">
+    {{render_single_table(todo_table)}}
+</div>
+{% endblock %}

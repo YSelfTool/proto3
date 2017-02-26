@@ -4,6 +4,12 @@ from wtforms.validators import InputRequired, Optional
 
 import config
 
+def get_protocoltype_choices(protocoltypes, add_all=True):
+    choices = [(protocoltype.id, protocoltype.short_name) for protocoltype in protocoltypes]
+    if add_all:
+        choices.insert(0, (-1, "Alle"))
+    return choices
+
 class LoginForm(FlaskForm):
     username = StringField("Benutzer", validators=[InputRequired("Bitte gib deinen Benutzernamen ein.")])
     password = PasswordField("Passwort", validators=[InputRequired("Bitte gib dein Passwort ein.")])
@@ -39,7 +45,7 @@ class NewProtocolForm(FlaskForm):
 
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
-        self.protocoltype.choices = [(protocoltype.id, protocoltype.short_name) for protocoltype in protocoltypes]
+        self.protocoltype.choices = get_protocoltype_choices(protocoltypes, add_all=False)
 
 class DocumentUploadForm(FlaskForm):
     document = FileField("Datei")
@@ -54,7 +60,7 @@ class NewProtocolSourceUploadForm(FlaskForm):
 
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
-        self.protocoltype.choices = [(protocoltype.id, protocoltype.short_name) for protocoltype in protocoltypes]
+        self.protocoltype.choices = get_protocoltype_choices(protocoltypes, add_all=False)
 
 class NewProtocolFileUploadForm(FlaskForm):
     file = FileField("Datei")
@@ -63,7 +69,7 @@ class NewProtocolFileUploadForm(FlaskForm):
 
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
-        self.protocoltype.choices = [(protocoltype.id, protocoltype.short_name) for protocoltype in protocoltypes]
+        self.protocoltype.choices = get_protocoltype_choices(protocoltypes, add_all=False)
 
 class ProtocolForm(FlaskForm):
     date = DateField("Datum", validators=[InputRequired("Bitte gib das Datum des Protkolls an.")], format="%d.%m.%Y")
@@ -84,6 +90,21 @@ class SearchForm(FlaskForm):
 
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
-        choices = [(protocoltype.id, protocoltype.short_name) for protocoltype in protocoltypes]
-        choices.insert(0, (-1, "Alle"))
-        self.protocoltype.choices = choices
+        self.protocoltype.choices = get_protocoltype_choices(protocoltypes)
+
+class NewTodoForm(FlaskForm):
+    protocoltype_id = SelectField("Typ", choices=[], coerce=int)
+    who = StringField("Person", validators=[InputRequired("Bitte gib an, wer das Todo erledigen soll.")])
+    description = StringField("Aufgabe", validators=[InputRequired("Bitte gib an, was erledigt werden soll.")])
+    tags = StringField("Weitere Tags")
+    done = BooleanField("Erledigt")
+    
+    def __init__(self, protocoltypes, **kwargs):
+        super().__init__(**kwargs)
+        self.protocoltype_id.choices = get_protocoltype_choices(protocoltypes, add_all=False)
+
+class TodoForm(FlaskForm):
+    who = StringField("Person", validators=[InputRequired("Bitte gib an, wer das Todo erledigen soll.")])
+    description = StringField("Aufgabe", validators=[InputRequired("Bitte gib an, was erledigt werden soll.")])
+    tags = StringField("Weitere Tags")
+    done = BooleanField("Erledigt")

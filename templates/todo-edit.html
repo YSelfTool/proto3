@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_form %}
+{% block title %}Todo ändern{% endblock %}
+
+{% block content %}
+<div class="container">
+    {{render_form(form, action_url=url_for("edit_todo", todo_id=todo.id), action_text="Ändern")}}
+</div>
+{% endblock %}
