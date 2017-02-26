@@ -885,6 +885,8 @@ def list_decisions():
             decision for decision in decisions
             if search_term.lower() in decision.content.lower()
         ]
+    decisions = sorted(decisions, key=lambda d: d.protocol.date, reverse=True)
+        
     page = _get_page()
     page_count = int(math.ceil(len(decisions) / config.PAGE_LENGTH))
     if page >= page_count:
