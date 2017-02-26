@@ -41,7 +41,11 @@
     </div>
     <div class="row">
         <div id="left-column" class="col-lg-6">
-            <h2>Protokoll: {{protocol.protocoltype.name}} {% if protocol.date is not none %}vom {{protocol.date|datify}}{% endif %}</h2>
+            {% if protocol.is_done() %}
+                <h2>Protokoll: {{protocol.protocoltype.name}} {% if protocol.date is not none %}vom {{protocol.date|datify}}{% endif %}</h2>
+            {% else %}
+                <h2>{{protocol.protocoltype.name}} {% if protocol.date is not none %}am {{protocol.date|datify}}{% endif %}</h2>
+            {% endif %}
             {% if protocol.is_done() %}
                 {% if protocol.date is not none %}
                     <p><strong>Datum:</strong> {{protocol.date|datify_long}}</p>

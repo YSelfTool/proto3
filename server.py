@@ -77,7 +77,32 @@ app.jinja_env.globals.update(dir=dir)
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    user = current_user()
+    protocols = [
+        protocol for protocol in Protocol.query.all()
+        if protocol.protocoltype.has_public_view_right(user)
+    ]
+    def _sort_key(protocol):
+        if protocol.date is not None:
+            return protocol.date
+        return datetime.now().date()
+    open_protocols = sorted(
+        [protocol for protocol in protocols if not protocol.done],
+        key=_sort_key
+    )
+    finished_protocols = sorted(
+        [protocol for protocol in protocols if protocol.done],
+        key=_sort_key
+    )
+    protocol = finished_protocols[0] if len(finished_protocols) > 0 else None
+    todos = None
+    if check_login():
+        todos = [
+            todo for todo in Todo.query.filter(Todo.done == False).all()
+            if todo.protocoltype.has_public_view_right(user)
+        ]
+    todos_table = TodosTable(todos) if todos is not None else None
+    return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos, todos_table=todos_table)
 
 @login_required
 @app.route("/types/list")
