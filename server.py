@@ -565,6 +565,19 @@ def update_protocol(protocol_id):
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     return render_template("protocol-update.html", upload_form=upload_form, edit_form=edit_form, protocol=protocol)
 
+@app.route("/prococol/send/<int:protocol_id>")
+@login_required
+def send_protocol(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    tasks.send_protocol(protocol)
+    flash("Das Protokoll wurde versandt.", "alert-success")
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    
+
 @app.route("/protocol/tops/new/<int:protocol_id>", methods=["GET", "POST"])
 @login_required
 def new_top(protocol_id):
@@ -738,9 +751,7 @@ def download_document(document_id):
             and not document.protocol.protocoltype.has_public_view_right(user))):
         flash("Keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
-    with open(document.get_filename(), "rb") as file:
-        file_like = BytesIO(file.read())
-        return send_file(file_like, cache_timeout=1, as_attachment=True, attachment_filename=document.name)
+    return send_file(document.as_file_like(), cache_timeout=1, as_attachment=True, attachment_filename=document.name)
 
 @app.route("/document/upload/<int:protocol_id>", methods=["POST"])
 @login_required

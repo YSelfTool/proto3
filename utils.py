@@ -6,6 +6,7 @@ import regex
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
 from datetime import datetime, date, timedelta
 import requests
 from io import BytesIO
@@ -68,18 +69,23 @@ class MailManager:
         self.username = getattr(config, "MAIL_USER", "")
         self.password = getattr(config, "MAIL_PASSWORD", "")
 
-    def send(self, to_addr, subject, content):
+    def send(self, to_addr, subject, content, appendix=None):
         if (not self.active
             or not self.hostname
             or not self.username
             or not self.password
             or not self.from_addr):
             return
-        msg = MIMEMultipart("alternative")
+        msg = MIMEMultipart("mixed") # todo: test if clients accept attachment-free mails set to multipart/mixed
         msg["From"] = self.from_addr
         msg["To"] = to_addr
         msg["Subject"] = subject
         msg.attach(MIMEText(content, _charset="utf-8"))
+        if appendix is not None:
+            for name, file_like in appendix:
+                part = MIMEApplication(file_like.read(), "octet-stream")
+                part["Content-Disposition"] = 'attachment; filename="{}"'.format(name)
+                msg.attach(part)
         server = smtplib.SMTP_SSL(self.hostname)
         server.login(self.username, self.password)
         server.sendmail(self.from_addr, to_addr, msg.as_string())

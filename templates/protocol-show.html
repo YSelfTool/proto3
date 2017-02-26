@@ -20,6 +20,8 @@
             {% if not protocol.is_done() %}
                 <a class="btn btn-default" href="{{url_for("get_protocol_template", protocol_id=protocol.id)}}">Vorlage</a>
                 <a class="btn btn-primary" href="{{url_for("etherpush_protocol", protocol_id=protocol.id)}}">In Etherpad</a>
+            {% else %}
+                <a class="btn btn-default" href="{{url_for("send_protocol", protocol_id=protocol.id)}}">Per Mail versenden</a>
             {% endif %}
             <a class="btn btn-default" href="{{protocol.get_etherpad_link()}}" target="_blank">Etherpad</a>
             <a class="btn btn-default" href="{{url_for("show_type", type_id=protocol.protocoltype.id)}}">Typ</a>

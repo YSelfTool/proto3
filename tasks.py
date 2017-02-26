@@ -199,7 +199,6 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
             content_private = render_template("protocol.txt", render_type=RenderType.plaintext, show_private=True, **render_kwargs)
             content_public = render_template("protocol.txt", render_type=RenderType.plaintext, show_private=False, **render_kwargs)
             if content_private != content_public:
-                print("different")
                 privacy_states.append(True)
             protocol.content_private = content_private
             protocol.content_public = content_public
@@ -316,23 +315,40 @@ def send_reminder_async(reminder_id, protocol_id):
     with app.app_context():
         reminder = MeetingReminder.query.filter_by(id=reminder_id).first()
         protocol = Protocol.query.filter_by(id=protocol_id).first()
-        reminder_text = render_template("reminder.txt", reminder=reminder, protocol=protocol)
+        reminder_text = render_template("reminder-mail.txt", reminder=reminder, protocol=protocol)
         if reminder.send_public:
             send_mail(protocol, protocol.protocoltype.public_mail, "Tagesordnung der {}".format(protocol.protocoltype.name), reminder_text)
         if reminder.send_private:
             send_mail(protocol, protocol.protocoltype.private_mail, "Tagesordnung der {}".format(protocol.protocoltype.name), reminder_text)
 
-def send_mail(protocol, to_addr, subject, content):
-    if to_addr is not None and len(to_addr.strip()) > 0:
-        send_mail_async.delay(protocol.id, to_addr, subject, content)
+def send_protocol(protocol):
+    send_protocol_async.delay(protocol.id, show_private=True)
+    send_protocol_async.delay(protocol.id, show_private=False)
 
 @celery.task
-def send_mail_async(protocol_id, to_addr, subject, content):
+def send_protocol_async(protocol_id, show_private):
+    with app.app_context():
+        protocol = Protocol.query.filter_by(id=protocol_id).first()
+        to_addr = protocol.protocoltype.private_mail if show_private else protocol.protocoltype.public_mail
+        subject = "{}{}-Protokoll vom {}".format("Internes " if show_private else "", protocol.protocoltype.short_name, date_filter(protocol.date))
+        mail_content = render_template("protocol-mail.txt", protocol=protocol)
+        appendix = [(document.name, document.as_file_like())
+            for document in protocol.documents
+            if show_private or not document.is_private
+        ]
+        send_mail(protocol, to_addr, subject, mail_content, appendix)
+
+
+def send_mail(protocol, to_addr, subject, content, appendix=None):
+    if to_addr is not None and len(to_addr.strip()) > 0:
+        send_mail_async.delay(protocol.id, to_addr, subject, content, appendix)
+
+@celery.task
+def send_mail_async(protocol_id, to_addr, subject, content, appendix):
     with app.app_context():
         protocol = Protocol.query.filter_by(id=protocol_id).first()
         try:
-            print("sending {} to {}".format(subject, to_addr))
-            mail_manager.send(to_addr, subject, content)
+            mail_manager.send(to_addr, subject, content, appendix)
         except Exception as exc:
             error = protocol.create_error("Sending Mail", "Sending mail failed", str(exc))
             db.session.add(error)

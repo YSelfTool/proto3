@@ -1,0 +1,34 @@
+Protocol der {{protocol.name}} vom {{protocol.date|datify}}
+
+Datum: {{protocol.date|datify_long}}
+Zeit: von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}
+Protokollant: {{protocol.author}}
+Anwesende: {{protocol.participants}}
+
+Die Tagesordnung ist:
+{% if not protocol.has_nonplanned_tops() %}
+    {% for default_top in protocol.protocoltype.default_tops %}
+        {% if not default_top.is_at_end() %}
+* {{default_top.name}}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+{% for top in protocol.tops %}
+* {{top.name }}
+{% endfor %}
+{% if not protocol.has_nonplanned_tops() %}
+    {% for default_top in protocol.protocoltype.default_tops %}
+        {% if default_top.is_at_end() %}
+* {{default_top.name}}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+Beschlüsse:
+{% if protocol.decisions|length > 0 %}
+    {% for decision in protocol.decisions %}
+* {{decision.content}}
+    {% endfor %}
+{% else %}
+* Keine Beschlüsse
+{% endif %}

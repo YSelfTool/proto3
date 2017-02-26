@@ -2,6 +2,7 @@ from flask import render_template, send_file, url_for, redirect, flash, request
 
 from datetime import datetime, time, date, timedelta
 import math
+from io import StringIO, BytesIO
 
 from shared import db
 from utils import random_string, url_manager, get_etherpad_url
@@ -103,8 +104,6 @@ class ProtocolType(db.Model):
             protocoltype for protocoltype in ProtocolType.query.all()
             if protocoltype.has_private_view_right(user)
         ]
-
-
 
 class Protocol(db.Model):
     __tablename__ = "protocols"
@@ -282,6 +281,10 @@ class Document(db.Model):
 
     def get_filename(self):
         return os.path.join(config.DOCUMENTS_PATH, self.filename)
+
+    def as_file_like(self):
+        with open(self.get_filename(), "rb") as file:
+            return BytesIO(file.read())
 
 @event.listens_for(Document, "before_delete")
 def on_document_delete(mapper, connection, document):
