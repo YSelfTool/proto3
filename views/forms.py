@@ -56,6 +56,15 @@ class NewProtocolSourceUploadForm(FlaskForm):
         super().__init__(**kwargs)
         self.protocoltype.choices = [(protocoltype.id, protocoltype.short_name) for protocoltype in protocoltypes]
 
+class NewProtocolFileUploadForm(FlaskForm):
+    file = FileField("Datei")
+    protocoltype = SelectField("Typ", choices=[], coerce=int)
+    private = BooleanField("Intern")
+
+    def __init__(self, protocoltypes, **kwargs):
+        super().__init__(**kwargs)
+        self.protocoltype.choices = [(protocoltype.id, protocoltype.short_name) for protocoltype in protocoltypes]
+
 class ProtocolForm(FlaskForm):
     date = DateField("Datum", validators=[InputRequired("Bitte gib das Datum des Protkolls an.")], format="%d.%m.%Y")
     start_time = DateTimeField("Beginn", format="%H:%M", validators=[Optional()])

@@ -10,8 +10,10 @@
             {{render_form(form, action_url=url_for("new_protocol"), action_text="Anlegen")}}
         </div>
         <div id="left-column" class="col-lg-6">
-            <h3>Neues Protokoll hochladen</h3>
+            <h3>Quellcode hochladen</h3>
             {{render_form(upload_form, action_url=url_for("upload_new_protocol", fail=url_for("new_protocol")), action_text="Hochladen", enctype="multipart/form-data")}}
+            <h3>Datei hochladen</h3>
+            {{render_form(file_upload_form, action_url=url_for("upload_new_protocol_by_file", fail=url_for("new_protocol")), action_text="Hochladen", enctype="multipart/form-data")}}
         </div>
     </div>
 </div>
