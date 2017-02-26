@@ -289,9 +289,41 @@ class Document(db.Model):
 @event.listens_for(Document, "before_delete")
 def on_document_delete(mapper, connection, document):
     if document.filename is not None:
-        document_path = os.path.join(config.DOCUMENTS_PATH, document.filename)
+        document_path = document.get_filename()
         if os.path.isfile(document_path):
             os.remove(document_path)
+
+class DecisionDocument(db.Model):
+    __tablename__ = "decisiondocuments"
+    id = db.Column(db.Integer, primary_key=True)
+    decision_id = db.Column(db.Integer, db.ForeignKey("decisions.id"))
+    name = db.Column(db.String)
+    filename = db.Column(db.String)
+
+    def __init__(self, decision_id, name, filename):
+        self.decision_id = decision_id
+        self.name = name
+        self.filename = filename
+
+    def __repr__(self):
+        return "<DecisionDocument(id={}, decision_id={}, name={}, filename={})>".format(
+            self.id, self.decision_id, self.name, self.filename)
+
+    def get_filename(self):
+        return os.path.join(config.DOCUMENTS_PATH, self.filename)
+
+    def as_file_like(self):
+        with open(self.get_filename(), "rb") as file:
+            return BytesIO(file.read())
+
+@event.listens_for(DecisionDocument, "before_delete")
+def on_decisions_document_delete(mapper, connection, document):
+    if document.filename is not None:
+        document_path = document.get_filename()
+        if os.path.isfile(document_path):
+            os.remove(document_path)
+
+
 
 class Todo(db.Model):
     __tablename__ = "todos"
@@ -381,6 +413,8 @@ class Decision(db.Model):
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     content = db.Column(db.String)
 
+    document = relationship("DecisionDocument", backref=backref("decision"), cascade="all, delete-orphan", uselist=False)
+
     def __init__(self, protocol_id, content):
         self.protocol_id = protocol_id
         self.content = content
@@ -433,7 +467,7 @@ class Error(db.Model):
         lines = self.description.splitlines()
         if len(lines) <= 4:
             return "\n".join(lines)
-        return "\n".join(lines[:2], "…", lines[-2:])
+        return "\n".join([*lines[:2], "…", *lines[-2:]])
 
 class TodoMail(db.Model):
     __tablename__ = "todomails"

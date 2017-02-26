@@ -209,7 +209,7 @@ class ErrorsTable(Table):
             Table.link(url_for("show_error", error_id=error.id), error.name),
             datetime_filter(error.datetime),
             error.get_short_description(),
-            Table.link(url_for("delete_error", error_id=error.id), "Löschen", confirm="Bist du dir sicher, dass du den Fehler löschen möchtest?")
+            Table.link(url_for("delete_error", error_id=error.id, next=request.path), "Löschen", confirm="Bist du dir sicher, dass du den Fehler löschen möchtest?")
         ]
 
 class ErrorTable(SingleValueTable):
@@ -287,12 +287,18 @@ class DecisionsTable(Table):
         super().__init__("Beschlüsse", decisions)
 
     def headers(self):
-        return ["Sitzung", "Beschluss"]
+        return ["Sitzung", "Beschluss", ""]
 
     def row(self, decision):
+        user = current_user()
         return [
             Table.link(url_for("show_protocol", protocol_id=decision.protocol.id), decision.protocol.get_identifier()),
-            decision.content
+            decision.content,
+            Table.link(url_for("print_decision", document_id=decision.document.id), "Drucken")
+                if config.PRINTING_ACTIVE
+                and decision.protocol.protocoltype.has_modify_right(user)
+                and decision.document is not None 
+                else ""
         ]
 
 class DocumentsTable(Table):

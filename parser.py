@@ -94,7 +94,9 @@ class Element:
         current.append(element)
         if isinstance(element, Fork):
             return element
-        return current
+        else:
+            element.fork = current
+            return current
 
     PATTERN = r"x(?<!x)" # yes, a master piece, but it should never be called
 
@@ -123,14 +125,14 @@ class Content(Element):
         if match.group("content") is None:
             raise ParserException("Content is missing its content!", linenumber)
         content = match.group("content")
-        element = Content.from_content(content, linenumber)
+        element = Content.from_content(content, current, linenumber)
         if len(content) == 0:
             return current, linenumber
         current = Element.parse_outer(element, current)
         return current, linenumber
 
     @staticmethod
-    def from_content(content, linenumber):
+    def from_content(content, current, linenumber):
         children = []
         while len(content) > 0:
             matched = False
@@ -138,7 +140,7 @@ class Content(Element):
                 match = pattern.match(content)
                 if match is not None:
                     matched = True
-                    children.append(TEXT_PATTERNS[pattern](match, linenumber))
+                    children.append(TEXT_PATTERNS[pattern](match, current, linenumber))
                     content = content[len(match.group()):]
                     break
             if not matched:
@@ -151,9 +153,10 @@ class Content(Element):
     PATTERN = r"\s*(?<content>(?:[^\[\];\r\n]+)?(?:\[[^\]\r\n]+\][^;\[\]\r\n]*)*);?"
 
 class Text:
-    def __init__(self, text, linenumber):
+    def __init__(self, text, linenumber, fork):
         self.text = text
         self.linenumber = linenumber
+        self.fork = fork
 
     def render(self, render_type, show_private, level=None, protocol=None):
         if render_type == RenderType.latex:
@@ -171,22 +174,23 @@ class Text:
         print("{}text: {}".format(" " * level, self.text))
 
     @staticmethod
-    def parse(match, linenumber):
+    def parse(match, current, linenumber):
         if match is None:
             raise ParserException("Text is not actually a text!", linenumber)
         content = match.group("text")
         if content is None:
             raise ParserException("Text is empty!", linenumber)
-        return Text(content, linenumber)
+        return Text(content, linenumber, current)
 
     PATTERN = r"(?<text>[^\[]+)(?:(?=\[)|$)"
 
 
 class Tag:
-    def __init__(self, name, values, linenumber):
+    def __init__(self, name, values, linenumber, fork):
         self.name = name
         self.values = values
         self.linenumber = linenumber
+        self.fork = fork
 
     def render(self, render_type, show_private, level=None, protocol=None):
         if render_type == RenderType.latex:
@@ -222,14 +226,14 @@ class Tag:
         print("{}tag: {}: {}".format(" " * level, self.name, "; ".join(self.values)))
 
     @staticmethod
-    def parse(match, linenumber):
+    def parse(match, current, linenumber):
         if match is None:
             raise ParserException("Tag is not actually a tag!", linenumber)
         content = match.group("content")
         if content is None:
             raise ParserException("Tag is empty!", linenumber)
         parts = content.split(";")
-        return Tag(parts[0], parts[1:], linenumber)
+        return Tag(parts[0], parts[1:], linenumber, current)
 
     PATTERN = r"\[(?<content>(?:[^;\]]*;)*(?:[^;\]]*))\]"
 
@@ -376,6 +380,11 @@ class Fork(Element):
 
     def is_root(self):
         return self.parent is None
+
+    def get_top(self):
+        if self.is_root() or self.parent.is_root():
+            return self
+        return self.parent.get_top()
 
     @staticmethod
     def create_root():

@@ -5,7 +5,7 @@ import subprocess
 import shutil
 import tempfile
 
-from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP, MeetingReminder, TodoMail
+from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP, MeetingReminder, TodoMail, DecisionDocument
 from models.errors import DateNotMatchingException
 from server import celery, app
 from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter
@@ -182,6 +182,9 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 decision = Decision(protocol_id=protocol.id, content=decision_tag.values[0])
                 db.session.add(decision)
                 db.session.commit()
+                decision_content = texenv.get_template("decision.tex").render(render_type=RenderType.latex, decision=decision, protocol=protocol, top=decision_tag.fork.get_top(), show_private=False)
+                print(decision_content)
+                compile_decision(decision_content, decision)
             old_tops = list(protocol.tops)
             for top in old_tops:
                 protocol.tops.remove(top)
@@ -229,12 +232,21 @@ def push_to_wiki_async(protocol_id, content, summary):
             error = protocol.create_error("Pushing to Wiki", "Pushing to Wiki failed.", str(exc))
 
 def compile(content, protocol, show_private):
-    compile_async.delay(content, protocol.id, show_private)
+   compile_async.delay(content, protocol.id, show_private=show_private)
+
+def compile_decision(content, decision):
+    compile_async.delay(content, decision.id, use_decision=True)
 
 @celery.task
-def compile_async(content, protocol_id, show_private):
+def compile_async(content, protocol_id, show_private=False, use_decision=False):
     with tempfile.TemporaryDirectory() as compile_dir, app.app_context():
-        protocol = Protocol.query.filter_by(id=protocol_id).first()
+        decision = None
+        protocol = None
+        if use_decision:
+            decision = Decision.query.filter_by(id=protocol_id).first()
+            protocol = decision.protocol
+        else:
+            protocol = Protocol.query.filter_by(id=protocol_id).first()
         try:
             current = os.getcwd()
             protocol_source_filename = "protocol.tex"
@@ -255,17 +267,22 @@ def compile_async(content, protocol_id, show_private):
             subprocess.check_call(command, universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             subprocess.check_call(command, universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             os.chdir(current)
-            for old_document in [document for document in protocol.documents if document.is_compiled and document.is_private == show_private]:
-                protocol.documents.remove(old_document)
-            db.session.commit()
-            document = Document(protocol.id, name="protokoll{}_{}_{}.pdf".format("_intern" if show_private else "", protocol.protocoltype.short_name, date_filter_short(protocol.date)), filename="", is_compiled=True, is_private=show_private)
+            document = None
+            if not use_decision:
+                for old_document in [document for document in protocol.documents if document.is_compiled and document.is_private == show_private]:
+                    protocol.documents.remove(old_document)
+                db.session.commit()
+                document = Document(protocol.id, name="protokoll{}_{}_{}.pdf".format("_intern" if show_private else "", protocol.protocoltype.short_name, date_filter_short(protocol.date)), filename="", is_compiled=True, is_private=show_private)
+            else:
+                document = DecisionDocument(decision.id, name="beschluss_{}_{}_{}.pdf".format(protocol.protocoltype.short_name, date_filter_short(protocol.date), decision.id), filename="")
             db.session.add(document)
             db.session.commit()
             target_filename = "compiled-{}-{}.pdf".format(document.id, "internal" if show_private else "public")
+            if use_decision:
+                target_filename = "decision-{}-{}-{}.pdf".format(protocol.id, decision.id, document.id)
             document.filename = target_filename
             shutil.copy(os.path.join(compile_dir, protocol_target_filename), os.path.join(config.DOCUMENTS_PATH, target_filename))
             db.session.commit()
-            #shutil.copy(os.path.join(compile_dir, log_filename), "/tmp")
         except subprocess.SubprocessError:
             log = ""
             total_log_filename = os.path.join(compile_dir, log_filename)

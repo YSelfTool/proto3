@@ -21,7 +21,7 @@ import math
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
-from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail
+from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable
 
@@ -86,8 +86,13 @@ def index():
         if protocol.date is not None:
             return protocol.date
         return datetime.now().date()
+    current_day = datetime.now().date()
     open_protocols = sorted(
-        [protocol for protocol in protocols if not protocol.done],
+        [
+            protocol for protocol in protocols
+            if not protocol.done
+            and (protocol.date - current_day).days < config.MAX_INDEX_DAYS
+        ],
         key=_sort_key
     )
     finished_protocols = sorted(
@@ -660,7 +665,6 @@ def new_top(protocol_id):
         db.session.commit()
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     else:
-        print(form.number.data)
         current_numbers = list(map(lambda t: t.number, protocol.tops))
         suggested_number = get_first_unused_int(current_numbers)
         form.number.data = suggested_number
@@ -966,6 +970,21 @@ def print_document(document_id):
     tasks.print_file(document.get_filename(), document.protocol)
     flash("Das Dokument {} wird gedruckt.".format(document.name), "alert-success")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.protocol.id))
+
+@app.route("/decision/print/<int:document_id>")
+@login_required
+def print_decision(document_id):
+    user = current_user()
+    document = DecisionDocument.query.filter_by(id=document_id).first()
+    if document is None or not document.decision.protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Dokument oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    if not config.PRINTING_ACTIVE:
+        flash("Die Druckfunktion ist nicht aktiviert.", "alert-error")
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.decision.protocol.id))
+    tasks.print_file(document.get_filename(), document.decision.protocol)
+    flash("Das Dokument {} wird gedruckt.".format(document.name), "alert-success")
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.decision.protocol.id))
 
 @app.route("/errors/list")
 @login_required

@@ -1,0 +1,41 @@
+\documentclass[11pt,twoside]{protokoll2}
+%\usepackage{bookman}
+%\usepackage{newcent}
+%\usepackage{palatino}
+\usepackage{pdfpages}
+\usepackage{eurosym}
+%\usepackage[utf8]{inputenc}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+%\usepackage{ngerman}
+% \usepackage[left]{lineno}
+%\usepackage{footnote}
+%\usepackage{times}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\thempfootnote}{\fnsymbol{mpfootnote}}
+%\renewcommand{\familydefault}{\sfdefault}
+\newcommand{\einrueck}[1]{\hfill\begin{minipage}{0.95\linewidth}#1\end{minipage}}
+
+
+\begin{document}
+%\thispagestyle{plain}   %ggf kommentarzeichen entfernen
+\Titel{
+\large Protokoll: \VAR{protocol.protocoltype.name|escape_tex}
+\\\normalsize \VAR{protocol.protocoltype.organization|escape_tex}
+}{}
+\begin{tabular}{rp{14cm}}
+{\bf Datum:} & \VAR{protocol.date|datify_long|escape_tex}\\
+{\bf Ort:} & \VAR{protocol.location|escape_tex}\\
+{\bf Protokollant:} & \VAR{protocol.author|escape_tex}\\
+{\bf Anwesend:} & \VAR{protocol.participants|escape_tex}\\
+\end{tabular}
+\normalsize
+
+\section*{Beschluss}
+\begin{itemize}
+    \item \VAR{decision.content|escape_tex}
+\end{itemize}
+
+\TOP{\VAR{top.name|escape_tex}}
+\VAR{top.render(render_type=render_type, level=0, show_private=show_private, protocol=protocol)}
+
+\end{document}

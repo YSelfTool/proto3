@@ -74,7 +74,12 @@
             <ul>
                 {% if protocol.decisions|length > 0 %}
                     {% for decision in protocol.decisions %}
-                        <li>{{decision.content}}</li>
+                        <li>
+                            {{decision.content}}
+                            {% if config.PRINTING_ACTIVE and has_private_view_right and decision.document is not none %}
+                                <a href="{{url_for("print_decision", document_id=decision.document.id)}}">Drucken</a>
+                            {% endif %}
+                        </li>
                     {% endfor %}
                 {% else %}
                     <li>Keine Beschlüsse</li>
