@@ -9,6 +9,10 @@ from flask_migrate import Migrate, MigrateCommand
 #from flask_socketio import SocketIO
 from celery import Celery
 from sqlalchemy import or_, and_
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
+import atexit
 from io import StringIO, BytesIO
 import os
 from datetime import datetime
@@ -38,6 +42,17 @@ celery = make_celery(app, config)
 #    socketio = SocketIO(app)
 #    return socketio
 #socketio = make_socketio(app, config)
+
+def make_scheduler(app, config, function):
+    scheduler = BackgroundScheduler()
+    scheduler.start()
+    scheduler.add_job(
+        func=function,
+        trigger=CronTrigger(hour='*'),
+        id="scheduler",
+        name="Do an action regularly",
+        replace_existing=True)
+    atexit.register(scheduler.shutdown)
 
 app.jinja_env.trim_blocks = True
 app.jinja_env.lstrip_blocks = True
@@ -87,7 +102,7 @@ def new_type():
             flash("Du kannst keinen internen Protokolltypen anlegen, zu dem du selbst keinen Zugang hast.", "alert-error")
         else:
             protocoltype = ProtocolType(form.name.data, form.short_name.data,
-                form.organization.data, form.is_public.data,
+                form.organization.data, form.usual_time.data, form.is_public.data,
                 form.private_group.data, form.public_group.data,
                 form.private_mail.data, form.public_mail.data,
                 form.use_wiki.data, form.wiki_category.data,
@@ -148,7 +163,7 @@ def new_reminder(type_id):
         return redirect(request.args.get("next") or url_for("index"))
     form = MeetingReminderForm()
     if form.validate_on_submit():
-        reminder = MeetingReminder(protocoltype.id, form.days_before.data, form.send_public.data, form.send_private.data)
+        reminder = MeetingReminder(protocoltype.id, form.days_before.data, form.send_public.data, form.send_private.data, form.additional_text.data)
         db.session.add(reminder)
         db.session.commit()
         return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
@@ -365,7 +380,7 @@ def list_protocols():
                     for text, matched in parts
                 ]))
             search_results[protocol] = "<br />\n".join(formatted_lines)
-        protocols = sorted(protocols, key=lambda protocol: protocol.date, reverse=True)
+    protocols = sorted(protocols, key=lambda protocol: protocol.date, reverse=True)
     page = _get_page()
     page_count = int(math.ceil(len(protocols)) / config.PAGE_LENGTH)
     if page >= page_count:
@@ -809,6 +824,20 @@ def logout():
         flash("You are not logged in.", "alert-error")
     return redirect(url_for(".index"))
 
+def check_and_send_reminders():
+    with app.app_context():
+        current_time = datetime.now()
+        current_day = current_time.date()
+        for protocol in Protocol.query.filter(Protocol.done == False).all():
+            day_difference = (protocol.date - current_day).days
+            usual_time = protocol.protocoltype.usual_time
+            protocol_time = datetime(1, 1, 1, usual_time.hour, usual_time.minute)
+            hour_difference = (protocol_time - current_time).seconds // 3600
+            print(protocol.get_identifier(), day_difference, hour_difference)
+            for reminder in protocol.protocoltype.reminders:
+                if day_difference == reminder.days_before and hour_difference == 0:
+                    tasks.send_reminder(reminder, protocol)
 
 if __name__ == "__main__":
+    make_scheduler(app, config, check_and_send_reminders)
     manager.run()

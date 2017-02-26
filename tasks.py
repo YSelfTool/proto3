@@ -5,7 +5,7 @@ import subprocess
 import shutil
 import tempfile
 
-from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP
+from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP, MeetingReminder
 from models.errors import DateNotMatchingException
 from server import celery, app
 from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter
@@ -308,21 +308,33 @@ def print_file_async(filename, protocol_id):
             db.session.add(error)
             db.session.commit()
 
-def send_mail(mail):
-    send_mail_async.delay(mail.id)
+def send_reminder(reminder, protocol):
+    send_reminder_async.delay(reminder.id, protocol.id)
 
 @celery.task
-def send_mail_async(mail_id):
+def send_reminder_async(reminder_id, protocol_id):
     with app.app_context():
-        mail = Mail.query.filter_by(id=mail_id).first()
-        if mail is None:
-            return False
-        mail.ready = False
-        mail.error = False
-        db.session.commit()
-        result = mail_manager.send(mail.to_addr, mail.subject, mail.content)
-        mail.ready = True
-        mail.error = not result
-        db.session.commit()
+        reminder = MeetingReminder.query.filter_by(id=reminder_id).first()
+        protocol = Protocol.query.filter_by(id=protocol_id).first()
+        reminder_text = render_template("reminder.txt", reminder=reminder, protocol=protocol)
+        if reminder.send_public:
+            send_mail(protocol, protocol.protocoltype.public_mail, "Tagesordnung der {}".format(protocol.protocoltype.name), reminder_text)
+        if reminder.send_private:
+            send_mail(protocol, protocol.protocoltype.private_mail, "Tagesordnung der {}".format(protocol.protocoltype.name), reminder_text)
 
+def send_mail(protocol, to_addr, subject, content):
+    if to_addr is not None and len(to_addr.strip()) > 0:
+        send_mail_async.delay(protocol.id, to_addr, subject, content)
+
+@celery.task
+def send_mail_async(protocol_id, to_addr, subject, content):
+    with app.app_context():
+        protocol = Protocol.query.filter_by(id=protocol_id).first()
+        try:
+            print("sending {} to {}".format(subject, to_addr))
+            mail_manager.send(to_addr, subject, content)
+        except Exception as exc:
+            error = protocol.create_error("Sending Mail", "Sending mail failed", str(exc))
+            db.session.add(error)
+            db.session.commit()
 

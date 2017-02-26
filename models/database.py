@@ -21,6 +21,7 @@ class ProtocolType(db.Model):
     name = db.Column(db.String, unique=True)
     short_name = db.Column(db.String, unique=True)
     organization = db.Column(db.String)
+    usual_time = db.Column(db.Time)
     is_public = db.Column(db.Boolean)
     private_group = db.Column(db.String)
     public_group = db.Column(db.String)
@@ -36,12 +37,13 @@ class ProtocolType(db.Model):
     reminders = relationship("MeetingReminder", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="MeetingReminder.days_before")
     todos = relationship("Todo", backref=backref("protocoltype"), order_by="Todo.id")
 
-    def __init__(self, name, short_name, organization,
+    def __init__(self, name, short_name, organization, usual_time,
             is_public, private_group, public_group, private_mail, public_mail,
             use_wiki, wiki_category, wiki_only_public, printer):
         self.name = name
         self.short_name = short_name
         self.organization = organization
+        self.usual_time = usual_time
         self.is_public = is_public
         self.private_group = private_group
         self.public_group = public_group
@@ -56,11 +58,11 @@ class ProtocolType(db.Model):
         return ("<ProtocolType(id={}, short_name={}, name={}, "
                 "organization={}, is_public={}, private_group={}, "
                 "public_group={}, use_wiki={}, wiki_category='{}', "
-                "wiki_only_public={}, printer={})>".format(
+                "wiki_only_public={}, printer={}, usual_time={})>".format(
             self.id, self.short_name, self.name,
             self.organization, self.is_public, self.private_group,
             self.public_group, self.use_wiki, self.wiki_category,
-            self.wiki_only_public, self.printer))
+            self.wiki_only_public, self.printer, self.usual_time))
 
     def get_latest_protocol(self):
         candidates = sorted([protocol for protocol in self.protocols if protocol.is_done()], key=lambda p: p.date, reverse=True)
@@ -385,12 +387,14 @@ class MeetingReminder(db.Model):
     days_before = db.Column(db.Integer)
     send_public = db.Column(db.Boolean)
     send_private = db.Column(db.Boolean)
+    additional_text = db.Column(db.String)
 
-    def __init__(self, protocoltype_id, days_before, send_public, send_private):
+    def __init__(self, protocoltype_id, days_before, send_public, send_private, additional_text):
         self.protocoltype_id = protocoltype_id
         self.days_before = days_before
         self.send_public = send_public
         self.send_private = send_private
+        self.additional_text = additional_text
 
     def __repr__(self):
         return "<MeetingReminder(id={}, protocoltype_id={}, days_before={}, send_public={}, send_private={})>".format(

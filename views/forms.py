@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField, FileField, DateTimeField
+from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField, FileField, DateTimeField, TextAreaField
 from wtforms.validators import InputRequired, Optional
 
 import config
@@ -12,6 +12,7 @@ class ProtocolTypeForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Du musst einen Namen angeben.")])
     short_name = StringField("Abkürzung", validators=[InputRequired("Du musst eine Abkürzung angebene.")])
     organization = StringField("Organisation", validators=[InputRequired("Du musst eine zugehörige Organisation angeben.")])
+    usual_time = DateTimeField("Üblicher Beginn", validators=[InputRequired("Bitte gib die Zeit an, zu der die Sitzung beginnt.")], format="%H:%M")
     is_public = BooleanField("Öffentlich sichtbar")
     private_group = StringField("Interne Gruppe")
     public_group = StringField("Öffentliche Gruppe")
@@ -30,6 +31,7 @@ class MeetingReminderForm(FlaskForm):
     days_before = IntegerField("Tage vor Sitzung", validators=[InputRequired("Du musst eine Dauer angeben.")])
     send_public = BooleanField("Öffentlich einladen")
     send_private = BooleanField("Intern einladen")
+    additional_text = TextAreaField("Zusätzlicher Mailinhalt")
 
 class NewProtocolForm(FlaskForm):
     protocoltype = SelectField("Typ", choices=[], coerce=int)

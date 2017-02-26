@@ -67,7 +67,6 @@ class MailManager:
         self.hostname = getattr(config, "MAIL_HOST", "")
         self.username = getattr(config, "MAIL_USER", "")
         self.password = getattr(config, "MAIL_PASSWORD", "")
-        self.prefix = getattr(config, "MAIL_PREFIX", "")
 
     def send(self, to_addr, subject, content):
         if (not self.active
@@ -75,21 +74,16 @@ class MailManager:
             or not self.username
             or not self.password
             or not self.from_addr):
-            return True
-        try:
-            msg = MIMEMultipart("alternative")
-            msg["From"] = self.from_addr
-            msg["To"] = to_addr
-            msg["Subject"] = "[{}] {}".format(self.prefix, subject) if self.prefix else subject
-            msg.attach(MIMEText(content, _charset="utf-8"))
-            server = smtplib.SMTP_SSL(self.hostname)
-            server.login(self.username, self.password)
-            server.sendmail(self.from_addr, to_addr, msg.as_string())
-            server.quit()
-        except Exception as e:
-            print(e)
-            return False
-        return True
+            return
+        msg = MIMEMultipart("alternative")
+        msg["From"] = self.from_addr
+        msg["To"] = to_addr
+        msg["Subject"] = subject
+        msg.attach(MIMEText(content, _charset="utf-8"))
+        server = smtplib.SMTP_SSL(self.hostname)
+        server.login(self.username, self.password)
+        server.sendmail(self.from_addr, to_addr, msg.as_string())
+        server.quit()
 
 mail_manager = MailManager(config)
 

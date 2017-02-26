@@ -105,8 +105,8 @@ class ProtocolTypeTable(SingleValueTable):
         super().__init__(protocoltype.name, protocoltype, newlink=url_for("edit_type", type_id=protocoltype.id))
 
     def headers(self):
-        headers = ["Name", "Abkürzung", "Organisation", "Öffentlich",
-            "Interne Gruppe", "Öffentliche Gruppe",
+        headers = ["Name", "Abkürzung", "Organisation", "Beginn",
+            "Öffentlich", "Interne Gruppe", "Öffentliche Gruppe",
             "Interner Verteiler", "Öffentlicher Verteiler",
             "Drucker", "Wiki"]
         if self.value.use_wiki:
@@ -118,6 +118,7 @@ class ProtocolTypeTable(SingleValueTable):
             self.value.name,
             self.value.short_name,
             self.value.organization,
+            self.value.usual_time.strftime("%H:%M") if self.value.usual_time is not None else "", # todo: remove if, this field is required
             Table.bool(self.value.is_public),
             self.value.private_group,
             self.value.public_group,
@@ -156,12 +157,13 @@ class MeetingRemindersTable(Table):
         self.protocoltype = protocoltype
 
     def headers(self):
-        return ["Zeit", "Einladen", ""]
+        return ["Zeit", "Einladen", "Zusätzlicher Mailinhalt", ""]
 
     def row(self, reminder):
         return [
             "{} Tage".format(reminder.days_before),
             self.get_send_summary(reminder),
+            reminder.additional_text or "",
             Table.concat([
                 Table.link(url_for("edit_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Ändern"),
                 Table.link(url_for("delete_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Löschen", confirm="Bist du dir sicher, dass du die Einladungsmail {} Tage vor der Sitzung löschen willst?".format(reminder.days_before))
