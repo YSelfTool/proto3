@@ -21,9 +21,9 @@ import math
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
-from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm
-from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable
+from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm
+from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -977,6 +977,53 @@ def delete_error(error_id):
     db.session.commit()
     flash("Fehler {} gelöscht.".format(name), "alert-success")
     return redirect(request.args.get("next") or url_for("list_errors"))
+
+@app.route("/todomails/list")
+@login_required
+def list_todomails():
+    todomails = TodoMail.query.all()
+    todomails_table = TodoMailsTable(todomails)
+    return render_template("todomails-list.html", todomails=todomails, todomails_table=todomails_table)
+
+@app.route("/todomail/new", methods=["GET", "POST"])
+@login_required
+def new_todomail():
+    form = TodoMailForm()
+    if form.validate_on_submit():
+        todomail = TodoMail(form.name.data, form.mail.data)
+        db.session.add(todomail)
+        db.session.commit()
+        flash("Die Todomailzuordnung für {} wurde angelegt.".format(todomail.name), "alert-success")
+        return redirect(request.args.get("next") or url_for("list_todomails"))
+    return render_template("todomail-new.html", form=form)
+
+@app.route("/todomail/edit/<int:todomail_id>", methods=["GET", "POST"])
+@login_required
+def edit_todomail(todomail_id):
+    todomail = TodoMail.query.filter_by(id=todomail_id).first()
+    if todomail is None:
+        flash("Invalide Todo-Mail-Zuordnung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("list_todomails"))
+    form = TodoMailForm(obj=todomail)
+    if form.validate_on_submit():
+        form.populate_obj(todomail)
+        db.session.commit()
+        flash("Die Todo-Mail-Zuordnung wurde geändert.", "alert-success")
+        return redirect(request.args.get("next") or url_for("list_todomails"))
+    return render_template("todomail-edit.html", todomail=todomail, form=form)
+
+@app.route("/todomail/delete/<int:todomail_id>")
+@login_required
+def delete_todomail(todomail_id):
+    todomail = TodoMail.query.filter_by(id=todomail_id).first()
+    if todomail is None:
+        flash("Invalide Todomailzuordnung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("list_todomails"))
+    name = todomail.name
+    db.session.delete(todomail)
+    db.session.commit()
+    flash("Die Todo-Mail-Zuordnung für {} wurde gelöscht.".format(name), "alert-success")
+    return redirect(request.args.get("next") or url_for("list_todomails"))
     
 
 @app.route("/login", methods=["GET", "POST"])

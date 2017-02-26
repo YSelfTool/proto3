@@ -27,7 +27,7 @@
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 {% if check_login() %}
-                <li><a href="{{url_for("new_protocol")}}">Neues Protokoll</a></li>
+                <li><a href="{{url_for("new_protocol")}}">Neu</a></li>
                 {% endif %}
                 <li><a href="{{url_for("list_protocols")}}">Protokolle</a></li>
                 {% if check_login() %}
@@ -37,6 +37,7 @@
                 {% if check_login() %}
                 <li><a href="{{url_for("list_types")}}">Typen</a></li>
                 <li><a href="{{url_for("list_errors")}}">Fehler</a></li>
+                <li><a href="{{url_for("list_todomails")}}">Todo Mails</a></li>
                 {% endif %}
                 {# todo: add more links #}
             </ul>

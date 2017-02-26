@@ -5,7 +5,7 @@ import math
 from io import StringIO, BytesIO
 
 from shared import db
-from utils import random_string, url_manager, get_etherpad_url
+from utils import random_string, url_manager, get_etherpad_url, split_terms
 from models.errors import DateNotMatchingException
 
 import os
@@ -326,6 +326,12 @@ class Todo(db.Model):
             return None
         return candidates[0]
 
+    def get_users(self):
+        return [
+            user.lower().strip()
+            for user in split_terms(self.who, separators=" ,\t")
+        ]
+
     def get_state(self):
         return "[Erledigt]" if self.done else "[Offen]"
     def get_state_plain(self):
@@ -428,3 +434,20 @@ class Error(db.Model):
         if len(lines) <= 4:
             return "\n".join(lines)
         return "\n".join(lines[:2], "…", lines[-2:])
+
+class TodoMail(db.Model):
+    __tablename__ = "todomails"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, unique=True)
+    mail = db.Column(db.String)
+
+    def __init__(self, name, mail):
+        self.name = name
+        self.mail = mail
+    
+    def __repr__(self):
+        return "<TodoMail(name='{}', mail='{}')>".format(
+            self.name, self.mail)
+
+    def get_formatted_mail(self):
+        return "{} <{}>".format(self.name, self.mail)

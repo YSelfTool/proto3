@@ -108,3 +108,7 @@ class TodoForm(FlaskForm):
     description = StringField("Aufgabe", validators=[InputRequired("Bitte gib an, was erledigt werden soll.")])
     tags = StringField("Weitere Tags")
     done = BooleanField("Erledigt")
+
+class TodoMailForm(FlaskForm):
+    name = StringField("Name", validators=[InputRequired("Du musst den Namen angeben, der zugeordnet werden soll.")])
+    mail = StringField("Mail", validators=[InputRequired("Du musst die Mailadresse angeben, die zugeordnet werden soll.")])

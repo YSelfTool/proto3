@@ -5,7 +5,7 @@ import subprocess
 import shutil
 import tempfile
 
-from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP, MeetingReminder
+from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP, MeetingReminder, TodoMail
 from models.errors import DateNotMatchingException
 from server import celery, app
 from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter
@@ -324,6 +324,7 @@ def send_reminder_async(reminder_id, protocol_id):
 def send_protocol(protocol):
     send_protocol_async.delay(protocol.id, show_private=True)
     send_protocol_async.delay(protocol.id, show_private=False)
+    send_todomails_async.delay(protocol.id)
 
 @celery.task
 def send_protocol_async(protocol_id, show_private):
@@ -338,6 +339,27 @@ def send_protocol_async(protocol_id, show_private):
         ]
         send_mail(protocol, to_addr, subject, mail_content, appendix)
 
+@celery.task
+def send_todomails_async(protocol_id):
+    with app.app_context():
+        protocol = Protocol.query.filter_by(id=protocol_id).first()
+        all_todos = Todo.query.filter(Todo.done == False).all()
+        users = {user for todo in all_todos for user in todo.get_users()}
+        grouped_todos = {
+            user: [todo for todo in all_todos if user in todo.get_users()]
+            for user in users
+        }
+        subject = "Du hast noch was zu tun!"
+        for user in users:
+            todomail = TodoMail.query.filter(TodoMail.name.ilike(user)).first()
+            if todomail is None:
+                error = protocol.create_error("Sending Todomail", "Sending Todomail failed.", "User {} has no Todo-Mail-Assignment.".format(user))
+                db.session.add(error)
+                db.session.commit()
+                continue
+            to_addr = todomail.get_formatted_mail()
+            mail_content = render_template("todo-mail.txt", protocol=protocol, todomail=todomail, todos=grouped_todos[user])
+            send_mail(protocol, to_addr, subject, mail_content)
 
 def send_mail(protocol, to_addr, subject, content, appendix=None):
     if to_addr is not None and len(to_addr.strip()) > 0:

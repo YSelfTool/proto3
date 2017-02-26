@@ -314,3 +314,21 @@ class DocumentsTable(Table):
                 if document.protocol.protocoltype.has_modify_right(user)
                 else ""
         ]
+
+class TodoMailsTable(Table):
+    def __init__(self, todomails):
+        super().__init__("Todo-Mail-Zuordnungen", todomails, url_for("new_todomail"))
+
+    def headers(self):
+        return ["Name", "Mail", ""]
+
+    def row(self, todomail):
+        return [
+            todomail.name,
+            todomail.mail,
+            Table.concat([
+                Table.link(url_for("edit_todomail", todomail_id=todomail.id), "Ändern"),
+                Table.link(url_for("delete_todomail", todomail_id=todomail.id), "Löschen", confirm="Bist du dir sicher, dass du die Todomailzuordnung {} zu {} löschen willst?".format(todomail.name, todomail.mail))
+            ])
+        ]
+

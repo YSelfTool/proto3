@@ -75,6 +75,7 @@ class MailManager:
             or not self.username
             or not self.password
             or not self.from_addr):
+            print("Not sending mail {} to {}".format(subject, to_addr))
             return
         msg = MIMEMultipart("mixed") # todo: test if clients accept attachment-free mails set to multipart/mixed
         msg["From"] = self.from_addr

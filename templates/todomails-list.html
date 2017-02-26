@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_table %}
+{% block title %}Todomails{% endblock %}
+
+{% block content %}
+<div class="container">
+    {{render_table(todomails_table)}}
+</div>
+{% endblock %}
