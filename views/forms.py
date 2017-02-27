@@ -2,6 +2,9 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField, FileField, DateTimeField, TextAreaField
 from wtforms.validators import InputRequired, Optional
 
+from models.database import TodoState
+from validators import CheckTodoDateByState
+
 import config
 
 def get_protocoltype_choices(protocoltypes, add_all=True):
@@ -9,6 +12,12 @@ def get_protocoltype_choices(protocoltypes, add_all=True):
     if add_all:
         choices.insert(0, (-1, "Alle"))
     return choices
+
+def get_todostate_choices():
+    return [
+        (state.value, state.get_name())
+        for state in TodoState
+    ]
 
 class LoginForm(FlaskForm):
     username = StringField("Benutzer", validators=[InputRequired("Bitte gib deinen Benutzernamen ein.")])
@@ -96,18 +105,22 @@ class NewTodoForm(FlaskForm):
     protocoltype_id = SelectField("Typ", choices=[], coerce=int)
     who = StringField("Person", validators=[InputRequired("Bitte gib an, wer das Todo erledigen soll.")])
     description = StringField("Aufgabe", validators=[InputRequired("Bitte gib an, was erledigt werden soll.")])
-    tags = StringField("Weitere Tags")
-    done = BooleanField("Erledigt")
+    state = SelectField("Status", choices=[], coerce=int, validators=[CheckTodoDateByState()])
+    date = DateField("Datum", format="%d.%m.%Y", validators=[Optional()])
     
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
         self.protocoltype_id.choices = get_protocoltype_choices(protocoltypes, add_all=False)
+        self.state.choices = get_todostate_choices()
 
 class TodoForm(FlaskForm):
     who = StringField("Person")
     description = StringField("Aufgabe", validators=[InputRequired("Bitte gib an, was erledigt werden soll.")])
-    tags = StringField("Weitere Tags")
-    done = BooleanField("Erledigt")
+    state = SelectField("Status", choices=[], coerce=int, validators=[CheckTodoDateByState()])
+    date = DateField("Datum", format="%d.%m.%Y", validators=[Optional()])
+
+    def __init__(self):
+        self.state.choices = get_todostate_choices()
 
 class TodoMailForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Du musst den Namen angeben, der zugeordnet werden soll.")])

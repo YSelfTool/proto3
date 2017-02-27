@@ -17,3 +17,4 @@ documents/
 .rediscli_history
 .viminfo
 test/
+*.sql

@@ -23,10 +23,18 @@
 \\\normalsize \VAR{protocol.protocoltype.organization|escape_tex}
 }{}
 \begin{tabular}{rp{14cm}}
-{\bf Datum:} & \VAR{protocol.date|datify_long|escape_tex}\\
-{\bf Ort:} & \VAR{protocol.location|escape_tex}\\
-{\bf Protokollant:} & \VAR{protocol.author|escape_tex}\\
-{\bf Anwesend:} & \VAR{protocol.participants|escape_tex}\\
+\ENV{if protocol.date is not none}
+    {\bf Datum:} & \VAR{protocol.date|datify_long|escape_tex}\\
+\ENV{endif}
+\ENV{if protocol.location is not none}
+    {\bf Ort:} & \VAR{protocol.location|escape_tex}\\
+\ENV{endif}
+\ENV{if protocol.author is not none}
+    {\bf Protokollant:} & \VAR{protocol.author|escape_tex}\\
+\ENV{endif}
+\ENV{if protocol.participants is not none}
+    {\bf Anwesend:} & \VAR{protocol.participants|escape_tex}\\
+\ENV{endif}
 \end{tabular}
 \normalsize
 
@@ -41,7 +49,9 @@
 \ENV{endif}
 \end{itemize}
 
-Beginn der Sitzung: \VAR{protocol.start_time|timify}
+\ENV{if protocol.start_time is not none}
+    Beginn der Sitzung: \VAR{protocol.start_time|timify}
+\ENV{endif}
 
 \ENV{for top in tree.children}
     \ENV{if top|class == "Fork"}
@@ -50,6 +60,8 @@ Beginn der Sitzung: \VAR{protocol.start_time|timify}
     \ENV{endif}
 \ENV{endfor}
 
-Ende der Sitzung: \VAR{protocol.end_time|timify}
+\ENV{if protocol.end_time is not none}
+    Ende der Sitzung: \VAR{protocol.end_time|timify}
+\ENV{endif}
 
 \end{document}

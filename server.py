@@ -24,6 +24,7 @@ from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable
+from legacy import import_old_todos
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -75,6 +76,13 @@ app.jinja_env.globals.update(dir=dir)
 
 # blueprints here
 
+@manager.command
+def import_legacy():
+    """Import the old todos from an sql dump"""
+    filename = prompt("SQL-file")
+    with open(filename, "r") as sqlfile:
+        import_old_todos(sqlfile.read())
+
 @app.route("/")
 def index():
     user = current_user()
@@ -103,8 +111,9 @@ def index():
     todos = None
     if check_login():
         todos = [
-            todo for todo in Todo.query.filter(Todo.done == False).all()
+            todo for todo in Todo.query.all()
             if todo.protocoltype.has_public_view_right(user)
+            and not todo.is_done()
         ]
     todos_table = TodosTable(todos) if todos is not None else None
     return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos, todos_table=todos_table)
@@ -763,7 +772,7 @@ def list_todos():
         ]
     def _sort_key(todo):
         first_protocol = todo.get_first_protocol()
-        result = (not todo.done, first_protocol.date if first_protocol is not None else datetime.now().date())
+        result = (not todo.is_done(), first_protocol.date if first_protocol is not None else datetime.now().date())
         return result
     todos = sorted(todos, key=_sort_key, reverse=True)
     page = _get_page()
@@ -855,8 +864,6 @@ def delete_todo(todo_id):
     db.session.commit()
     flash("Todo gelöscht.", "alert-success")
     return redirect(request.args.get("next") or url_for("list_todos", protocoltype=type_id))
-    
-
 
 @app.route("/decisions/list")
 def list_decisions():

@@ -21,16 +21,16 @@ latex_chars = [
     #('[', '\\['),
     #(']', '\\]'),
     #('"', '"\''),
-    ('~', '$\\sim{}$'),
-    ('^', '\\textasciicircum{}'),
-    ('Ë„', '\\textasciicircum{}'),
+    ('~', r'$\sim{}$'),
+    ('^', r'\textasciicircum{}'),
+    ('Ë„', r'\textasciicircum{}'),
     ('`', '{}`'),
-    ('-->', '$\longrightarrow$'),
-    ('->', '$\rightarrow$'),
-    ('==>', '$\Longrightarrow$'),
-    ('=>', '$\Rightarrow$'),
-    ('>=', '$\geq$'),
-    ('=<', '$\leq$'),
+    ('-->', r'$\longrightarrow$'),
+    ('->', r'$\rightarrow$'),
+    ('==>', r'$\Longrightarrow$'),
+    ('=>', r'$\Rightarrow$'),
+    ('>=', r'$\geq$'),
+    ('=<', r'$\leq$'),
     ('<', '$<$'),
     ('>', '$>$'),
     ('\\backslashin', '$\\in$'),
@@ -111,4 +111,12 @@ def group_required(function, group):
             return redirect(request.args.get("next") or url_for("index"))
     return decorated_function
 
-
+DATE_KEY = "Datum"
+START_TIME_KEY = "Beginn"
+END_TIME_KEY = "Ende"
+AUTHOR_KEY = "Autor"
+PARTICIPANTS_KEY = "Anwesende"
+LOCATION_KEY = "Ort"
+KNOWN_KEYS = [DATE_KEY, START_TIME_KEY, END_TIME_KEY, AUTHOR_KEY,
+    PARTICIPANTS_KEY, LOCATION_KEY
+]

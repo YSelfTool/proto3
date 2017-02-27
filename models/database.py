@@ -3,8 +3,9 @@ from flask import render_template, send_file, url_for, redirect, flash, request
 from datetime import datetime, time, date, timedelta
 import math
 from io import StringIO, BytesIO
+from enum import Enum
 
-from shared import db
+from shared import db, date_filter, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY, AUTHOR_KEY, PARTICIPANTS_KEY, LOCATION_KEY
 from utils import random_string, url_manager, get_etherpad_url, split_terms
 from models.errors import DateNotMatchingException
 
@@ -15,6 +16,7 @@ from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.hybrid import hybrid_method
 
 import config
+from todostates import make_states
 
 class ProtocolType(db.Model):
     __tablename__ = "protocoltypes"
@@ -147,17 +149,42 @@ class Protocol(db.Model):
         return Error(self.id, action, name, now, description)
 
     def fill_from_remarks(self, remarks):
-        new_date = datetime.strptime(remarks["Datum"].value.strip(), "%d.%m.%Y").date()
-        if self.date is not None:
-            if new_date != self.date:
-                raise DateNotMatchingException(original_date=self.date, protocol_date=new_date)
-        else:
-            self.date = new_date
-        self.start_time = datetime.strptime(remarks["Beginn"].value.strip(), "%H:%M").time()
-        self.end_time = datetime.strptime(remarks["Ende"].value.strip(), "%H:%M").time()
-        self.author = remarks["Autor"].value.strip()
-        self.participants = remarks["Anwesende"].value.strip()
-        self.location = remarks["Ort"].value.strip()
+        def _date_or_lazy(key, get_date=False, get_time=False):
+            formats = []
+            if get_date:
+                formats.append("%d.%m.%Y")
+            if get_time:
+                formats.append("%H:%M")
+            format = " ".join(formats)
+            try:
+                date = datetime.strptime(remarks[key].value.strip(), format)
+                if (get_time and get_date) or (not get_time and not get_date):
+                    return date
+                elif get_time:
+                    return date.time()
+                elif get_date:
+                    return date.date()
+            except ValueError as exc:
+                if config.PARSER_LAZY:
+                    return None
+                raise exc
+        if DATE_KEY in remarks:
+            new_date = _date_or_lazy(DATE_KEY, get_date=True)
+            if self.date is not None:
+                if new_date != self.date:
+                    raise DateNotMatchingException(original_date=self.date, protocol_date=new_date)
+            else:
+                self.date = new_date
+        if START_TIME_KEY in remarks:
+            self.start_time = _date_or_lazy(START_TIME_KEY, get_time=True)
+        if END_TIME_KEY in remarks:
+            self.end_time = _date_or_lazy(END_TIME_KEY, get_time=True)
+        if AUTHOR_KEY in remarks:
+            self.author = remarks[AUTHOR_KEY].value.strip()
+        if PARTICIPANTS_KEY in remarks:
+            self.participants = remarks[PARTICIPANTS_KEY].value.strip()
+        if LOCATION_KEY in remarks:
+            self.location = remarks[LOCATION_KEY].value.strip()
 
     def is_done(self):
         return self.done
@@ -323,7 +350,34 @@ def on_decisions_document_delete(mapper, connection, document):
         if os.path.isfile(document_path):
             os.remove(document_path)
 
+class TodoState(Enum):
+    open = 0
+    waiting = 1
+    in_progress = 2
+    after = 3
+    before = 4
+    orphan = 5
+    done = 6
+    rejected = 7
+    obsolete = 8
 
+    def get_name(self):
+        STATE_TO_NAME, NAME_TO_STATE = make_states(TodoState)
+        return STATE_TO_NAME[self]
+
+    def needs_date(self):
+        return self in [TodoState.after, TodoState.before]
+
+    def is_done(self):
+        return self in [TodoState.done, TodoState.rejected, TodoState.obsolete]
+
+    @staticmethod
+    def from_name(name):
+        name = name.strip().lower()
+        STATE_TO_NAME, NAME_TO_STATE = make_states(TodoState)
+        if name not in NAME_TO_STATE:
+            raise ValueError("Unknown state: '{}'".format(name))
+        return NAME_TO_STATE[name]
 
 class Todo(db.Model):
     __tablename__ = "todos"
@@ -332,22 +386,25 @@ class Todo(db.Model):
     number = db.Column(db.Integer)
     who = db.Column(db.String)
     description = db.Column(db.String)
-    tags = db.Column(db.String)
-    done = db.Column(db.Boolean)
+    state = db.Column(db.Enum(TodoState), nullable=False)
+    date = db.Column(db.Date, nullable=True)
 
     protocols = relationship("Protocol", secondary="todoprotocolassociations", backref="todos")
 
-    def __init__(self, type_id, who, description, tags, done, number=None):
+    def __init__(self, type_id, who, description, state, date, number=None):
         self.protocoltype_id = type_id
+        self.number = number
         self.who = who
         self.description = description
-        self.tags = tags
-        self.done = done
-        self.number = number
+        self.state = state
+        self.date = date
 
     def __repr__(self):
-        return "<Todo(id={}, number={}, who={}, description={}, tags={}, done={})>".format(
-            self.id, self.number, self.who, self.description, self.tags, self.done)
+        return "<Todo(id={}, number={}, who={}, description={}, state={}, date={})>".format(
+            self.id, self.number, self.who, self.description, self.state, self.date)
+
+    def is_done(self):
+        return self.state.is_done()
 
     def get_id(self):
         return self.number if self.number is not None else self.id
@@ -365,9 +422,12 @@ class Todo(db.Model):
         ]
 
     def get_state(self):
-        return "[Erledigt]" if self.done else "[Offen]"
+        return "[{}]".format(self.get_state_plain())
     def get_state_plain(self):
-        return "Erledigt" if self.done else "Aktiv"
+        result = self.state.get_name()
+        if self.state.needs_date():
+            result = "{} {}".format(result, date_filter(self.state.date))
+        return result
     def get_state_tex(self):
         return self.get_state_plain()
 
@@ -387,9 +447,9 @@ class Todo(db.Model):
     def render_latex(self, current_protocol=None):
         return r"\textbf{{{}}}: {}: {} -- {}".format(
             "Neuer Todo" if self.is_new(current_protocol) else "Todo",
-            self.who,
-            self.description,
-            self.get_state_tex()
+            escape_tex(self.who),
+            escape_tex(self.description),
+            escape_tex(self.get_state_tex())
         )
 
     def render_wikitext(self, current_protocol=None):
@@ -399,7 +459,6 @@ class Todo(db.Model):
             self.description,
             self.get_state_plain()
         )
-
 
 
 class TodoProtocolAssociation(db.Model):
@@ -485,3 +544,22 @@ class TodoMail(db.Model):
 
     def get_formatted_mail(self):
         return "{} <{}>".format(self.name, self.mail)
+
+class OldTodo(db.Model):
+    __tablename__ = "oldtodos"
+    id = db.Column(db.Integer, primary_key=True)
+    old_id = db.Column(db.Integer)
+    who = db.Column(db.String)
+    description = db.Column(db.String)
+    protocol_key = db.Column(db.String)
+
+    def __init__(self, old_id, who, description, protocol_key):
+        self.old_id = old_id
+        self.who = who
+        self.description = description
+        self.protocol_key = protocol_key
+
+    def __repr__(self):
+        return ("<OldTodo(id={}, old_id={}, who='{}', description='{}', "
+            "protocol={}".format(self.id, self.old_id, self.who,
+            self.description, self.protocol_key))

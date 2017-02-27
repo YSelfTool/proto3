@@ -4,14 +4,16 @@ import os
 import subprocess
 import shutil
 import tempfile
+from datetime import datetime
 
-from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP, MeetingReminder, TodoMail, DecisionDocument
+from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP, MeetingReminder, TodoMail, DecisionDocument, TodoState, OldTodo
 from models.errors import DateNotMatchingException
 from server import celery, app
-from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter
+from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter, KNOWN_KEYS
 from utils import mail_manager, url_manager, encode_kwargs, decode_kwargs
 from parser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork, RenderType
 from wiki import WikiClient, WikiException
+from legacy import lookup_todo_id, import_old_todos
 
 import config
 
@@ -69,22 +71,25 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
             except ParserException as exc:
                 context = ""
                 if exc.linenumber is not None:
-                    source_lines = source.splitlines()
+                    source_lines = protocol.source.splitlines()
                     start_index = max(0, exc.linenumber - config.ERROR_CONTEXT_LINES)
                     end_index = min(len(source_lines) - 1, exc.linenumber + config.ERROR_CONTEXT_LINES)
                     context = "\n".join(source_lines[start_index:end_index])
+                if exc.tree is not None:
+                    context += "\n\nParsed syntax tree was:\n" + str(exc.tree.dump())
                 error = protocol.create_error("Parsing", str(exc), context)
                 db.session.add(error)
                 db.session.commit()
                 return
             remarks = {element.name: element for element in tree.children if isinstance(element, Remark)}
-            required_fields = ["Datum", "Anwesende", "Beginn", "Ende", "Autor", "Ort"]
-            missing_fields = [field for field in required_fields if field not in remarks]
-            if len(missing_fields) > 0:
-                error = protocol.create_error("Parsing", "Missing fields", ", ".join(missing_fields))
-                db.session.add(error)
-                db.session.commit()
-                return
+            required_fields = KNOWN_KEYS
+            if not config.PARSER_LAZY:
+                missing_fields = [field for field in required_fields if field not in remarks]
+                if len(missing_fields) > 0:
+                    error = protocol.create_error("Parsing", "Missing fields", ", ".join(missing_fields))
+                    db.session.add(error)
+                    db.session.commit()
+                    return
             try:
                 protocol.fill_from_remarks(remarks)
             except ValueError:
@@ -92,7 +97,11 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                     "Parsing", "Invalid fields",
                     "Date or time fields are not '%d.%m.%Y' respectively '%H:%M', "
                     "but rather {}".format(
-                    ", ".join([remarks["Datum"], remarks["Beginn"], remarks["Ende"]])))
+                    ", ".join([
+                        remarks["Datum"].value.strip(),
+                        remarks["Beginn"].value.strip(),
+                        remarks["Ende"].value.strip()
+                    ])))
                 db.session.add(error)
                 db.session.commit()
                 return
@@ -109,6 +118,7 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 protocol.todos.remove(todo)
             db.session.commit()
             tags = tree.get_tags()
+            # todos
             todo_tags = [tag for tag in tags if tag.name == "todo"]
             for todo_tag in todo_tags:
                 if len(todo_tag.values) < 2:
@@ -121,9 +131,12 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                     return
                 who = todo_tag.values[0]
                 what = todo_tag.values[1]
-                todo = None
                 field_id = None
+                field_state = None
+                field_date = None
                 for other_field in todo_tag.values[2:]:
+                    if len(other_field) == 0:
+                        continue
                     if other_field.startswith(ID_FIELD_BEGINNING):
                         try:
                             field_id = int(other_field[len(ID_FIELD_BEGINNING):])
@@ -134,39 +147,73 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                             db.session.add(error)
                             db.session.commit()
                             return
-                        todo = Todo.query.filter_by(number=field_id).first()
+                    else:
+                        try:
+                            field_state = TodoState.from_name(other_field.strip())
+                        except ValueError:
+                            try:
+                                field_date = datetime.strptime(other_field.strip(), "%d.%m.%Y")
+                            except ValueError:
+                                error = protocol.create_error("Parsing",
+                                "Invalid field",
+                                "The todo in line {} has the field '{}', but"
+                                "this does neither match a date (\"%d.%m.%Y\")"
+                                "nor a state.".format(
+                                    todo_tag.linenumber, other_field))
+                                db.session.add(error)
+                                db.session.commit()
+                                return
+                if field_state is None:
+                    field_state = TodoState.open
+                if field_state.needs_date() and field_date is None:
+                    error = protocol.create_error("Parsing",
+                        "Todo missing date",
+                        "The todo in line {} has a state that needs a date, "
+                        "but the todo does not have one.".format(todo_tag.line))
+                    db.session.add(error)
+                    db.session.commit()
+                    return
                 who = who.strip()
                 what = what.strip()
+                todo = None
+                if field_id is not None:
+                    todo = Todo.query.filter_by(number=field_id).first()
+                    if todo is None and not config.PARSER_LAZY:
+                        # TODO: add non-strict mode (at least for importing old protocols)
+                        error = protocol.create_error("Parsing",
+                        "Invalid Todo ID",
+                        "The todo in line {} has the ID {}, but there is no "
+                        "Todo with that ID.".format(todo_tag.linenumber, field_id))
+                        db.session.add(error)
+                        db.session.commit()
+                        return
                 if todo is None:
-                    if field_id is not None:
-                        candidate = Todo.query.filter_by(who=who, description=what, number=None).first()
-                        if candidate is None:
-                            candidate = Todo.query.filter_by(description=what, number=None).first()
-                        if candidate is not None:
-                            candidate.number = field_id
-                            todo = candidate
-                        else:
-                            todo = Todo(type_id=protocol.protocoltype.id, who=who, description=what, tags="", done=False)
-                            todo.number = field_id
+                    protocol_key = protocol.get_identifier()
+                    old_candidates = OldTodo.query.filter(
+                        OldTodo.protocol_key == protocol_key).all()
+                    if len(old_candidates) == 0:
+                        # new protocol
+                        todo = Todo(type_id=protocol.protocoltype.id,
+                            who=who, description=what, state=field_state,
+                            date=field_date)
+                        db.session.add(todo)
+                        db.session.commit()
+                        todo.number = field_id or todo.id
+                        db.session.commit()
                     else:
-                        candidate = Todo.query.filter_by(who=who, description=what).first()
-                        if candidate is not None:
-                            todo = candidate
-                        else:
-                            todo = Todo(type_id=protocol.protocoltype.id, who=who, description=what, tags="", done=False)
+                        # old protocol
+                        number = field_id or lookup_todo_id(old_candidates, who, what)
+                        todo = Todo.query.filter_by(number=number).first()
+                        if todo is None:
+                            todo = Todo(type_id=protocol.protocoltype.id,
+                                who=who, description=what, state=field_state,
+                                date=field_date, number=number)
                             db.session.add(todo)
+                            db.session.commit()
                 todo.protocols.append(protocol)
-                todo_tags_internal = todo.tags.split(";")
-                for other_field in todo_tag.values[2:]:
-                    if other_field.startswith(ID_FIELD_BEGINNING):
-                        continue
-                    elif other_field == "done":
-                        todo.done = True
-                    elif other_field not in todo_tags_internal:
-                        todo_tags_internal.append(other_field)
-                todo.tags = ";".join(todo_tags_internal)
-                todo_tag.todo = todo
                 db.session.commit()
+                todo_tag.todo = todo
+            # Decisions
             old_decisions = list(protocol.decisions)
             for decision in old_decisions:
                 protocol.decisions.remove(decision)
@@ -183,7 +230,6 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                 db.session.add(decision)
                 db.session.commit()
                 decision_content = texenv.get_template("decision.tex").render(render_type=RenderType.latex, decision=decision, protocol=protocol, top=decision_tag.fork.get_top(), show_private=False)
-                print(decision_content)
                 compile_decision(decision_content, decision)
             old_tops = list(protocol.tops)
             for top in old_tops:

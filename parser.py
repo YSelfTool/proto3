@@ -7,13 +7,16 @@ from shared import escape_tex
 
 import config
 
+INDENT_LETTER = "-"
+
 class ParserException(Exception):
     name = "Parser Exception"
     has_explanation = False
     #explanation = "The source did generally not match the expected protocol syntax."
-    def __init__(self, message, linenumber=None):
+    def __init__(self, message, linenumber=None, tree=None):
         self.message = message
         self.linenumber = linenumber
+        self.tree = tree
 
     def __str__(self):
         result = ""
@@ -49,7 +52,7 @@ class Element:
     def dump(self, level=None):
         if level is None:
             level = 0
-        print("{}element".format(" " * level))
+        return "{}element".format(INDENT_LETTER * level)
 
     @staticmethod
     def parse(match, current, linenumber=None):
@@ -111,9 +114,10 @@ class Content(Element):
     def dump(self, level=None):
         if level is None:
             level = 0
-        print("{}content:".format(" " * level))
+        result_lines = ["{}content:".format(INDENT_LETTER * level)]
         for child in self.children:
-            child.dump(level + 1)
+            result_lines.append(child.dump(level + 1))
+        return "\n".join(result_lines)
 
     def get_tags(self, tags):
         tags.extend([child for child in self.children if isinstance(child, Tag)])
@@ -150,7 +154,9 @@ class Content(Element):
     # v1: has problems with missing semicolons
     #PATTERN = r"\s*(?<content>(?:[^\[\];]+)?(?:\[[^\]]+\][^;\[\]]*)*);"
     # v2: does not require the semicolon, but the newline
-    PATTERN = r"\s*(?<content>(?:[^\[\];\r\n]+)?(?:\[[^\]\r\n]+\][^;\[\]\r\n]*)*);?"
+    #PATTERN = r"\s*(?<content>(?:[^\[\];\r\n]+)?(?:\[[^\]\r\n]+\][^;\[\]\r\n]*)*);?"
+    # v3: does not allow braces in the content
+    PATTERN = r"\s*(?<content>(?:[^\[\];\r\n{}]+)?(?:\[[^\]\r\n]+\][^;\[\]\r\n]*)*);?"
 
 class Text:
     def __init__(self, text, linenumber, fork):
@@ -171,7 +177,7 @@ class Text:
     def dump(self, level=None):
         if level is None:
             level = 0
-        print("{}text: {}".format(" " * level, self.text))
+        return "{}text: {}".format(INDENT_LETTER * level, self.text)
 
     @staticmethod
     def parse(match, current, linenumber):
@@ -223,7 +229,7 @@ class Tag:
     def dump(self, level=None):
         if level is None:
             level = 0
-        print("{}tag: {}: {}".format(" " * level, self.name, "; ".join(self.values)))
+        return "{}tag: {}: {}".format(INDENT_LETTER * level, self.name, "; ".join(self.values))
 
     @staticmethod
     def parse(match, current, linenumber):
@@ -247,7 +253,7 @@ class Empty(Element):
     def dump(self, level=None):
         if level is None:
             level = 0
-        print("{}empty".format(" " * level))
+        return "{}empty".format(INDENT_LETTER * level)
 
     @staticmethod
     def parse(match, current, linenumber=None):
@@ -273,7 +279,7 @@ class Remark(Element):
     def dump(self, level=None):
         if level is None:
             level = 0
-        print("{}remark: {}: {}".format(" " * level, self.name, self.value))
+        return "{}remark: {}: {}".format(INDENT_LETTER * level, self.name, self.value)
 
     def get_tags(self, tags):
         return tags
@@ -305,16 +311,22 @@ class Fork(Element):
     def dump(self, level=None):
         if level is None:
             level = 0
-        print("{}fork: {}".format(" " * level, self.name))
+        result_lines = ["{}fork: {}".format(INDENT_LETTER * level, self.name)]
         for child in self.children:
-            child.dump(level + 1)
+            result_lines.append(child.dump(level + 1))
+        return "\n".join(result_lines)
 
     def test_private(self, name):
         stripped_name = name.replace(":", "").strip()
         return stripped_name in config.PRIVATE_KEYWORDS
 
     def render(self, render_type, show_private, level, protocol=None):
-        name_line = self.name if self.name is not None and len(self.name) > 0 else ""
+        name_parts = []
+        if self.environment is not None:
+            name_parts.append(self.environment)
+        if self.name is not None:
+            name_parts.append(self.name)
+        name_line = " ".join(name_parts)
         if level == 0 and self.name == "Todos" and not show_private:
             return ""
         if render_type == RenderType.latex:
@@ -400,7 +412,10 @@ class Fork(Element):
         if name1 is not None:
             name = name1
         if name2 is not None:
-            name += " {}".format(name2)
+            if len(name) > 0:
+                name += " {}".format(name2)
+            else:
+                name = name2
         element = Fork(environment, name, current, linenumber)
         current = Element.parse_outer(element, current)
         return current, linenumber
@@ -416,7 +431,10 @@ class Fork(Element):
     def append(self, element):
         self.children.append(element)
 
-    PATTERN = r"\s*(?<name1>[^{};]+)?{(?<environment>\S+)?\h*(?<name2>[^\n]+)?"
+    # v1: has a problem with old protocols that do not use a lot of semicolons
+    #PATTERN = r"\s*(?<name1>[^{};]+)?{(?<environment>\S+)?\h*(?<name2>[^\n]+)?"
+    # v2: do not allow newlines in name1 or semicolons in name2
+    PATTERN = r"\s*(?<name1>[^{};\n]+)?{(?<environment>\S+)?\h*(?<name2>[^;\n]+)?"
     END_PATTERN = r"\s*};?"
 
 PATTERNS = OrderedDict([
@@ -448,7 +466,7 @@ def parse(source):
         if not found:
             raise ParserException("No matching syntax element found!", linenumber)
     if current is not tree:
-        raise ParserException("Source ended within fork! (started at line {})".format(current.linenumber))
+        raise ParserException("Source ended within fork! (started at line {})".format(current.linenumber), linenumber=current.linenumber, tree=tree)
     return tree
 
 def main(test_file_name=None):

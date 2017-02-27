@@ -1,9 +1,17 @@
 {{'{{'}}Infobox Protokoll
 | name = {{protocol.protocoltype.name}}
-| datum = {{protocol.date|datify}}
+{% if protocol.date is not none %}
+| datum = {{protocol.date|datify_long}}
+{% endif %}
+{% if protocol.start_time is not none and protocol.end_time is not none %}
 | zeit = von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}
+{% endif %}
+{% if protocol.author is not none %}
 | protokollant = {{protocol.author}}
+{% endif %}
+{% if protocol.participants is not none %}
 | anwesende = {{protocol.participants}}
+{% endif %}
 {{'}}'}}
 
 == Beschlüsse ==

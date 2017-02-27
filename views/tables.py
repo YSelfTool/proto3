@@ -248,7 +248,10 @@ class TodosTable(Table):
             todo.description,
         ]
         if todo.protocoltype.has_modify_right(user):
-            row.append(Table.link(url_for("edit_todo", todo_id=todo.id), "Ändern"))
+            row.append(Table.concat([
+                Table.link(url_for("edit_todo", todo_id=todo.id), "Ändern"),
+                Table.link(url_for("delete_todo", todo_id=todo.id), "Löschen")
+            ]))
         else:
             row.append("")
         return row
@@ -258,7 +261,7 @@ class TodoTable(SingleValueTable):
         super().__init__("Todo", todo)
 
     def headers(self):
-        return ["ID", "Status", "Sitzung", "Name", "Aufgabe", "Tags", ""]
+        return ["ID", "Status", "Sitzung", "Name", "Aufgabe", ""]
 
     def row(self):
         user = current_user()
@@ -270,8 +273,7 @@ class TodoTable(SingleValueTable):
                 if protocol is not None
                 else Table.link(url_for("list_protocols", protocolttype=self.value.protocoltype.id), self.value.protocoltype.short_name),
             self.value.who,
-            self.value.description,
-            self.value.tags
+            self.value.description
         ]
         if self.value.protocoltype.has_modify_right(user):
             row.append(Table.concat([
