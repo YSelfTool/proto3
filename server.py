@@ -451,6 +451,7 @@ def new_protocol():
         protocol = Protocol(protocoltype.id, form.date.data)
         db.session.add(protocol)
         db.session.commit()
+        tasks.push_tops_to_calendar(protocol)
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     type_id = request.args.get("type_id")
     if type_id is not None:
@@ -645,6 +646,7 @@ def update_protocol(protocol_id):
     if edit_form.validate_on_submit():
         edit_form.populate_obj(protocol)
         db.session.commit()
+        tasks.push_tops_to_calendar(protocol)
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     return render_template("protocol-update.html", upload_form=upload_form, edit_form=edit_form, protocol=protocol)
 
@@ -677,6 +679,7 @@ def new_top(protocol_id):
         top = TOP(protocol_id=protocol.id, name=form.name.data, number=form.number.data, planned=True)
         db.session.add(top)
         db.session.commit()
+        tasks.push_tops_to_calendar(top.protocol)
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     else:
         current_numbers = list(map(lambda t: t.number, protocol.tops))
@@ -696,6 +699,7 @@ def edit_top(top_id):
     if form.validate_on_submit():
         form.populate_obj(top)
         db.session.commit()
+        tasks.push_tops_to_calendar(top.protocol)
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=top.protocol.id))
     return render_template("top-edit.html", form=form, top=top)
 
@@ -708,11 +712,12 @@ def delete_top(top_id):
         flash("Invalider TOP oder keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     name = top.name
-    protocol_id = top.protocol.id
+    protocol = top.protocol
     db.session.delete(top)
     db.session.commit()
+    tasks.push_tops_to_calendar(protocol)
     flash("Der TOP {} wurde gelöscht.".format(name), "alert-success")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
 
 @app.route("/protocol/top/move/<int:top_id>/<diff>")
 @login_required
@@ -725,6 +730,7 @@ def move_top(top_id, diff):
     try:
         top.number += int(diff)
         db.session.commit()
+        tasks.push_tops_to_calendar(top.protocol)
     except ValueError:
         flash("Die angegebene Differenz ist keine Zahl.", "alert-error")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=top.protocol.id))

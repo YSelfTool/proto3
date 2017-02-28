@@ -34,6 +34,7 @@ class ProtocolType(db.Model):
     wiki_category = db.Column(db.String)
     wiki_only_public = db.Column(db.Boolean)
     printer = db.Column(db.String)
+    calendar = db.Column(db.String)
 
     protocols = relationship("Protocol", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="Protocol.id")
     default_tops = relationship("DefaultTOP", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="DefaultTOP.number")
@@ -56,16 +57,19 @@ class ProtocolType(db.Model):
         self.wiki_category = wiki_category
         self.wiki_only_public = wiki_only_public
         self.printer = printer
+        self.calendar = calendar
 
     def __repr__(self):
         return ("<ProtocolType(id={}, short_name={}, name={}, "
                 "organization={}, is_public={}, private_group={}, "
                 "public_group={}, use_wiki={}, wiki_category='{}', "
-                "wiki_only_public={}, printer={}, usual_time={})>".format(
+                "wiki_only_public={}, printer={}, usual_time={}, "
+                "calendar='{}')>".format(
             self.id, self.short_name, self.name,
             self.organization, self.is_public, self.private_group,
             self.public_group, self.use_wiki, self.wiki_category,
-            self.wiki_only_public, self.printer, self.usual_time))
+            self.wiki_only_public, self.printer, self.usual_time,
+            self.calendar))
 
     def get_latest_protocol(self):
         candidates = sorted([protocol for protocol in self.protocols if protocol.is_done()], key=lambda p: p.date, reverse=True)
@@ -204,6 +208,9 @@ class Protocol(db.Model):
         if identifier is None:
             return ""
         return get_etherpad_url(self.get_identifier())
+
+    def get_datetime(self):
+        return datetime(self.date.year, self.date.month, self.date.day, self.protocoltype.usual_time.hour, self.protocoltype.usual_time.minute)
 
     def has_nonplanned_tops(self):
         return len([top for top in self.tops if not top.planned]) > 0

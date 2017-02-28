@@ -13,6 +13,7 @@ from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_
 from utils import mail_manager, url_manager, encode_kwargs, decode_kwargs
 from parser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork, RenderType
 from wiki import WikiClient, WikiException
+from calendarpush import Client as CalendarClient, CalendarException
 from legacy import lookup_todo_id, import_old_todos
 
 import config
@@ -439,3 +440,24 @@ def send_mail_async(protocol_id, to_addr, subject, content, appendix):
             db.session.add(error)
             db.session.commit()
 
+def push_tops_to_calendar(protocol):
+    push_tops_to_calendar_async.delay(protocol.id)
+
+@celery.task
+def push_tops_to_calendar_async(protocol_id):
+    if not config.CALENDAR_ACTIVE:
+        return
+    with app.app_context():
+        protocol = Protocol.query.filter_by(id=protocol_id).first()
+        if protocol.protocoltype.calendar == "":
+            return
+        description = render_template("calendar-tops.txt", protocol=protocol)
+        try:
+            client = CalendarClient(protocol.protocoltype.calendar)
+            client.set_event_at(begin=protocol.get_datetime(),
+                name=protocol.protocoltype.short_name, description=description)
+        except CalendarException as exc:
+            error = Protocol.create_error("Calendar",
+                "Pushing TOPs to Calendar failed", str(exc))
+            db.session.add(error)
+            db.session.commit()

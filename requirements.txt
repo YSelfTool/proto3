@@ -7,8 +7,10 @@ billiard==3.5.0.2
 blessings==1.6
 blinker==1.4
 bpython==0.16
+caldav==0.5.0
 celery==4.0.2
 click==6.7
+coverage==4.3.4
 curtsies==0.2.11
 Flask==0.12
 Flask-Migrate==2.0.3
@@ -21,14 +23,17 @@ greenlet==0.4.12
 itsdangerous==0.24
 Jinja2==2.9.5
 kombu==4.0.2
+lxml==3.7.3
 Mako==1.0.6
 MarkupSafe==0.23
+nose==1.3.7
 packaging==16.8
 pathtools==0.1.2
 psycopg2==2.6.2
 Pygments==2.2.0
 pyldap==2.4.28
 pyparsing==2.1.10
+python-dateutil==2.6.0
 python-editor==1.0.3
 python-engineio==1.2.2
 python-Levenshtein==0.12.0
@@ -42,6 +47,7 @@ six==1.10.0
 SQLAlchemy==1.1.5
 tzlocal==1.3
 vine==1.1.3
+vobject==0.9.4.1
 watchdog==0.8.3
 wcwidth==0.1.7
 Werkzeug==0.11.15

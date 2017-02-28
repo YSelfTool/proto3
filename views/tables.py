@@ -118,7 +118,11 @@ class ProtocolTypeTable(SingleValueTable):
             wiki_headers.append("Wiki-Kategorie")
         if not config.WIKI_ACTIVE:
             wiki_headers = []
-        return general_headers + mail_headers + printing_headers + wiki_headers
+        calendar_headers = ["Kalender"]
+        if not config.CALENDAR_ACTIVE:
+            calendar_headers = []
+        return (general_headers + mail_headers + printing_headers
+           + wiki_headers + calendar_headers)
 
     def row(self):
         general_part = [
@@ -146,7 +150,10 @@ class ProtocolTypeTable(SingleValueTable):
             wiki_part.append(self.value.wiki_category)
         if not config.WIKI_ACTIVE:
             wiki_part = []
-        return general_part + mail_part + printing_part + wiki_part
+        calendar_part = [self.value.calendar if self.value.calendar is not None else ""]
+        if not config.CALENDAR_ACTIVE:
+            calendar_part = []
+        return general_part + mail_part + printing_part + wiki_part + calendar_part
 
 class DefaultTOPsTable(Table):
     def __init__(self, tops, protocoltype=None):

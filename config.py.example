@@ -1,30 +1,35 @@
-SQLALCHEMY_DATABASE_URI = "postgresql://proto3:@/proto3" # change
+# (local) database
+SQLALCHEMY_DATABASE_URI = "postgresql://user:password@host/database" # change this
 SQLALCHEMY_TRACK_MODIFICATIONS = False # do not change
 
-SECRET_KEY = "something random"
+SECRET_KEY = "something random" # change this
 
 DEBUG = False
 
+# mailserver (optional)
 MAIL_ACTIVE = True
 MAIL_FROM = "protokolle@example.com"
 MAIL_HOST = "mail.example.com:465"
 MAIL_USER = "user"
 MAIL_PASSWORD = "password"
-MAIL_PREFIX = "protokolle"
 
+# (local) message queue (necessary)
 CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_TASK_SERIALIZER = "pickle" # do not change
 CELERY_ACCEPT_CONTENT = ["pickle"] # do not change
 
+# this websites address
 URL_ROOT = "protokolle.example.com"
 URL_PROTO = "https"
 URL_PATH = "/"
 URL_PARAMS = ""
 
+# ldap server (necessary)
 LDAP_PROVIDER_URL = "ldaps://auth.example.com:389"
 LDAP_BASE = "dc=example,dc=example,dc=com"
 LDAP_PROTOCOL_VERSION = 3 # do not change
 
+# CUPS printserver (optional)
 PRINTING_ACTIVE = True
 PRINTING_SERVER = "printsrv.example.com:631"
 PRINTING_USER = "protocols"
@@ -33,7 +38,9 @@ PRINTING_PRINTERS = [
     "other_printer": ["list", "of", "options"]
 ]
 
-ETHERPAD_URL = "https://fachschaften.rwth-aachen.de/etherpad"
+# etherpad (optional)
+ETHERPAD_ACTIVE = True
+ETHERPAD_URL = "https://example.com/etherpad"
 EMPTY_ETHERPAD = """Welcome to Etherpad!
 
 This pad text is synchronized as you type, so that everyone viewing this page sees the same text. This allows you to collaborate seamlessly on documents!
@@ -42,6 +49,7 @@ Get involved with Etherpad at http://etherpad.org
 
 """ # do not change
 
+# wiki (optional)
 WIKI_ACTIVE = True
 WIKI_API_URL = "https://wiki.example.com/wiki/api.php"
 WIKI_ANONYMOUS = False
@@ -49,17 +57,38 @@ WIKI_USER = "user"
 WIKI_PASSWORD = "password"
 WIKI_DOMAIN = "domain" # set to None if not necessary
 
-SESSION_PROTECTION = "strong"
+# CalDAV calendar (optional)
+CALENDAR_ACTIVE = True
+CALENDAR_URL = "https://user:password@calendar.example.com/dav/"
+CALENDAR_DEFAULT_DURATION = 3 # default meeting length in hours
 
-SECURITY_KEY = "some other random string"
+SESSION_PROTECTION = "strong" # do not change
 
+SECURITY_KEY = "some other random string" # change this
+
+# lines of error description
 ERROR_CONTEXT_LINES = 3
 
+# pagination
 PAGE_LENGTH = 20
 PAGE_DIFF = 3
 
+# upcoming meetings within this number of days from today are shown on the index page
+MAX_INDEX_DAYS = 14
+
+# mail to contact in case of complex errors
+ADMIN_MAIL = "admin@example.com"
+
+# accept protocols even with some errors
+# useful for importing old protocols
+# not recommended for regular operation
+PARSER_LAZY = False
+
+# minimum similarity (0-100) todos need to have to be considered equal
+FUZZY_MIN_SCORE = 50
 
 # choose something nice from fc-list
+# Nimbus Sans looks very much like Computer Modern
 FONTS = {
     "main": {
         "regular": "Nimbus Sans",
@@ -87,7 +116,9 @@ FONTS = {
     }
 }
 
+# local filesystem path to save documents
 DOCUMENTS_PATH = "documents"
 
+# keywords indicating private protocol parts
 PRIVATE_KEYWORDS = ["private", "internal", "privat", "intern"]
 

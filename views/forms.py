@@ -4,6 +4,7 @@ from wtforms.validators import InputRequired, Optional
 
 from models.database import TodoState
 from validators import CheckTodoDateByState
+from calendarpush import Client as CalendarClient
 
 import config
 
@@ -17,6 +18,12 @@ def get_todostate_choices():
     return [
         (state.value, state.get_name())
         for state in TodoState
+    ]
+
+def get_calendar_choices():
+    return [
+        (calendar, calendar)
+        for calendar in CalendarClient().get_calendars()
     ]
 
 class LoginForm(FlaskForm):
@@ -37,6 +44,7 @@ class ProtocolTypeForm(FlaskForm):
     use_wiki = BooleanField("Wiki benutzen")
     wiki_only_public = BooleanField("Wiki ist öffentlich")
     printer = SelectField("Drucker", choices=list(zip(config.PRINTING_PRINTERS, config.PRINTING_PRINTERS)))
+    calendar = SelectField("Kalender", choices=get_calendar_choices())
 
 class DefaultTopForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Du musst einen Namen angeben.")])
