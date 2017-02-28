@@ -9,7 +9,7 @@
     {% for top in protocol.tops %}
         <li>
             {{top.name}}
-            {% if not protocol.is_done() and has_private_view_right %}
+            {% if not protocol.is_done() and has_public_type_view_right %}
                 ({{top.number}})
             {% endif %}
             {% if not protocol.is_done() and has_modify_right %}

@@ -106,6 +106,7 @@ class ProtocolForm(FlaskForm):
     author = StringField("Protokollant")
     participants = StringField("Anwesende")
     done = BooleanField("Fertig")
+    public = BooleanField("Veröffentlicht")
 
 class TopForm(FlaskForm):
     name = StringField("TOP", validators=[InputRequired("Du musst den Namen des TOPs angeben.")])

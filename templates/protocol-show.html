@@ -4,41 +4,47 @@
 
 {% set logged_in = check_login() %}
 {% set user = current_user() %}
-{% set has_public_view_right = protocol.protocoltype.has_public_view_right(user) %}
-{% set has_private_view_right = protocol.protocoltype.has_private_view_right(user) %}
-{% set has_modify_right = protocol.protocoltype.has_modify_right(user) %}
+{% set has_public_type_view_right = protocol.protocoltype.has_public_view_right(user) %}
+{% set has_public_view_right = protocol.has_public_view_right(user) %}
+{% set has_private_view_right = protocol.has_private_view_right(user) %}
+{% set has_modify_right = protocol.has_modify_right(user) %}
 
 {% block content %}
 <div class="container">
-    <div class="btn-group">
-        {% if has_modify_right %}
-            {% if config.ETHERPAD_ACTIVE %}
-            <a class="btn {% if protocol.source is none %}btn-primary{% else %}btn-default{% endif %}" href="{{url_for("etherpull_protocol", protocol_id=protocol.id)}}">Aus Etherpad</a>
-            {% endif %}
-            {% if protocol.source is not none %}
-                <a class="btn btn-primary" href="{{url_for("get_protocol_source", protocol_id=protocol.id)}}">Quelltext</a>
-            {% endif %} 
-            <a class="btn {% if protocol.is_done() %}btn-success{% else %}btn-default{% endif %}" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Editieren</a>
-            {% if not protocol.is_done() %}
-                <a class="btn btn-default" href="{{url_for("get_protocol_template", protocol_id=protocol.id)}}">Vorlage</a>
+    {% if has_modify_right %}
+        <div class="btn-group">
+            {% if has_modify_right %}
                 {% if config.ETHERPAD_ACTIVE %}
-                <a class="btn btn-primary" href="{{url_for("etherpush_protocol", protocol_id=protocol.id)}}">In Etherpad</a>
+                <a class="btn {% if protocol.source is none %}btn-primary{% else %}btn-default{% endif %}" href="{{url_for("etherpull_protocol", protocol_id=protocol.id)}}">Aus Etherpad</a>
                 {% endif %}
-            {% else %}
-                {% if config.MAIL_ACTIVE %}
-                <a class="btn btn-default" href="{{url_for("send_protocol", protocol_id=protocol.id)}}">Mail versenden</a>
+                {% if protocol.source is not none %}
+                    <a class="btn btn-primary" href="{{url_for("get_protocol_source", protocol_id=protocol.id)}}">Quelltext</a>
+                {% endif %} 
+                <a class="btn {% if protocol.is_done() %}btn-success{% else %}btn-default{% endif %}" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Editieren</a>
+                {% if not protocol.is_done() %}
+                    <a class="btn btn-default" href="{{url_for("get_protocol_template", protocol_id=protocol.id)}}">Vorlage</a>
+                    {% if config.ETHERPAD_ACTIVE %}
+                    <a class="btn btn-primary" href="{{url_for("etherpush_protocol", protocol_id=protocol.id)}}">In Etherpad</a>
+                    {% endif %}
+                {% else %}
+                    {% if config.MAIL_ACTIVE %}
+                        <a class="btn btn-default" href="{{url_for("send_protocol", protocol_id=protocol.id)}}">Mail versenden</a>
+                    {% endif %}
+                    {% if not protocol.public %}
+                        <a class="btn btn-default" href="{{url_for("publish_protocol", protocol_id=protocol.id)}}">Veröffentlichen</a>
+                    {% endif %}
                 {% endif %}
+                {% if config.ETHERPAD_ACTIVE %}
+                <a class="btn btn-default" href="{{protocol.get_etherpad_link()}}" target="_blank">Etherpad</a>
+                {% endif %}
+                <a class="btn btn-default" href="{{url_for("show_type", type_id=protocol.protocoltype.id)}}">Typ</a>
+                {% if protocol.has_compiled_document() %}
+                    <a class="btn btn-success" href="{{url_for("download_document", document_id=protocol.get_compiled_document().id)}}">Download</a>
+                {% endif %}
+                <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_identifier()}} löschen möchtest?');">Löschen</a>
             {% endif %}
-            {% if config.ETHERPAD_ACTIVE %}
-            <a class="btn btn-default" href="{{protocol.get_etherpad_link()}}" target="_blank">Etherpad</a>
-            {% endif %}
-            <a class="btn btn-default" href="{{url_for("show_type", type_id=protocol.protocoltype.id)}}">Typ</a>
-            {% if protocol.has_compiled_document() %}
-                <a class="btn btn-success" href="{{url_for("download_document", document_id=protocol.get_compiled_document().id)}}">Download</a>
-            {% endif %}
-            <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_identifier()}} löschen möchtest?');">Löschen</a>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
     <div class="row">
         <div id="left-column" class="col-lg-6">
             {% if protocol.is_done() %}
@@ -69,7 +75,7 @@
             <h3>Tagesordnung{% if has_modify_right and not protocol.has_nonplanned_tops() %} <a href="{{url_for("new_top", protocol_id=protocol.id)}}">Top hinzufügen</a>{% endif %}</h3>
             {% include "protocol-tops-include.html" %}
 
-            {% if protocol.is_done() %}
+            {% if protocol.is_done() and has_public_view_right %}
             <h3>Beschlüsse</h3>
             <ul>
                 {% if protocol.decisions|length > 0 %}
@@ -105,7 +111,7 @@
                     {{render_table(errors_table)}}
                 {% endif %}
             {% endif %}
-            {% if protocol.documents|length > 0 %}
+            {% if protocol.documents|length > 0 and has_public_view_right %}
                 {{render_table(documents_table)}}
             {% else %}
                 {% if has_modify_right %}

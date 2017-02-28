@@ -125,13 +125,14 @@ class Protocol(db.Model):
     participants = db.Column(db.String)
     location = db.Column(db.String)
     done = db.Column(db.Boolean)
+    public = db.Column(db.Boolean)
 
     tops = relationship("TOP", backref=backref("protocol"), cascade="all, delete-orphan", order_by="TOP.number")
     decisions = relationship("Decision", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Decision.id")
     documents = relationship("Document", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Document.is_compiled")
     errors = relationship("Error", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Error.id")
 
-    def __init__(self, protocoltype_id, date, source=None, content_public=None, content_private=None, start_time=None, end_time=None, author=None, participants=None, location=None, done=False):
+    def __init__(self, protocoltype_id, date, source=None, content_public=None, content_private=None, start_time=None, end_time=None, author=None, participants=None, location=None, done=False, public=False):
         self.protocoltype_id = protocoltype_id
         self.date = date
         self.source = source
@@ -143,6 +144,7 @@ class Protocol(db.Model):
         self.participants = participants
         self.location = location
         self.done = done
+        self.public = public
 
     def __repr__(self):
         return "<Protocol(id={}, protocoltype_id={})>".format(
@@ -189,6 +191,18 @@ class Protocol(db.Model):
             self.participants = remarks[PARTICIPANTS_KEY].value.strip()
         if LOCATION_KEY in remarks:
             self.location = remarks[LOCATION_KEY].value.strip()
+
+    def has_public_view_right(self, user):
+        return (
+            (self.public and self.protocoltype.has_public_view_right(user))
+            or self.protocoltype.has_private_view_right(user)
+        )
+
+    def has_private_view_right(self, user):
+        return self.protocoltype.has_private_view_right(user)
+
+    def has_modify_right(self, user):
+        return self.protocoltype.has_modify_right(user)
 
     def is_done(self):
         return self.done

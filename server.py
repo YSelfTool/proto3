@@ -104,7 +104,12 @@ def index():
         key=_sort_key
     )
     finished_protocols = sorted(
-        [protocol for protocol in protocols if protocol.done],
+        [
+            protocol for protocol in protocols
+            if protocol.done
+            and (protocol.has_public_view_right(user)
+                or protocol.has_private_view_right(user))
+        ],
         key=_sort_key
     )
     protocol = finished_protocols[0] if len(finished_protocols) > 0 else None
@@ -112,7 +117,7 @@ def index():
     if check_login():
         todos = [
             todo for todo in Todo.query.all()
-            if todo.protocoltype.has_public_view_right(user)
+            if todo.protocoltype.has_private_view_right(user)
             and not todo.is_done()
         ]
     todos_table = TodosTable(todos) if todos is not None else None
@@ -395,7 +400,7 @@ def list_protocols():
             protocol for protocol in protocols
             if (protocol.protocoltype.has_private_view_right(user)
                 and _matches_search(protocol.content_private))
-            or (protocol.protocoltype.has_public_view_right(user)
+            or (protocol.has_public_view_right(user)
                 and _matches_search(protocol.content_public))
         ]
         for protocol in protocols:
@@ -464,12 +469,12 @@ def show_protocol(protocol_id):
     user = current_user()
     protocol = Protocol.query.filter_by(id=protocol_id).first()
     if protocol is None or not protocol.protocoltype.has_public_view_right(user):
-        flash("Invalides Protokoll.", "alert-error")
+        flash("Invalides Protokoll oder fehlende Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     errors_table = ErrorsTable(protocol.errors)
     visible_documents = [
         document for document in protocol.documents
-        if (not document.is_private and document.protocol.protocoltype.has_public_view_right(user))
+        if (not document.is_private and document.protocol.has_public_view_right(user))
         or (document.is_private and document.protocol.protocoltype.has_private_view_right(user))
     ]
     documents_table = DocumentsTable(visible_documents)
@@ -649,6 +654,19 @@ def update_protocol(protocol_id):
         tasks.push_tops_to_calendar(protocol)
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     return render_template("protocol-update.html", upload_form=upload_form, edit_form=edit_form, protocol=protocol)
+
+@app.route("/protocol/publish/<int:protocol_id>")
+@login_required
+def publish_protocol(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    protocol.public = True
+    db.session.commit()
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+
 
 @app.route("/prococol/send/<int:protocol_id>")
 @login_required
@@ -891,7 +909,7 @@ def list_decisions():
         search_form.search.data = search_term
     decisions = [
         decision for decision in Decision.query.all()
-        if decision.protocol.protocoltype.has_public_view_right(user)
+        if decision.protocol.has_public_view_right(user)
     ]
     if protocoltype_id is not None and protocoltype_id != -1:
         decisions = [
@@ -926,7 +944,7 @@ def download_document(document_id):
     if ((document.is_private
             and not document.protocol.protocoltype.has_private_view_right(user))
         or (not document.is_private
-            and not document.protocol.protocoltype.has_public_view_right(user))):
+            and not document.protocol.has_public_view_right(user))):
         flash("Keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     return send_file(document.as_file_like(), cache_timeout=1, as_attachment=True, attachment_filename=document.name)
