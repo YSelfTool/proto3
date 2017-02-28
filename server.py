@@ -19,9 +19,9 @@ from datetime import datetime
 import math
 
 import config
-from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter
+from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
-from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument
+from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable
 from legacy import import_old_todos
@@ -63,7 +63,10 @@ app.jinja_env.filters["timify"] = time_filter
 app.jinja_env.filters["datify_long"] = date_filter_long
 app.jinja_env.filters["url_complete"] = url_manager.complete
 app.jinja_env.filters["class"] = class_filter
+app.jinja_env.filters["todo_get_name"] = todostate_name_filter
+app.jinja_env.filters["code"] = code_filter
 app.jinja_env.tests["auth_valid"] = security_manager.check_user
+app.jinja_env.tests["needs_date"] = needs_date_test
 
 import tasks
 
@@ -126,7 +129,9 @@ def index():
 @app.route("/documentation")
 @login_required
 def documentation():
-    return render_template("documentation.html")
+    todostates = list(TodoState)
+    name_to_state = TodoState.get_name_to_state()
+    return render_template("documentation.html", todostates=todostates, name_to_state=name_to_state)
 
 @app.route("/types/list")
 @login_required

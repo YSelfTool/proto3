@@ -391,6 +391,16 @@ class TodoState(Enum):
     def get_name(self):
         STATE_TO_NAME, NAME_TO_STATE = make_states(TodoState)
         return STATE_TO_NAME[self]
+    
+    @staticmethod
+    def get_name_to_state():
+        STATE_TO_NAME, NAME_TO_STATE = make_states(TodoState)
+        return NAME_TO_STATE
+
+    @staticmethod
+    def get_state_to_name():
+        STATE_TO_NAME, NAME_TO_STATE = make_states(TodoState)
+        return STATE_TO_NAME
 
     def needs_date(self):
         return self in [TodoState.after, TodoState.before]

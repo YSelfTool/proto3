@@ -76,8 +76,16 @@ def date_filter_short(date):
 def time_filter(time):
     return time.strftime("%H:%M")
 
+def needs_date_test(todostate):
+    return todostate.needs_date()
+def todostate_name_filter(todostate):
+    return todostate.get_name()
+
 def class_filter(obj):
     return obj.__class__.__name__
+
+def code_filter(text):
+    return "<code>{}</code>".format(text)
 
 from auth import LdapManager, SecurityManager, User
 ldap_manager = LdapManager(config.LDAP_PROVIDER_URL, config.LDAP_BASE)

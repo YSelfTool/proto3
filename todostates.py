@@ -29,6 +29,7 @@ def make_states(TodoState):
         "ab": TodoState.after,
         "erst ab": TodoState.after,
         "nicht vor": TodoState.after,
+        "wiedervorlage": TodoState.after,
         "after": TodoState.after,
         "not before": TodoState.after,
         "vor": TodoState.before,

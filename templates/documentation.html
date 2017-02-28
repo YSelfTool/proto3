@@ -24,7 +24,7 @@
         <ul>
             <li>Die ersten und letztes TOPs sind Standard-TOPs, die jede Sitzung hat. Die kannst du nur über beim Protokolltyp ändern, nicht beim Protokoll selbst.</li>
             <li>Die mittleren TOPs gehören nur zu dieser Sitzung. Du kannst welche hinzufügen oder sie umsortieren.</li>
-            <li>Solltest du die TOPs nicht bearbeiten können, handelt es sich um ein Protokoll, das du lesen, aber nicht bearbeiten kannst. Mehr dazu bei <a href="#Rechteverwaltung">Rechteverwaltung</a>.</li>
+            <li>Solltest du die TOPs nicht bearbeiten können, handelt es sich um ein Protokoll, das du lesen, aber nicht bearbeiten kannst. Mehr dazu bei <a href="#rechte">Rechteverwaltung</a>.</li>
         </ul>
         <h4 id="wie">Wie schreibe ich eine Protokoll?</h4>
         <ol>
@@ -35,10 +35,10 @@
             <li>falls Todo erledigt, markiere als erledigt (Details siehe <a href="#Todos">Todos</a></li>
             <li>schreibe das Protokoll im Etherpad</li>
             <li>Importiere das Protokoll am Ende mit „Aus Etherpad“</li>
-            <li>Falls Fehler auftreten, behebe sie (siehe <a href="#Fehler">Fehler</a></li>
+            <li>Falls Fehler auftreten, behebe sie (siehe <a href="#fehler">Fehler</a></li>
             <li>Wenn keine Fehler mehr auftreten, drucke das Protokoll mit „Löschen” (unten beim Anhang) aus.</li>
             <li>Korrekturlesen lassen und im Etherpad korrigieren, dann nochmal „aus Etherpad“</li>
-            <li>drucken, abheften und per Mail versenden</li>
+            <li>drucken, abheften, per Mail versenden und veröffentlichen</li>
         </ol>
         <h4 id="fehler">Was, wenn etwas nicht funktioniert?</h4>
         <ul>
@@ -52,7 +52,15 @@
             <li>Jedes Todo hat eine (oder durch Kommata oder Leerzeichen getrennt mehrere) Personen, die es erledigen sollen.</li>
             <li>Todos haben auch einen Zustand, in dem sie sich befinden. Es gibt:
                 <ul>
-                    {# todo: list states #}
+                    <li>offen: Das Todo muss noch erledigt werden</li>
+                    <li>wartet auf Rückmeldung: Jemand kümmert sich um das Todo, wartet allerdings gerade darauf, dass jemand anderes (intern oder extern) sich zurückmeldet.</li>
+                    <li>in Bearbeitung: Jemand kümmert sich gerade um das Todo.</li>
+                    <li>ab: Das Todo wird erst ab dem Datum relevant.</li>
+                    <li>vor: Das Todo muss vor dem Datum erledigt werden.</li>
+                    <li>verwaist: Das Todo hat niemanden, der es erledigen wird.</li>
+                    <li>erledigt: Das Todo ist erledigt.</li>
+                    <li>abgewiesen: Das Todo ist nicht und wird nicht mehr erledigt.</li>
+                    <li>obsolet: Das Todo wurde nicht erledigt und nun ist es zu spät, das noch zu tun.</li>
                 </ul>
             </li>
             <li>Alle Todos findest du unter <a href="{{url_for("list_todos")}}">Todos</a>.</li>
@@ -72,7 +80,12 @@
 
         Die öffentliche Version einsehen dürfen:
         <ul>
-            <li>Nicht authentifizierte Nutzer, wenn der Protokolltyp „Öffentlich“ eingestellt ist.</li>
+            <li>
+                Nicht authentifizierte Nutzer, wenn der Protokolltyp „Öffentlich“ eingestellt ist.
+                <ul>
+                    <li>Die Tagesordnung und Metadaten sind auch vor Veröffentlichung einsehbar.</li>
+                </ul>
+            </li>
             <li>Authentifizierte Nutzer auch dann, wenn es nicht „Öffentlich“ eingestellt ist, aber sie die „Öffentliche Gruppe“ oder die „Interne Gruppe” des Protokolltyps haben. Wenn keine Gruppe eingestellt ist, kann auch kein Nutzer diese haben.</li>
         </ul>
         Die interne Version einsehen dürfen:
@@ -127,7 +140,7 @@
 {% if config.PRIVATE_KEYWORDS|length > 0 %}
         <h4 id="intern">Interne Abschnitte</h4>
         Wenn der Name einer Liste (bis auf Leerzeichen und einen optionalen <code>:</code>) eins aus
-        <code>{{config.PRIVATE_KEYWORDS|join(" ")}}</code>
+        {{config.PRIVATE_KEYWORDS|map("code")|join(" ")|safe}}
         ist, ist diese Liste intern.
         Daher wird sie nur in der internen Version des Protokolls angezeigt.
 <pre>
@@ -160,6 +173,18 @@
 
         Ein bereits bestehender Todo wird mit der zusätzlichen Option <code>[…;id 1338]</code> in ein neues Protokoll eingefügt. Wird dieser Todo dann geändert, passiert das auch im Protokollsystem.
         Außerdem kann der Status des Todos, z.B. <code>[…;done;…]</code> angegeben werden.
+        Wenn der Status ein Datum benötigt 
+        ({{todostates|select("needs_date")|map("todo_get_name")|join(", ")}})
+        muss dies als <code>[…;dd.mm.yyyy;…]</code> angegeben werden.
+        <br>
+        Folgende Begriffe werden vom Protkollsystem verstanden (Groß- und Kleinschreibung spielt keine Rolle):
+        <ul>
+            {% for name in name_to_state %}
+                {% set state = name_to_state[name] %}
+                <li><code>{{name}}{% if state.needs_date() %};dd.mm.yyyy{% endif %}</code>: {{state.get_name()}}</li>
+            {% endfor %}
+        </ul>
+
 {% endif %}
     </div>
 </div>
