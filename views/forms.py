@@ -16,7 +16,7 @@ def get_protocoltype_choices(protocoltypes, add_all=True):
 
 def get_todostate_choices():
     return [
-        (state.value, state.get_name())
+        (state, state.get_name())
         for state in TodoState
     ]
 
@@ -25,6 +25,12 @@ def get_calendar_choices():
         (calendar, calendar)
         for calendar in CalendarClient().get_calendars()
     ]
+
+def coerce_todostate(key):
+    if isinstance(key, str):
+        class_part, key_part = key.split(".")
+        key = TodoState[key_part]
+    return key
 
 class LoginForm(FlaskForm):
     username = StringField("Benutzer", validators=[InputRequired("Bitte gib deinen Benutzernamen ein.")])
@@ -44,7 +50,11 @@ class ProtocolTypeForm(FlaskForm):
     use_wiki = BooleanField("Wiki benutzen")
     wiki_only_public = BooleanField("Wiki ist öffentlich")
     printer = SelectField("Drucker", choices=list(zip(config.PRINTING_PRINTERS, config.PRINTING_PRINTERS)))
-    calendar = SelectField("Kalender", choices=get_calendar_choices())
+    calendar = SelectField("Kalender", choices=[])
+
+    def __init__(self, **kwargs):
+        super().__init__(self, **kwargs)
+        self.calendar.choices = get_calendar_choices()
 
 class DefaultTopForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Du musst einen Namen angeben.")])
@@ -124,10 +134,11 @@ class NewTodoForm(FlaskForm):
 class TodoForm(FlaskForm):
     who = StringField("Person")
     description = StringField("Aufgabe", validators=[InputRequired("Bitte gib an, was erledigt werden soll.")])
-    state = SelectField("Status", choices=[], coerce=int, validators=[CheckTodoDateByState()])
+    state = SelectField("Status", choices=[], coerce=coerce_todostate, validators=[CheckTodoDateByState()])
     date = DateField("Datum", format="%d.%m.%Y", validators=[Optional()])
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.state.choices = get_todostate_choices()
 
 class TodoMailForm(FlaskForm):

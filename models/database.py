@@ -5,7 +5,7 @@ import math
 from io import StringIO, BytesIO
 from enum import Enum
 
-from shared import db, date_filter, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY, AUTHOR_KEY, PARTICIPANTS_KEY, LOCATION_KEY
+from shared import db, date_filter, date_filter_short, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY, AUTHOR_KEY, PARTICIPANTS_KEY, LOCATION_KEY
 from utils import random_string, url_manager, get_etherpad_url, split_terms
 from models.errors import DateNotMatchingException
 
@@ -411,6 +411,11 @@ class Todo(db.Model):
             self.id, self.number, self.who, self.description, self.state, self.date)
 
     def is_done(self):
+        if self.state.needs_date():
+            if self.state == TodoState.after:
+                return datetime.now().date() >= self.date
+            elif self.state == TodoState.before:
+                return datetime.now().date() <= self.date
         return self.state.is_done()
 
     def get_id(self):
@@ -433,7 +438,7 @@ class Todo(db.Model):
     def get_state_plain(self):
         result = self.state.get_name()
         if self.state.needs_date():
-            result = "{} {}".format(result, date_filter(self.state.date))
+            result = "{} {}".format(result, date_filter_short(self.date))
         return result
     def get_state_tex(self):
         return self.get_state_plain()
