@@ -8,9 +8,10 @@
 {% macro render_top(top) %}
 {TOP {{top.name}}
             {% if top.name == "Todos" %}
-                {% if protocol.todos|length > 0 %}
-                    {% for todo in protocol.todos %}
-    [todo;{{todo.who}};{{todo.description}};id {{todo.get_id()}}];
+                {% set todos=protocol.get_open_todos() %}
+                {% if todos|length > 0 %}
+                    {% for todo in todos %}
+    {{todo.render_template()}};
                     {% endfor %}
                 {% else %}
 

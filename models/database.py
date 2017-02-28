@@ -218,6 +218,12 @@ class Protocol(db.Model):
     def get_originating_todos(self):
         return [todo for todo in self.todos if self == todo.get_first_protocol()]
 
+    def get_open_todos(self):
+        return [
+            todo for todo in self.protocoltype.todos
+            if not todo.is_done()
+        ]
+
     def has_compiled_document(self):
         candidates = [
             document for document in self.documents
@@ -471,6 +477,13 @@ class Todo(db.Model):
             self.description,
             self.get_state_plain()
         )
+
+    def render_template(self):
+        parts = ["todo", self.who, self.description, self.state.get_name()]
+        if self.state.needs_date():
+            parts.append(date_filter(self.state))
+        parts.append("id {}".format(self.get_id()))
+        return "[{}]".format(";".join(parts))
 
 
 class TodoProtocolAssociation(db.Model):
