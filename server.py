@@ -24,7 +24,7 @@ from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable
-from legacy import import_old_todos
+from legacy import import_old_todos, import_old_protocols
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -81,10 +81,15 @@ app.jinja_env.globals.update(dir=dir)
 
 @manager.command
 def import_legacy():
-    """Import the old todos from an sql dump"""
+    """Import the old todos and protocols from an sql dump"""
     filename = prompt("SQL-file")
+    #filename = "legacy.sql"
     with open(filename, "r") as sqlfile:
-        import_old_todos(sqlfile.read())
+        content = sqlfile.read()
+        import_old_todos(content)
+        import_old_protocols(content)
+    
+
 
 @app.route("/")
 def index():
@@ -93,7 +98,7 @@ def index():
         protocol for protocol in Protocol.query.all()
         if protocol.protocoltype.has_public_view_right(user)
     ]
-    def _sort_key(protocol):
+    def _protocol_sort_key(protocol):
         if protocol.date is not None:
             return protocol.date
         return datetime.now().date()
@@ -104,7 +109,7 @@ def index():
             if not protocol.done
             and (protocol.date - current_day).days < config.MAX_INDEX_DAYS
         ],
-        key=_sort_key
+        key=_protocol_sort_key
     )
     finished_protocols = sorted(
         [
@@ -113,7 +118,7 @@ def index():
             and (protocol.has_public_view_right(user)
                 or protocol.has_private_view_right(user))
         ],
-        key=_sort_key
+        key=_protocol_sort_key
     )
     protocol = finished_protocols[0] if len(finished_protocols) > 0 else None
     todos = None
@@ -123,6 +128,10 @@ def index():
             if todo.protocoltype.has_private_view_right(user)
             and not todo.is_done()
         ]
+        def _todo_sort_key(todo):
+            protocol = todo.get_first_protocol()
+            return protocol.date if protocol.date is not None else datetime.now().date()
+        todos = sorted(todos, key=_todo_sort_key, reverse=True)
     todos_table = TodosTable(todos) if todos is not None else None
     return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos, todos_table=todos_table)
 
@@ -143,6 +152,7 @@ def list_types():
         if (protocoltype.public_group in user.groups
         or protocoltype.private_group in user.groups
         or protocoltype.is_public)]
+    types = sorted(types, key=lambda t: t.short_name)
     types_table = ProtocolTypesTable(types)
     return render_template("types-list.html", types=types, types_table=types_table)
 
@@ -160,7 +170,8 @@ def new_type():
                 form.private_group.data, form.public_group.data,
                 form.private_mail.data, form.public_mail.data,
                 form.use_wiki.data, form.wiki_category.data,
-                form.wiki_only_public.data, form.printer.data)
+                form.wiki_only_public.data, form.printer.data,
+                form.calendar.data)
             db.session.add(protocoltype)
             db.session.commit()
             flash("Der Protokolltyp {} wurde angelegt.".format(protocoltype.name), "alert-success")
@@ -203,6 +214,20 @@ def show_type(type_id):
     default_tops_table = DefaultTOPsTable(protocoltype.default_tops, protocoltype)
     reminders_table = MeetingRemindersTable(protocoltype.reminders, protocoltype)
     return render_template("type-show.html", protocoltype=protocoltype, protocoltype_table=protocoltype_table, default_tops_table=default_tops_table, reminders_table=reminders_table, mail_active=config.MAIL_ACTIVE)
+
+@app.route("/type/delete/<int:type_id>")
+@login_required
+def delete_type(type_id):
+    user = current_user()
+    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
+    if protocoltype is None or not protocoltype.has_modify_right(user):
+        flash("Invalider Protokolltyp oder fehlende Zugriffsrechte.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    name = protocoltype.name
+    db.session.delete(protocoltype) 
+    db.session.commit()
+    flash("Der Protokolltype {} wurde gelöscht.".format(name), "alert-success")
+    return redirect(request.args.get("next") or url_for("list_types"))
 
 @app.route("/type/reminders/new/<int:type_id>", methods=["GET", "POST"])
 @login_required
@@ -436,7 +461,7 @@ def list_protocols():
             search_results[protocol] = "<br />\n".join(formatted_lines)
     protocols = sorted(protocols, key=lambda protocol: protocol.date, reverse=True)
     page = _get_page()
-    page_count = int(math.ceil(len(protocols)) / config.PAGE_LENGTH)
+    page_count = int(math.ceil(len(protocols) / config.PAGE_LENGTH))
     if page >= page_count:
         page = 0
     begin_index = page * config.PAGE_LENGTH
@@ -637,11 +662,9 @@ def etherpush_protocol(protocol_id):
     if not config.ETHERPAD_ACTIVE:
         flash("Die Etherpadfunktion ist nicht aktiviert.", "alert-error")
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
-    if set_etherpad_text(protocol.get_identifier(), protocol.get_template()):
-        flash("Vorlage von {} in Etherpad hochgeladen.".format(protocol.get_identifier()), "alert-success")
-    else:
-        flash("Das Etherpad wurde bereits bearbeitet.", "alert-error")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    if not protocol.is_done():
+        tasks.set_etherpad_content(protocol)
+    return redirect(request.args.get("next") or protocol.get_etherpad_link())
 
 @app.route("/protocol/update/<int:protocol_id>", methods=["GET", "POST"])
 @login_required

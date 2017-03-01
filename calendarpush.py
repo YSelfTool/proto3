@@ -3,6 +3,7 @@ import random
 import quopri
 
 from caldav import DAVClient, Principal, Calendar, Event
+from caldav.lib.error import PropfindError
 from vobject.base import ContentLine
 
 import config
@@ -14,17 +15,33 @@ class Client:
     def __init__(self, calendar=None, url=None):
         self.url = url if url is not None else config.CALENDAR_URL
         self.client = DAVClient(self.url)
-        self.principal = self.client.principal()
+        self.principal = None
+        for _ in range(config.CALENDAR_MAX_REQUESTS):
+            try:
+                self.principal = self.client.principal()
+                break
+            except PropfindError as exc:
+                print(exc)
+        if self.principal is None:
+            raise CalendarException("Got {} PropfindErrors from the CalDAV server.".format(config.CALENDAR_MAX_REQUESTS))
         if calendar is not None:
             self.calendar = self.get_calendar(calendar)
         else:
             self.calendar = calendar
 
     def get_calendars(self):
-        return [
-            calendar.name
-            for calendar in self.principal.calendars()
-        ]
+        if not config.CALENDAR_ACTIVE:
+            return
+        for _ in range(config.CALENDAR_MAX_REQUESTS):
+            try:
+                return [
+                    calendar.name
+                    for calendar in self.principal.calendars()
+                ]
+            except PropfindError as exc:
+                print(exc)
+        raise CalendarException("Got {} PropfindErrors from the CalDAV server.".format(config.CALENDAR_MAX_REQUESTS))
+
 
     def get_calendar(self, calendar_name):
         candidates = self.principal.calendars()
@@ -34,6 +51,8 @@ class Client:
         raise CalendarException("No calendar named {}.".format(calendar_name))
 
     def set_event_at(self, begin, name, description):
+        if not config.CALENDAR_ACTIVE:
+            return
         candidates = [
             Event.from_raw_event(raw_event)
             for raw_event in self.calendar.date_search(begin)
@@ -126,10 +145,3 @@ def get_timezone_offset():
 def encode_quopri(text):
     return quopri.encodestring(text.encode("utf-8")).replace(b"\n", b"=0D=0A").decode("utf-8")
 
-def main():
-    client = Client("Protokolltest")
-    client.set_event_at(datetime(2017, 2, 27, 19, 0), "FSS", "Tagesordnung\nTOP 1")
-
-if __name__ == "__main__":
-    if config.CALENDAR_ACTIVE:
-        main()

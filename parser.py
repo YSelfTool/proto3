@@ -156,7 +156,7 @@ class Content(Element):
     # v2: does not require the semicolon, but the newline
     #PATTERN = r"\s*(?<content>(?:[^\[\];\r\n]+)?(?:\[[^\]\r\n]+\][^;\[\]\r\n]*)*);?"
     # v3: does not allow braces in the content
-    PATTERN = r"\s*(?<content>(?:[^\[\];\r\n{}]+)?(?:\[[^\]\r\n]+\][^;\[\]\r\n]*)*);?"
+    PATTERN = r"\s*(?<content>(?:[^\[\];\r\n{}]+)?(?:\[[^\]\r\n{}]+\][^;\[\]\r\n{}]*)*);?"
 
 class Text:
     def __init__(self, text, linenumber, fork):
@@ -188,7 +188,10 @@ class Text:
             raise ParserException("Text is empty!", linenumber)
         return Text(content, linenumber, current)
 
-    PATTERN = r"(?<text>[^\[]+)(?:(?=\[)|$)"
+    # v1: does not allow any [, as that is part of a tag
+    # PATTERN = r"(?<text>[^\[]+)(?:(?=\[)|$)"
+    # v2: does allow one [ at the beginning, which is used if it did not match a tag
+    PATTERN = r"(?<text>\[?[^\[{}]+)(?:(?=\[)|$)"
 
 
 class Tag:
@@ -206,7 +209,7 @@ class Tag:
                 if not show_private:
                     return ""
                 return self.todo.render_latex(current_protocol=protocol)
-            return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(self.values[0]))
+            return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(";".join(self.values)))
         elif render_type == RenderType.plaintext:
             if self.name == "url":
                 return self.values[0]
@@ -214,7 +217,7 @@ class Tag:
                 if not show_private:
                     return ""
                 return self.values[0]
-            return "{}: {}".format(self.name.capitalize(), self.values[0])
+            return "{}: {}".format(self.name.capitalize(), ";".join(self.values))
         elif render_type == RenderType.wikitext:
             if self.name == "url":
                 return "[{0} {0}]".format(self.values[0])
@@ -222,7 +225,7 @@ class Tag:
                 if not show_private:
                     return ""
                 return self.todo.render_wikitext(current_protocol=protocol)
-            return "'''{}:''' {}".format(self.name.capitalize(), self.values[0])
+            return "'''{}:''' {}".format(self.name.capitalize(), ";".join(self.values))
         else:
             raise _not_implemented(self, render_type)
 
@@ -240,8 +243,12 @@ class Tag:
             raise ParserException("Tag is empty!", linenumber)
         parts = content.split(";")
         return Tag(parts[0], parts[1:], linenumber, current)
+    
+    # v1: matches [text without semicolons]
+    #PATTERN = r"\[(?<content>(?:[^;\]]*;)*(?:[^;\]]*))\]"
+    # v2: needs at least two parts separated by a semicolon
+    PATTERN = r"\[(?<content>(?:[^;\]]*;)+(?:[^;\]]*))\]"
 
-    PATTERN = r"\[(?<content>(?:[^;\]]*;)*(?:[^;\]]*))\]"
 
 class Empty(Element):
     def __init__(self, linenumber):
@@ -301,8 +308,8 @@ class Remark(Element):
     PATTERN = r"\s*\#(?<content>[^\n]+)"
 
 class Fork(Element):
-    def __init__(self, environment, name, parent, linenumber, children=None):
-        self.environment = environment if environment is None or len(environment) > 0 else None
+    def __init__(self, is_top, name, parent, linenumber, children=None):
+        self.is_top = is_top
         self.name = name.strip() if (name is not None and len(name) > 0) else None
         self.parent = parent
         self.linenumber = linenumber
@@ -311,22 +318,19 @@ class Fork(Element):
     def dump(self, level=None):
         if level is None:
             level = 0
-        result_lines = ["{}fork: {}".format(INDENT_LETTER * level, self.name)]
+        result_lines = ["{}fork: {}'{}'".format(INDENT_LETTER * level, "TOP " if self.is_top else "", self.name)]
         for child in self.children:
             result_lines.append(child.dump(level + 1))
         return "\n".join(result_lines)
 
     def test_private(self, name):
+        if name is None:
+            return False
         stripped_name = name.replace(":", "").strip()
         return stripped_name in config.PRIVATE_KEYWORDS
 
     def render(self, render_type, show_private, level, protocol=None):
-        name_parts = []
-        if self.environment is not None:
-            name_parts.append(self.environment)
-        if self.name is not None:
-            name_parts.append(self.name)
-        name_line = " ".join(name_parts)
+        name_line = escape_tex(self.name if self.name is not None else "")
         if level == 0 and self.name == "Todos" and not show_private:
             return ""
         if render_type == RenderType.latex:
@@ -341,6 +345,8 @@ class Fork(Element):
                     part = r"\item {}".format(part)
                 content_parts.append(part)
             content_lines = "\n".join(content_parts)
+            if len(content_lines.strip()) == 0:
+                content_lines = "\\item Nichts\n"
             if level == 0:
                 return "\n".join([begin_line, content_lines, end_line])
             elif self.test_private(self.name):
@@ -388,7 +394,7 @@ class Fork(Element):
         return tags
 
     def is_anonymous(self):
-        return self.environment == None
+        return self.name == None
 
     def is_root(self):
         return self.parent is None
@@ -398,6 +404,17 @@ class Fork(Element):
             return self
         return self.parent.get_top()
 
+    def get_maxdepth(self):
+        child_depths = [
+            child.get_maxdepth()
+            for child in self.children
+            if isinstance(child, Fork)
+        ]
+        if len(child_depths) > 0:
+            return max(child_depths) + 1
+        else:
+            return 1
+
     @staticmethod
     def create_root():
         return Fork(None, None, None, 0)
@@ -405,18 +422,13 @@ class Fork(Element):
     @staticmethod
     def parse(match, current, linenumber=None):
         linenumber = Element.parse_inner(match, current, linenumber)
-        environment = match.group("environment")
-        name1 = match.group("name1")
-        name2 = match.group("name2")
-        name = ""
-        if name1 is not None:
-            name = name1
-        if name2 is not None:
-            if len(name) > 0:
-                name += " {}".format(name2)
-            else:
-                name = name2
-        element = Fork(environment, name, current, linenumber)
+        topname = match.group("topname")
+        name = match.group("name")
+        is_top = False
+        if topname is not None:
+            is_top = True
+            name = topname
+        element = Fork(is_top, name, current, linenumber)
         current = Element.parse_outer(element, current)
         return current, linenumber
 
@@ -434,7 +446,11 @@ class Fork(Element):
     # v1: has a problem with old protocols that do not use a lot of semicolons
     #PATTERN = r"\s*(?<name1>[^{};]+)?{(?<environment>\S+)?\h*(?<name2>[^\n]+)?"
     # v2: do not allow newlines in name1 or semicolons in name2
-    PATTERN = r"\s*(?<name1>[^{};\n]+)?{(?<environment>\S+)?\h*(?<name2>[^;\n]+)?"
+    #PATTERN = r"\s*(?<name1>[^{};\n]+)?{(?<environment>[^\s{};]+)?\h*(?<name2>[^;{}\n]+)?"
+    # v3: no environment/name2 for normal lists, only for tops
+    #PATTERN = r"\s*(?<name>[^{};\n]+)?{(?:TOP\h*(?<topname>[^;{}\n]+))?"
+    # v4: do allow one newline between name and {
+    PATTERN = r"\s*(?<name>(?:[^{};\n])+)?\n?\s*{(?:TOP\h*(?<topname>[^;{}\n]+))?"
     END_PATTERN = r"\s*};?"
 
 PATTERNS = OrderedDict([
@@ -446,8 +462,8 @@ PATTERNS = OrderedDict([
 ])
 
 TEXT_PATTERNS = OrderedDict([
-    (re.compile(Text.PATTERN), Text.parse),
-    (re.compile(Tag.PATTERN), Tag.parse)
+    (re.compile(Tag.PATTERN), Tag.parse),
+    (re.compile(Text.PATTERN), Text.parse)
 ])
 
 def parse(source):
@@ -460,11 +476,15 @@ def parse(source):
             match = pattern.match(source)
             if match is not None:
                 source = source[len(match.group()):]
-                current, linenumber = PATTERNS[pattern](match, current, linenumber)
+                try:
+                    current, linenumber = PATTERNS[pattern](match, current, linenumber)
+                except ParserException as exc:
+                    exc.tree = tree
+                    raise exc
                 found = True
                 break
         if not found:
-            raise ParserException("No matching syntax element found!", linenumber)
+            raise ParserException("No matching syntax element found!", linenumber, tree=tree)
     if current is not tree:
         raise ParserException("Source ended within fork! (started at line {})".format(current.linenumber), linenumber=current.linenumber, tree=tree)
     return tree

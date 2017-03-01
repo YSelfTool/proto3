@@ -22,6 +22,13 @@
 \RequirePackage{eurosym}
 \RequirePackage[babel]{csquotes}
 \RequirePackage{polyglossia}
+\RequirePackage{enumitem}
+
+\setlistdepth{\VAR{maxdepth}}
+\renewlist{itemize}{itemize}{\VAR{maxdepth}}
+\ENV{for index in range(maxdepth)}
+    \setlist[itemize,\VAR{index+1}]{label=\VAR{loop.cycle(*bulletpoints)}}
+\ENV{endfor}
 
 \setmainlanguage[babelshorthands=true]{german}
 

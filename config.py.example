@@ -85,7 +85,7 @@ ADMIN_MAIL = "admin@example.com"
 PARSER_LAZY = False
 
 # minimum similarity (0-100) todos need to have to be considered equal
-FUZZY_MIN_SCORE = 50
+FUZZY_MIN_SCORE = 90
 
 # choose something nice from fc-list
 # Nimbus Sans looks very much like Computer Modern
@@ -122,3 +122,9 @@ DOCUMENTS_PATH = "documents"
 # keywords indicating private protocol parts
 PRIVATE_KEYWORDS = ["private", "internal", "privat", "intern"]
 
+LATEX_BULLETPOINTS = [
+    r"\textbullet",
+    r"\normalfont \bfseries \textendash",
+    r"\textasteriskcentered",
+    r"\textperiodcentered"
+]

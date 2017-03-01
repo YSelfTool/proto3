@@ -3,6 +3,7 @@ from flask import render_template, request
 import random
 import string
 import regex
+import math
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -159,3 +160,14 @@ def optional_int_arg(name):
         return int(request.args.get(name))
     except (ValueError, TypeError):
         return None
+
+def add_line_numbers(text):
+    raw_lines = text.splitlines()
+    linenumber_length = math.ceil(math.log10(len(raw_lines)) + 1)
+    lines = []
+    for linenumber, line in enumerate(raw_lines):
+        lines.append("{} {}".format(
+            str(linenumber+1).rjust(linenumber_length),
+            line
+        ))
+    return "\n".join(lines)

@@ -5,6 +5,7 @@ from wtforms.validators import InputRequired, Optional
 from models.database import TodoState
 from validators import CheckTodoDateByState
 from calendarpush import Client as CalendarClient
+from shared import current_user
 
 import config
 
@@ -21,10 +22,21 @@ def get_todostate_choices():
     ]
 
 def get_calendar_choices():
-    return [
-        (calendar, calendar)
-        for calendar in CalendarClient().get_calendars()
-    ]
+    calendars = CalendarClient().get_calendars()
+    choices = list(zip(calendars, calendars))
+    choices.insert(0, ("", "Kein Kalender"))
+    return choices
+
+def get_printer_choices():
+    choices = list(zip(config.PRINTING_PRINTERS, config.PRINTING_PRINTERS))
+    choices.insert(0, ("", "Nicht drucken"))
+    return choices
+
+def get_group_choices():
+    user = current_user()
+    choices = list(zip(user.groups, user.groups))
+    choices.insert(0, ("", "Keine Gruppe"))
+    return choices
 
 def coerce_todostate(key):
     if isinstance(key, str):
@@ -42,19 +54,23 @@ class ProtocolTypeForm(FlaskForm):
     organization = StringField("Organisation", validators=[InputRequired("Du musst eine zugehörige Organisation angeben.")])
     usual_time = DateTimeField("Üblicher Beginn", validators=[InputRequired("Bitte gib die Zeit an, zu der die Sitzung beginnt.")], format="%H:%M")
     is_public = BooleanField("Öffentlich sichtbar")
-    private_group = StringField("Interne Gruppe")
-    public_group = StringField("Öffentliche Gruppe")
+    private_group = SelectField("Interne Gruppe", choices=[])
+    public_group = SelectField("Öffentliche Gruppe", choices=[])
     private_mail = StringField("Interner Verteiler")
     public_mail = StringField("Öffentlicher Verteiler")
     wiki_category = StringField("Wiki-Kategorie")
     use_wiki = BooleanField("Wiki benutzen")
     wiki_only_public = BooleanField("Wiki ist öffentlich")
-    printer = SelectField("Drucker", choices=list(zip(config.PRINTING_PRINTERS, config.PRINTING_PRINTERS)))
+    printer = SelectField("Drucker", choices=[])
     calendar = SelectField("Kalender", choices=[])
 
     def __init__(self, **kwargs):
-        super().__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.calendar.choices = get_calendar_choices()
+        self.printer.choices = get_printer_choices()
+        group_choices = get_group_choices()
+        self.private_group.choices = group_choices
+        self.public_group.choices = group_choices
 
 class DefaultTopForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Du musst einen Namen angeben.")])
@@ -103,7 +119,7 @@ class ProtocolForm(FlaskForm):
     start_time = DateTimeField("Beginn", format="%H:%M", validators=[Optional()])
     end_time = DateTimeField("Ende", format="%H:%M", validators=[Optional()])
     location = StringField("Ort")
-    author = StringField("Protokollant")
+    author = StringField("Protokoll")
     participants = StringField("Anwesende")
     done = BooleanField("Fertig")
     public = BooleanField("Veröffentlicht")

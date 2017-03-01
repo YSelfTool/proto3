@@ -2,7 +2,7 @@ Protocol der {{protocol.name}} vom {{protocol.date|datify}}
 
 Datum: {{protocol.date|datify_long}}
 Zeit: von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}
-Protokollant: {{protocol.author}}
+Protokoll: {{protocol.author}}
 Anwesende: {{protocol.participants}}
 
 Die Tagesordnung ist:

@@ -4,7 +4,7 @@
 
 {% set loggedin = check_login() %}
 {% set user = current_user() %}
-{% set has_public_type_view_right = protocol.has_public_type_view_right(user) %}
+{% set has_public_type_view_right = protocol.protocoltype.has_public_view_right(user) %}
 {% set has_public_view_right = protocol.has_public_view_right(user) %}
 {% set has_private_view_right = protocol.has_private_view_right(user) %}
 {% set has_modify_right = protocol.has_modify_right(user) %}

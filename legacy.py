@@ -1,9 +1,16 @@
-from models.database import Todo, OldTodo
+from datetime import datetime
 from fuzzywuzzy import fuzz, process
+import tempfile
 
+from models.database import Todo, OldTodo, Protocol, ProtocolType
 from shared import db
 
 import config
+
+def log_fuzzy(text):
+    with tempfile.NamedTemporaryFile(delete=False, mode="w") as tmpfile:
+        tmpfile.write(text + "\n\n")
+    print(text)
 
 def lookup_todo_id(old_candidates, new_who, new_description):
     # Check for perfect matches
@@ -22,13 +29,50 @@ def lookup_todo_id(old_candidates, new_who, new_description):
     best_match, best_match_score = process.extractOne(
         new_description, content_to_number.keys())
     if best_match_score >= config.FUZZY_MIN_SCORE:
-        print("Used fuzzy matching on '{}', got '{}' with score {}.".format(
+        log_fuzzy("Used fuzzy matching on '{}', got '{}' with score {}.".format(
             new_description, best_match, best_match_score))
         return content_to_number[best_match]
     else:
-        print("Best match for '{}' is '{}' with score {}, rejecting.".format(
+        log_fuzzy("Best match for '{}' is '{}' with score {}, rejecting.".format(
             new_description, best_match, best_match_score))
         return None
+
+INSERT_PROTOCOLTYPE = "INSERT INTO `protocolManager_protocoltype`"
+INSERT_PROTOCOL = "INSERT INTO `protocolManager_protocol`"
+INSERT_TODO = "INSERT INTO `protocolManager_todo`"
+
+def import_old_protocols(sql_text):
+    protocoltype_lines = []
+    protocol_lines = []
+    for line in sql_text.splitlines():
+        if line.startswith(INSERT_PROTOCOLTYPE):
+            protocoltype_lines.append(line)
+        elif line.startswith(INSERT_PROTOCOL):
+            protocol_lines.append(line)
+    if (len(protocoltype_lines) == 0
+    or len(protocol_lines) == 0):
+        raise ValueError("Necessary lines not found.")
+    type_id_to_handle = {}
+    for type_line in protocoltype_lines:
+        for id, handle, name, mail, protocol_id in _split_insert_line(type_line):
+            type_id_to_handle[int(id)] = handle.lower()
+    protocols = []
+    for protocol_line in protocol_lines:
+        for (protocol_id, old_type_id, date, source, textsummary, htmlsummary,
+            deleted, sent, document_id) in _split_insert_line(protocol_line):
+            date = datetime.strptime(date, "%Y-%m-%d")
+            handle = type_id_to_handle[int(old_type_id)]
+            type = ProtocolType.query.filter(ProtocolType.short_name.ilike(handle)).first()
+            if type is None:
+                raise KeyError("No protocoltype for handle '{}'.".format(handle))
+            protocol = Protocol(type.id, date, source=source)
+            db.session.add(protocol)
+            db.session.commit()
+            import tasks
+            protocols.append(protocol)
+    for protocol in sorted(protocols, key=lambda p: p.date):
+        print(protocol.date)
+        tasks.parse_protocol(protocol)
 
 
 def import_old_todos(sql_text):
@@ -36,11 +80,11 @@ def import_old_todos(sql_text):
     protocol_lines = []
     todo_lines = []
     for line in sql_text.splitlines():
-        if line.startswith("INSERT INTO `protocolManager_protocoltype`"):
+        if line.startswith(INSERT_PROTOCOLTYPE):
             protocoltype_lines.append(line)
-        elif line.startswith("INSERT INTO `protocolManager_protocol`"):
+        elif line.startswith(INSERT_PROTOCOL):
             protocol_lines.append(line)
-        elif line.startswith("INSERT INTO `protocolManager_todo`"):
+        elif line.startswith(INSERT_TODO):
             todo_lines.append(line)
     if (len(protocoltype_lines) == 0
     or len(protocol_lines) == 0
@@ -125,7 +169,16 @@ def _split_base_level(text, begin="(", end=")", separator=",", string_terminator
         escaped = False
         for char in part:
             if escaped:
-                current_field += char
+                if char == "n":
+                    current_field += "\n"
+                elif char == "r":
+                    current_field += "\r"
+                elif char == "t":
+                    current_field += "\t"
+                else:
+                    if char not in "\"'\\":
+                        print("escaped char: '{}'".format(char))
+                    current_field += char
                 escaped = False
             elif in_string:
                 if char == escape:

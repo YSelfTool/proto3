@@ -62,10 +62,10 @@
                 {% if protocol.location is not none %}
                     <p><strong>Ort:</strong> {{protocol.location}}</p>
                 {% endif %}
-                {% if protocol.author is not none %}
-                    <p><strong>Protokollant:</strong> {{protocol.author}}</p>
+                {% if protocol.author is not none and has_public_view_right %}
+                    <p><strong>Protokoll:</strong> {{protocol.author}}</p>
                 {% endif %}
-                {% if protocol.participants is not none %}
+                {% if protocol.participants is not none and has_public_view_right %}
                     <p><strong>Anwesende:</strong> {{protocol.participants}}</p>
                 {% endif %}
             {% else %}

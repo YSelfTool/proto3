@@ -23,10 +23,18 @@
 \\\normalsize \VAR{protocol.protocoltype.organization|escape_tex}
 }{}
 \begin{tabular}{rp{14cm}}
+\ENV{if protocol.date is not none}
 {\bf Datum:} & \VAR{protocol.date|datify_long|escape_tex}\\
+\ENV{endif}
+\ENV{if protocol.location is not none}
 {\bf Ort:} & \VAR{protocol.location|escape_tex}\\
-{\bf Protokollant:} & \VAR{protocol.author|escape_tex}\\
+\ENV{endif}
+\ENV{if protocol.author is not none}
+{\bf Protokoll:} & \VAR{protocol.author|escape_tex}\\
+\ENV{endif}
+\ENV{if protocol.participants is not none}
 {\bf Anwesend:} & \VAR{protocol.participants|escape_tex}\\
+\ENV{endif}
 \end{tabular}
 \normalsize
 

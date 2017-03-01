@@ -43,7 +43,7 @@ class ProtocolType(db.Model):
 
     def __init__(self, name, short_name, organization, usual_time,
             is_public, private_group, public_group, private_mail, public_mail,
-            use_wiki, wiki_category, wiki_only_public, printer):
+            use_wiki, wiki_category, wiki_only_public, printer, calendar):
         self.name = name
         self.short_name = short_name
         self.organization = organization
@@ -416,6 +416,44 @@ class TodoState(Enum):
             raise ValueError("Unknown state: '{}'".format(name))
         return NAME_TO_STATE[name]
 
+    @staticmethod
+    def from_name_lazy(name):
+        name = name.strip().lower()
+        STATE_TO_NAME, NAME_TO_STATE = make_states(TodoState)
+        for key in NAME_TO_STATE:
+            if name.startswith(key):
+                return NAME_TO_STATE[key]
+        raise ValueError("{} does not start with a state.".format(name))
+
+    @staticmethod
+    def from_name_with_date(name, protocol=None):
+        name = name.strip().lower()
+        if not " " in name:
+            raise ValueError("{} does definitely not contain a state and a date".format(name))
+        name_part, date_part = name.split(" ", 1)
+        state = TodoState.from_name(name_part)
+        date = None
+        last_exc = None
+        formats = [("%d.%m.%Y", False)]
+        if config.PARSER_LAZY:
+            formats.extend([("%d.%m.", True), ("%d.%m", True)])
+        for format, year_missing in formats:
+            try:
+                date = datetime.strptime(date_part.strip(), format).date()
+                if year_missing:
+                    year = datetime.now().year
+                    if protocol is not None:
+                        year = protocol.date.year
+                    date = datetime(year=year, month=date.month, day=date.day).date()
+                break
+            except ValueError as exc:
+                last_exc = exc
+                continue
+        if date is None:
+            raise last_exc
+        return state, date
+
+
 class Todo(db.Model):
     __tablename__ = "todos"
     id = db.Column(db.Integer, primary_key=True)
@@ -443,9 +481,9 @@ class Todo(db.Model):
     def is_done(self):
         if self.state.needs_date():
             if self.state == TodoState.after:
-                return datetime.now().date() >= self.date
-            elif self.state == TodoState.before:
                 return datetime.now().date() <= self.date
+            elif self.state == TodoState.before:
+                return datetime.now().date() >= self.date
         return self.state.is_done()
 
     def get_id(self):
