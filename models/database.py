@@ -5,7 +5,7 @@ import math
 from io import StringIO, BytesIO
 from enum import Enum
 
-from shared import db, date_filter, date_filter_short, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY, AUTHOR_KEY, PARTICIPANTS_KEY, LOCATION_KEY
+from shared import db, date_filter, date_filter_short, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY
 from utils import random_string, url_manager, get_etherpad_url, split_terms
 from models.errors import DateNotMatchingException
 
@@ -41,6 +41,7 @@ class ProtocolType(db.Model):
     default_tops = relationship("DefaultTOP", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="DefaultTOP.number")
     reminders = relationship("MeetingReminder", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="MeetingReminder.days_before")
     todos = relationship("Todo", backref=backref("protocoltype"), order_by="Todo.id")
+    metas = relationship("DefaultMeta", backref=backref("protocoltype"), cascade="all, delete-orphan")
 
     def __init__(self, name, short_name, organization, usual_time,
             is_public, modify_group, private_group, public_group,
@@ -124,9 +125,6 @@ class Protocol(db.Model):
     date = db.Column(db.Date)
     start_time = db.Column(db.Time)
     end_time = db.Column(db.Time)
-    author = db.Column(db.String)
-    participants = db.Column(db.String)
-    location = db.Column(db.String)
     done = db.Column(db.Boolean)
     public = db.Column(db.Boolean)
 
@@ -134,8 +132,9 @@ class Protocol(db.Model):
     decisions = relationship("Decision", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Decision.id")
     documents = relationship("Document", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Document.is_compiled")
     errors = relationship("Error", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Error.id")
+    metas = relationship("Meta", backref=backref("protocol"), cascade="all, delete-orphan")
 
-    def __init__(self, protocoltype_id, date, source=None, content_public=None, content_private=None, start_time=None, end_time=None, author=None, participants=None, location=None, done=False, public=False):
+    def __init__(self, protocoltype_id, date, source=None, content_public=None, content_private=None, start_time=None, end_time=None, done=False, public=False):
         self.protocoltype_id = protocoltype_id
         self.date = date
         self.source = source
@@ -143,9 +142,6 @@ class Protocol(db.Model):
         self.content_public = content_public
         self.start_time = start_time
         self.end_time = end_time
-        self.author = author
-        self.participants = participants
-        self.location = location
         self.done = done
         self.public = public
 
@@ -188,12 +184,16 @@ class Protocol(db.Model):
             self.start_time = _date_or_lazy(START_TIME_KEY, get_time=True)
         if END_TIME_KEY in remarks:
             self.end_time = _date_or_lazy(END_TIME_KEY, get_time=True)
-        if AUTHOR_KEY in remarks:
-            self.author = remarks[AUTHOR_KEY].value.strip()
-        if PARTICIPANTS_KEY in remarks:
-            self.participants = remarks[PARTICIPANTS_KEY].value.strip()
-        if LOCATION_KEY in remarks:
-            self.location = remarks[LOCATION_KEY].value.strip()
+        old_metas = list(self.metas)
+        for meta in old_metas:
+            db.session.delete(meta)
+        db.session.commit()
+        for default_meta in self.protocoltype.metas:
+            if default_meta.key in remarks:
+                value = remarks[default_meta.key].value.strip()
+                meta = Meta(self.id, default_meta.name, value)
+                db.session.add(meta)
+        db.session.commit()
 
     def has_public_view_right(self, user):
         return (
@@ -307,12 +307,12 @@ class TOP(db.Model):
     planned = db.Column(db.Boolean)
     description = db.Column(db.String)
 
-    def __init__(self, protocol_id, name, number, planned, description):
+    def __init__(self, protocol_id, name, number, planned, description=None):
         self.protocol_id = protocol_id
         self.name = name
         self.number = number
         self.planned = planned
-        self.description = description
+        self.description = description if description is not None else ""
 
     def __repr__(self):
         return "<TOP(id={}, protocol_id={}, name={}, number={}, planned={})>".format(
@@ -655,3 +655,36 @@ class OldTodo(db.Model):
         return ("<OldTodo(id={}, old_id={}, who='{}', description='{}', "
             "protocol={}".format(self.id, self.old_id, self.who,
             self.description, self.protocol_key))
+
+class DefaultMeta(db.Model):
+    __tablename__ = "defaultmetas"
+    id = db.Column(db.Integer, primary_key=True)
+    protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
+    key = db.Column(db.String)
+    name = db.Column(db.String)
+
+    def __init__(self, protocoltype_id, key, name):
+        self.protocoltype_id = protocoltype_id
+        self.key = key
+        self.name = name
+
+    def __repr__(self):
+        return ("<DefaultMeta(id={}, protocoltype_id={}, key='{}', "
+            "name='{}')>".format(self.id, self.protocoltype_id, self.key))
+
+class Meta(db.Model):
+    __tablename__ = "metas"
+    id = db.Column(db.Integer, primary_key=True)
+    protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
+    name = db.Column(db.String)
+    value = db.Column(db.String)
+
+    def __init__(self, protocol_id, name, value):
+        self.protocol_id = protocol_id
+        self.name = name
+        self.value = value
+
+    def __repr__(self):
+        return "<Meta(id={}, protocoltype_id={}, name={}, value={})>".format(
+            self.id, self.protocoltype_id, self.name, self.value)
+

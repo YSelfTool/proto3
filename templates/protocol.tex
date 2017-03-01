@@ -26,15 +26,9 @@
 \ENV{if protocol.date is not none}
     {\bf Datum:} & \VAR{protocol.date|datify_long|escape_tex}\\
 \ENV{endif}
-\ENV{if protocol.location is not none}
-    {\bf Ort:} & \VAR{protocol.location|escape_tex}\\
-\ENV{endif}
-\ENV{if protocol.author is not none}
-    {\bf Protokoll:} & \VAR{protocol.author|escape_tex}\\
-\ENV{endif}
-\ENV{if protocol.participants is not none}
-    {\bf Anwesend:} & \VAR{protocol.participants|escape_tex}\\
-\ENV{endif}
+\ENV{for meta in protocol.metas}
+    {\bf \VAR{meta.name|escape_tex}:} & \VAR{meta.value|escape_tex}\\
+\ENV{endfor}
 \end{tabular}
 \normalsize
 

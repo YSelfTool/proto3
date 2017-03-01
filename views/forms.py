@@ -43,7 +43,8 @@ def get_printer_choices():
 
 def get_group_choices():
     user = current_user()
-    choices = list(zip(user.groups, user.groups))
+    groups = sorted(user.groups)
+    choices = list(zip(groups, groups))
     choices.insert(0, ("", "Keine Gruppe"))
     return choices
 
@@ -173,3 +174,11 @@ class TodoForm(FlaskForm):
 class TodoMailForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Du musst den Namen angeben, der zugeordnet werden soll.")])
     mail = StringField("Mail", validators=[InputRequired("Du musst die Mailadresse angeben, die zugeordnet werden soll.")])
+
+class MetaForm(FlaskForm):
+    name = StringField("Name", validators=[InputRequired("Bitte gib den Namen der Metadaten an.")])
+    value = StringField("Wert")
+
+class DefaultMetaForm(FlaskForm):
+    key = StringField("Key", validators=[InputRequired("Bitte gib den Protokoll-Syntax-Schlüssel der Metadaten an.")])
+    name = StringField("Name", validators=[InputRequired("Bitte gib den Namen der Metadaten an.")])

@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_form %}
+{% block title %}Metadatum hinzufügen{% endblock %}
+
+{% block content %}
+<div class="container">
+    {{render_form(form, action_url=url_for("new_defaultmeta", type_id=protocoltype.id, next=url_for("show_type", type_id=protocoltype.id)), action_text="Anlegen")}}
+</div>
+{% endblock %}

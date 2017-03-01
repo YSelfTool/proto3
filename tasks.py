@@ -5,6 +5,7 @@ import subprocess
 import shutil
 import tempfile
 from datetime import datetime
+import traceback
 
 from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP, MeetingReminder, TodoMail, DecisionDocument, TodoState, OldTodo
 from models.errors import DateNotMatchingException
@@ -60,7 +61,9 @@ def parse_protocol_async(protocol_id, encoded_kwargs):
                     raise Exception("No protocol given. Aborting parsing.")
                 parse_protocol_async_inner(protocol, encoded_kwargs)
             except Exception as exc:
-                error = protocol.create_error("Parsing", "Exception", str(exc))
+                stacktrace = traceback.format_exc()
+                error = protocol.create_error("Parsing", "Exception",
+                    "{}\n\n{}".format(str(exc), stacktrace))
                 db.session.add(error)
                 db.session.commit()
 
@@ -92,6 +95,8 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         return
     remarks = {element.name: element for element in tree.children if isinstance(element, Remark)}
     required_fields = KNOWN_KEYS
+    for default_meta in protocol.protocoltype.metas:
+        required_fields.append(default_meta.key)
     if not config.PARSER_LAZY:
         missing_fields = [field for field in required_fields if field not in remarks]
         if len(missing_fields) > 0:
@@ -489,7 +494,7 @@ def push_tops_to_calendar_async(protocol_id):
             db.session.commit()
 
 def set_etherpad_content(protocol):
-    set_etherpad_content_async.delay(protocol_id)
+    set_etherpad_content_async.delay(protocol.id)
 
 @celery.task
 def set_etherpad_content_async(protocol_id):

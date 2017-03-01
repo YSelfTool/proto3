@@ -1,9 +1,9 @@
-#Datum;{{protocol.date|datify}}
-#Anwesende;
-#Beginn;
+#Datum;{{protocol.date|datify_short}}
+#Beginn;{{protocol.protocoltype.usual_time|timify}}
 #Ende;
-#Autor;
-#Ort;
+{% for defaultmeta in protocol.protocoltype.metas %}
+#{{defaultmeta.key}};
+{% endfor %}
 
 {% macro render_top(top, use_description=False) %}
 {TOP {{top.name}}
@@ -11,16 +11,20 @@
                 {% set todos=protocol.get_open_todos() %}
                 {% if todos|length > 0 %}
                     {% for todo in todos %}
-                        {{-todo.render_template()|indent(indentfirst=True)}};
+	{{todo.render_template()}};
                     {% endfor %}
                 {% else %}
-
                 {% endif %}
             {% else %}
                 {% if use_description %}
-                    {{-top.description|indent(indentfirst=True)}}
+					{% if top.description|length > 0 %}
+{{top.description|indent_tab}}
+					{% else %}
+	
+					{% endif %}
+				{% else %}
+	
                 {% endif %}
-
             {% endif %}
 }
 {% endmacro -%}
@@ -33,12 +37,12 @@
     {% endfor %}
 {% endif %}
 {% for top in protocol.tops %}
-    {{-render_top(top, use_description=True)}}
+{{render_top(top, use_description=True)}}
 {% endfor %}
 {% if not protocol.has_nonplanned_tops() %}
     {% for default_top in protocol.protocoltype.default_tops %}
         {% if default_top.is_at_end() %}
-            {{-render_top(default_top)}}
+{{render_top(default_top)}}
         {% endif %}
     {% endfor %}
 {% endif %}

@@ -81,9 +81,11 @@ def needs_date_test(todostate):
 def todostate_name_filter(todostate):
     return todostate.get_name()
 
+def indent_tab_filter(text):
+    return "\n".join(map(lambda l: "\t{}".format(l), text.splitlines()))
+
 def class_filter(obj):
     return obj.__class__.__name__
-
 def code_filter(text):
     return "<code>{}</code>".format(text)
 
@@ -122,9 +124,4 @@ def group_required(function, group):
 DATE_KEY = "Datum"
 START_TIME_KEY = "Beginn"
 END_TIME_KEY = "Ende"
-AUTHOR_KEY = "Autor"
-PARTICIPANTS_KEY = "Anwesende"
-LOCATION_KEY = "Ort"
-KNOWN_KEYS = [DATE_KEY, START_TIME_KEY, END_TIME_KEY, AUTHOR_KEY,
-    PARTICIPANTS_KEY, LOCATION_KEY
-]
+KNOWN_KEYS = [DATE_KEY, START_TIME_KEY, END_TIME_KEY]

@@ -19,11 +19,11 @@ from datetime import datetime
 import math
 
 import config
-from shared import db, date_filter, datetime_filter, date_filter_long, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter
+from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
-from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm
-from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable
+from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm
+from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable
 from legacy import import_old_todos, import_old_protocols
 
 app = Flask(__name__)
@@ -60,11 +60,13 @@ app.jinja_env.lstrip_blocks = True
 app.jinja_env.filters["datify"] = date_filter
 app.jinja_env.filters["datetimify"] = datetime_filter
 app.jinja_env.filters["timify"] = time_filter
+app.jinja_env.filters["datify_short"] = date_filter_short
 app.jinja_env.filters["datify_long"] = date_filter_long
 app.jinja_env.filters["url_complete"] = url_manager.complete
 app.jinja_env.filters["class"] = class_filter
 app.jinja_env.filters["todo_get_name"] = todostate_name_filter
 app.jinja_env.filters["code"] = code_filter
+app.jinja_env.filters["indent_tab"] = indent_tab_filter
 app.jinja_env.tests["auth_valid"] = security_manager.check_user
 app.jinja_env.tests["needs_date"] = needs_date_test
 
@@ -213,7 +215,8 @@ def show_type(type_id):
     protocoltype_table = ProtocolTypeTable(protocoltype)
     default_tops_table = DefaultTOPsTable(protocoltype.default_tops, protocoltype)
     reminders_table = MeetingRemindersTable(protocoltype.reminders, protocoltype)
-    return render_template("type-show.html", protocoltype=protocoltype, protocoltype_table=protocoltype_table, default_tops_table=default_tops_table, reminders_table=reminders_table, mail_active=config.MAIL_ACTIVE)
+    metas_table = DefaultMetasTable(protocoltype.metas, protocoltype)
+    return render_template("type-show.html", protocoltype=protocoltype, protocoltype_table=protocoltype_table, default_tops_table=default_tops_table, metas_table=metas_table, reminders_table=reminders_table, mail_active=config.MAIL_ACTIVE)
 
 @app.route("/type/delete/<int:type_id>")
 @login_required
@@ -1135,6 +1138,53 @@ def delete_todomail(todomail_id):
     flash("Die Todo-Mail-Zuordnung für {} wurde gelöscht.".format(name), "alert-success")
     return redirect(request.args.get("next") or url_for("list_todomails"))
     
+@app.route("/defaultmeta/new/<int:type_id>", methods=["GET", "POST"])
+@login_required
+def new_defaultmeta(type_id):
+    user = current_user()
+    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
+    if protocoltype is None or not protocoltype.has_modify_right(user):
+        flash("Invalider Protokolltyp oder unzureichende Rechte.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    form = DefaultMetaForm()
+    if form.validate_on_submit():
+        meta = DefaultMeta(protocoltype_id=type_id, key=form.key.data,
+            name=form.name.data)
+        db.session.add(meta)
+        db.session.commit()
+        flash("Metadatenfeld hinzugefügt.", "alert-success")
+        return redirect(request.args.get("next") or url_for("show_type", type_id=type_id))
+    return render_template("defaultmeta-new.html", form=form, protocoltype=protocoltype)
+
+@app.route("/defaultmeta/edit/<int:meta_id>", methods=["GET", "POST"])
+@login_required
+def edit_defaultmeta(meta_id):
+    user = current_user()
+    meta = DefaultMeta.query.filter_by(id=meta_id).first()
+    if meta is None or not meta.protocoltype.has_modify_right(user):
+        flash("Invalider Protokolltyp oder unzureichende Rechte.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    form = DefaultMetaForm(obj=meta)
+    if form.validate_on_submit():
+        form.populate_obj(meta)
+        db.session.commit()
+        return redirect(request.args.get("next") or url_for("show_type", type_id=meta.protocoltype.id))
+    return render_template("defaultmeta-edit.html", form=form, meta=meta)
+
+@app.route("/defaultmeta/delete/<int:meta_id>")
+@login_required
+def delete_defaultmeta(meta_id):
+    user = current_user()
+    meta = DefaultMeta.query.filter_by(id=meta_id).first()
+    if meta is None or not meta.protocoltype.has_modify_right(user):
+        flash("Invalider Protokolltyp oder unzureichende Rechte.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    name = meta.name
+    type_id = meta.protocoltype.id
+    db.session.delete(meta)
+    db.session.delete()
+    flash("Metadatenfeld '{}' gelöscht.", "alert-error")
+    return redirect(request.args.get("next") or url_for("show_type", type_id=type_id))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

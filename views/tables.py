@@ -1,6 +1,6 @@
 # coding: utf-8
 from flask import Markup, url_for, request
-from models.database import Protocol, ProtocolType, DefaultTOP, TOP, Todo, Decision
+from models.database import Protocol, ProtocolType, DefaultTOP, TOP, Todo, Decision, Meta, DefaultMeta
 from shared import date_filter, datetime_filter, date_filter_short, current_user, check_login 
 
 import config
@@ -352,3 +352,23 @@ class TodoMailsTable(Table):
             ])
         ]
 
+class DefaultMetasTable(Table):
+    def __init__(self, metas, protocoltype):
+        super().__init__(
+            "Metadatenfelder",
+            metas,
+            url_for("new_defaultmeta", type_id=protocoltype.id)
+        )
+
+    def headers(self):
+        return ["Name", "Key", ""]
+
+    def row(self, meta):
+        return [
+            meta.name,
+            meta.key,
+            Table.concat([
+                Table.link(url_for("edit_defaultmeta", meta_id=meta.id), "Ändern"),
+                Table.link(url_for("delete_defaultmeta", meta_id=meta.id, confirm="Bist du dir sicher, dass du das Metadatenfeld {} löschen willst?".format(meta.name)), "Löschen")
+            ])
+        ]

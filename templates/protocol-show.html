@@ -59,15 +59,9 @@
                 {% if protocol.start_time is not none and protocol.end_time is not none %}
                     <p><strong>Zeit:</strong> von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}</p>
                 {% endif %}
-                {% if protocol.location is not none %}
-                    <p><strong>Ort:</strong> {{protocol.location}}</p>
-                {% endif %}
-                {% if protocol.author is not none and has_public_view_right %}
-                    <p><strong>Protokoll:</strong> {{protocol.author}}</p>
-                {% endif %}
-                {% if protocol.participants is not none and has_public_view_right %}
-                    <p><strong>Anwesende:</strong> {{protocol.participants}}</p>
-                {% endif %}
+                {% for meta in protocol.metas %}
+                    <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
+                {% endfor %}
             {% else %}
                 {% if protocol.date is not none %}<p><strong>Geplant:</strong> {{protocol.date|datify_long}}{% endif %}</p>
             {% endif %}

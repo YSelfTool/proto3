@@ -54,15 +54,9 @@
             {% if protocol.start_time is not none and protocol.end_time is not none %}
                 <p><strong>Zeit:</strong> von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}</p>
             {% endif %}
-            {% if protocol.location is not none %}
-                <p><strong>Ort:</strong> {{protocol.location}}</p>
-            {% endif %}
-            {% if protocol.author is not none %}
-                <p><strong>Protokoll:</strong> {{protocol.author}}</p>
-            {% endif %}
-            {% if protocol.participants is not none %}
-                <p><strong>Anwesende:</strong> {{protocol.participants}}</p>
-            {% endif %}
+            {% for meta in protocol.metas %}
+                <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
+            {% endfor %}
             <h3>Tagesordnung{% if has_modify_right and not protocol.has_nonplanned_tops() %} <a href="{{url_for("new_top", protocol_id=protocol.id)}}">Top hinzufügen</a>{% endif %}</h3>
             {% include "protocol-tops-include.html" %}
 
