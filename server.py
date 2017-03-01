@@ -49,7 +49,7 @@ def make_scheduler(app, config, function):
     scheduler.start()
     scheduler.add_job(
         func=function,
-        trigger=CronTrigger(hour='*'),
+        trigger=CronTrigger(hour='*', minute=30),
         id="scheduler",
         name="Do an action regularly",
         replace_existing=True)

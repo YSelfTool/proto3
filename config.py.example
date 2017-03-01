@@ -61,6 +61,7 @@ WIKI_DOMAIN = "domain" # set to None if not necessary
 CALENDAR_ACTIVE = True
 CALENDAR_URL = "https://user:password@calendar.example.com/dav/"
 CALENDAR_DEFAULT_DURATION = 3 # default meeting length in hours
+CALENDAR_MAX_REQUESTS = 10
 
 SESSION_PROTECTION = "strong" # do not change
 
@@ -122,6 +123,7 @@ DOCUMENTS_PATH = "documents"
 # keywords indicating private protocol parts
 PRIVATE_KEYWORDS = ["private", "internal", "privat", "intern"]
 
+# list of bulletpoints to use in latex
 LATEX_BULLETPOINTS = [
     r"\textbullet",
     r"\normalfont \bfseries \textendash",

@@ -13,6 +13,8 @@ class CalendarException(Exception):
 
 class Client:
     def __init__(self, calendar=None, url=None):
+        if not config.CALENDAR_ACTIVE:
+            return
         self.url = url if url is not None else config.CALENDAR_URL
         self.client = DAVClient(self.url)
         self.principal = None
@@ -20,10 +22,10 @@ class Client:
             try:
                 self.principal = self.client.principal()
                 break
-            except PropfindError as exc:
-                print(exc)
+            except Exception as exc:
+                print("Got exception {} from caldav, retrying".format(str(exc)))
         if self.principal is None:
-            raise CalendarException("Got {} PropfindErrors from the CalDAV server.".format(config.CALENDAR_MAX_REQUESTS))
+            raise CalendarException("Got {} CalDAV-error from the CalDAV server.".format(config.CALENDAR_MAX_REQUESTS))
         if calendar is not None:
             self.calendar = self.get_calendar(calendar)
         else:
@@ -38,9 +40,9 @@ class Client:
                     calendar.name
                     for calendar in self.principal.calendars()
                 ]
-            except PropfindError as exc:
-                print(exc)
-        raise CalendarException("Got {} PropfindErrors from the CalDAV server.".format(config.CALENDAR_MAX_REQUESTS))
+            except Exception as exc:
+                print("Got exception {} from caldav, retrying".format(str(exc)))
+        raise CalendarException("Got {} CalDAV Errors from the CalDAV server.".format(config.CALENDAR_MAX_REQUESTS))
 
 
     def get_calendar(self, calendar_name):

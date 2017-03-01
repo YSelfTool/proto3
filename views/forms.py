@@ -25,12 +25,17 @@ def get_todostate_choices():
         for state in TodoState
     ]
 
-def get_calendar_choices():
+def get_calendar_choices(protocoltype=None):
     calendars = CalendarClient().get_calendars()
     choices = []
     if calendars is not None:
         calendars = sorted(calendars)
         choices = list(zip(calendars, calendars))
+    else:
+        if (protocoltype is not None
+        and protocoltype.calendar is not None
+        and protocoltype.calendar != ""):
+            choices.append((protocoltype.calendar, protocoltype.calendar))
     choices.insert(0, ("", "Kein Kalender"))
     return choices
 
@@ -77,7 +82,8 @@ class ProtocolTypeForm(FlaskForm):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.calendar.choices = get_calendar_choices()
+        protocoltype = kwargs["obj"] if "obj" in kwargs else None
+        self.calendar.choices = get_calendar_choices(protocoltype=protocoltype)
         self.printer.choices = get_printer_choices()
         group_choices = get_group_choices()
         self.modify_group.choices = group_choices
