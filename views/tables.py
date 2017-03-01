@@ -108,7 +108,8 @@ class ProtocolTypeTable(SingleValueTable):
 
     def headers(self):
         general_headers = ["Name", "Abkürzung", "Organisation", "Beginn",
-            "Öffentlich", "Interne Gruppe", "Öffentliche Gruppe"]
+            "Öffentlich", "Bearbeitungsgruppe", "Interne Gruppe",
+            "Öffentliche Gruppe"]
         mail_headers = ["Interner Verteiler", "Öffentlicher Verteiler"]
         if not config.MAIL_ACTIVE:
             mail_headers = []
@@ -132,6 +133,7 @@ class ProtocolTypeTable(SingleValueTable):
             self.value.organization,
             self.value.usual_time.strftime("%H:%M") if self.value.usual_time is not None else "", # todo: remove if, this field is required
             Table.bool(self.value.is_public),
+            self.value.modify_group,
             self.value.private_group,
             self.value.public_group,
         ]

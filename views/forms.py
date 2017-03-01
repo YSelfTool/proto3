@@ -10,7 +10,11 @@ from shared import current_user
 import config
 
 def get_protocoltype_choices(protocoltypes, add_all=True):
-    choices = [(protocoltype.id, protocoltype.short_name) for protocoltype in protocoltypes]
+    choices = [
+        (protocoltype.id, protocoltype.short_name)
+        for protocoltype
+        in sorted(protocoltypes, key=lambda t: t.short_name)
+    ]
     if add_all:
         choices.insert(0, (-1, "Alle"))
     return choices
@@ -23,12 +27,17 @@ def get_todostate_choices():
 
 def get_calendar_choices():
     calendars = CalendarClient().get_calendars()
-    choices = list(zip(calendars, calendars))
+    choices = []
+    if calendars is not None:
+        calendars = sorted(calendars)
+        choices = list(zip(calendars, calendars))
     choices.insert(0, ("", "Kein Kalender"))
     return choices
 
 def get_printer_choices():
-    choices = list(zip(config.PRINTING_PRINTERS, config.PRINTING_PRINTERS))
+    choices = []
+    if config.PRINTING_PRINTERS is not None:
+        choices = list(zip(config.PRINTING_PRINTERS, config.PRINTING_PRINTERS))
     choices.insert(0, ("", "Nicht drucken"))
     return choices
 
@@ -54,6 +63,7 @@ class ProtocolTypeForm(FlaskForm):
     organization = StringField("Organisation", validators=[InputRequired("Du musst eine zugehörige Organisation angeben.")])
     usual_time = DateTimeField("Üblicher Beginn", validators=[InputRequired("Bitte gib die Zeit an, zu der die Sitzung beginnt.")], format="%H:%M")
     is_public = BooleanField("Öffentlich sichtbar")
+    modify_group = SelectField("Bearbeitungsgruppe", choices=[])
     private_group = SelectField("Interne Gruppe", choices=[])
     public_group = SelectField("Öffentliche Gruppe", choices=[])
     private_mail = StringField("Interner Verteiler")
@@ -69,6 +79,7 @@ class ProtocolTypeForm(FlaskForm):
         self.calendar.choices = get_calendar_choices()
         self.printer.choices = get_printer_choices()
         group_choices = get_group_choices()
+        self.modify_group.choices = group_choices
         self.private_group.choices = group_choices
         self.public_group.choices = group_choices
 

@@ -26,6 +26,7 @@ class ProtocolType(db.Model):
     organization = db.Column(db.String)
     usual_time = db.Column(db.Time)
     is_public = db.Column(db.Boolean)
+    modify_group = db.Column(db.String)
     private_group = db.Column(db.String)
     public_group = db.Column(db.String)
     private_mail = db.Column(db.String)
@@ -42,13 +43,15 @@ class ProtocolType(db.Model):
     todos = relationship("Todo", backref=backref("protocoltype"), order_by="Todo.id")
 
     def __init__(self, name, short_name, organization, usual_time,
-            is_public, private_group, public_group, private_mail, public_mail,
+            is_public, modify_group, private_group, public_group,
+            private_mail, public_mail,
             use_wiki, wiki_category, wiki_only_public, printer, calendar):
         self.name = name
         self.short_name = short_name
         self.organization = organization
         self.usual_time = usual_time
         self.is_public = is_public
+        self.modify_group = modify_group
         self.private_group = private_group
         self.public_group = public_group
         self.private_mail = private_mail
@@ -61,15 +64,15 @@ class ProtocolType(db.Model):
 
     def __repr__(self):
         return ("<ProtocolType(id={}, short_name={}, name={}, "
-                "organization={}, is_public={}, private_group={}, "
-                "public_group={}, use_wiki={}, wiki_category='{}', "
-                "wiki_only_public={}, printer={}, usual_time={}, "
-                "calendar='{}')>".format(
+                "organization={}, is_public={}, modify_group={}, "
+                "private_group={}, public_group={}, use_wiki={}, "
+                "wiki_category='{}', wiki_only_public={}, printer={}, "
+                "usual_time={}, calendar='{}')>".format(
             self.id, self.short_name, self.name,
-            self.organization, self.is_public, self.private_group,
-            self.public_group, self.use_wiki, self.wiki_category,
-            self.wiki_only_public, self.printer, self.usual_time,
-            self.calendar))
+            self.organization, self.is_public, self.modify_group,
+            self.private_group, self.public_group, self.use_wiki,
+            self.wiki_category, self.wiki_only_public, self.printer,
+            self.usual_time, self.calendar))
 
     def get_latest_protocol(self):
         candidates = sorted([protocol for protocol in self.protocols if protocol.is_done()], key=lambda p: p.date, reverse=True)
@@ -88,7 +91,7 @@ class ProtocolType(db.Model):
         return (user is not None and self.private_group != "" and self.private_group in user.groups)
 
     def has_modify_right(self, user):
-        return self.has_private_view_right(user)
+        return (user is not None and self.modify_group != "" and self.modify_group in user.groups)
 
     @staticmethod
     def get_modifiable_protocoltypes(user):
