@@ -1,48 +1,29 @@
-{#
-{{'{{'}}Infobox Protokoll
-| name = {{protocol.protocoltype.name}}
-{% if protocol.date is not none %}
-| datum = {{protocol.date|datify_long}}
-{% endif %}
-{% if protocol.start_time is not none and protocol.end_time is not none %}
-| zeit = von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}
-{% endif %}
-{% if protocol.author is not none %}
-| protokollant = {{protocol.author}}
-{% endif %}
-{% if protocol.participants is not none %}
-| anwesende = {{protocol.participants}}
-{% endif %}
-{{'}}'}}
-#}
-'''{{protocol.protocoltype.name}}'''
-
-{% if protocol.date is not none %}
-Datum: '''{{protocol.date|datify_long}}'''
-{% endif %}
-
-{% if protocol.start_time is not none and protocol.end_time is not none %}
-Zeit: '''von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}'''
-{% endif %}
-
-{% for meta in protocol.metas %}
-{{meta.name}}: '''{{meta.value}}'''
-
-{% endfor %}
+{{<var>protocol.protocoltype.get_wiki_infobox()</var>
+| name = <var>protocol.protocoltype.name</var>
+<env> if protocol.date is not none </env>
+| datum = <var>protocol.date|datify_long</var>
+<env> endif </env>
+<env> if protocol.start_time is not none and protocol.end_time is not none </env>
+| zeit = von <var>protocol.start_time|timify</var> bis <var>protocol.end_time|timify</var>
+<env> endif </env>
+<env> for meta in protocol.metas </env>
+| <var>meta.name|lower</var> = <var>meta.value</var>
+<env> endfor </env>
+}}
 
 == Beschlüsse ==
-{% if protocol.decisions|length > 0 %}
-    {% for decision in protocol.decisions %}
-* {{decision.content}}
-    {% endfor %}
-{% else %}
+<env> if protocol.decisions|length > 0 </env>
+    <env> for decision in protocol.decisions </env>
+* <var>decision.content</var>
+    <env> endfor </env>
+<env> else </env>
 * keine Beschlüsse
-{% endif %}
+<env> endif </env>
 
-{% for top in tree.children %}
-    {% if top|class == "Fork" %}
-{{top.render(render_type=render_type, level=0, show_private=show_private, protocol=protocol)}}
-    {% endif %}
-{% endfor %}
+<env> for top in tree.children </env>
+    <env> if top|class == "Fork" </env>
+<var>top.render(render_type=render_type, level=0, show_private=show_private, protocol=protocol)</var>
+    <env> endif </env>
+<env> endfor </env>
 
-[[Kategorie:{{protocol.protocoltype.wiki_category}}]]
+[[Kategorie:<var>protocol.protocoltype.wiki_category</var>]]

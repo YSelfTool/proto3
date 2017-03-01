@@ -45,6 +45,23 @@ mailenv.filters["url_complete"] = url_manager.complete
 mailenv.filters["datify"] = date_filter
 mailenv.filters["datetimify"] = datetime_filter
 
+wikienv = app.create_jinja_environment()
+wikienv.trim_blocks = True
+wikienv.lstrip_blocks = True
+wikienv.block_start_string = "<env>"
+wikienv.block_end_string = "</env>"
+wikienv.variable_start_string = "<var>"
+wikienv.variable_end_string = "</var>"
+wikienv.comment_start_string = "<comment>"
+wikienv.comment_end_string = "</comment>"
+wikienv.filters["datify"] = date_filter
+wikienv.filters["datify_long"] = date_filter_long
+wikienv.filters["datify_short"] = date_filter_short
+wikienv.filters["datetimify"] = datetime_filter
+wikienv.filters["timify"] = time_filter
+wikienv.filters["class"] = class_filter
+
+
 ID_FIELD_BEGINNING = "id "
 
 def parse_protocol(protocol, **kwargs):
@@ -285,19 +302,24 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         compile(latex_source, protocol, show_private=show_private, maxdepth=maxdepth)
 
     if protocol.protocoltype.use_wiki:
-        wiki_source = render_template("protocol.wiki", render_type=RenderType.wikitext, show_private=not protocol.protocoltype.wiki_only_public, **render_kwargs).replace("\n\n\n", "\n\n")
-        push_to_wiki(protocol, wiki_source, "Automatisch generiert vom Protokollsystem 3.0")
+        wiki_source = wikienv.get_template("protocol.wiki").render(render_type=RenderType.wikitext, show_private=not protocol.protocoltype.wiki_only_public, **render_kwargs).replace("\n\n\n", "\n\n")
+        wiki_infobox_source = wikienv.get_template("infobox.wiki").render(protocoltype=protocol.protocoltype)
+        push_to_wiki(protocol, wiki_source, wiki_infobox_source, "Automatisch generiert vom Protokollsystem 3.0")
     protocol.done = True
     db.session.commit()
 
-def push_to_wiki(protocol, content, summary):
-    push_to_wiki_async.delay(protocol.id, content, summary)
+def push_to_wiki(protocol, content, infobox_content, summary):
+    push_to_wiki_async.delay(protocol.id, content, infobox_content, summary)
 
 @celery.task
-def push_to_wiki_async(protocol_id, content, summary):
+def push_to_wiki_async(protocol_id, content, infobox_content, summary):
     with WikiClient() as wiki_client, app.app_context():
         protocol = Protocol.query.filter_by(id=protocol_id).first()
         try:
+            wiki_client.edit_page(
+                title=protocol.protocoltype.get_wiki_infobox_title(),
+                content=infobox_content,
+                summary="Automatisch generiert vom Protokollsystem 3.")
             wiki_client.edit_page(
                 title=protocol.get_wiki_title(),
                 content=content,

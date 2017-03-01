@@ -95,7 +95,7 @@ class WikiClient:
             req = requests.post(self.endpoint, cookies=self.cookies, data=data, params=params)
         if req.status_code != HTTP_STATUS_OK:
             raise WikiException("HTTP status code {} on action {}.".format(req.status_code, action))
-        self.cookies = req.cookies
+        self.cookies.update(req.cookies)
         return req.json()
 
 def main():

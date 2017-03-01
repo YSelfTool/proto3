@@ -115,6 +115,12 @@ class ProtocolType(db.Model):
             if protocoltype.has_private_view_right(user)
         ]
 
+    def get_wiki_infobox(self):
+        return "Infobox {}".format(self.short_name)
+
+    def get_wiki_infobox_title(self):
+        return "Vorlage:{}".format(self.get_wiki_infobox())
+
 class Protocol(db.Model):
     __tablename__ = "protocols"
     id = db.Column(db.Integer, primary_key=True)

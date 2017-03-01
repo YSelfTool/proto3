@@ -1,0 +1,11 @@
+{{Infobox
+| Titel      = {{{name|<includeonly>{{PAGENAMEBASE}}</includeonly>}}}
+| Feldname1  = Datum
+| Daten1     = {{{datum|}}}
+| Feldname2  = Zeit
+| Daten2     = {{{zeit|}}}
+<env> for meta in protocoltype.metas </env>
+| Feldname<var>loop.index + 2</var> = <var>meta.name</var>
+| Daten<var>loop.index + 2</var> = {{{<var>meta.name|lower</var>|}}}
+<env> endfor </env>
+}}
