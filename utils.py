@@ -69,14 +69,12 @@ class MailManager:
         self.hostname = getattr(config, "MAIL_HOST", "")
         self.username = getattr(config, "MAIL_USER", "")
         self.password = getattr(config, "MAIL_PASSWORD", "")
+        self.use_tls = getattr(config, "MAIL_USE_TLS", True)
 
     def send(self, to_addr, subject, content, appendix=None):
         if (not self.active
             or not self.hostname
-            or not self.username
-            or not self.password
             or not self.from_addr):
-            print("Not sending mail {} to {}".format(subject, to_addr))
             return
         msg = MIMEMultipart("mixed") # todo: test if clients accept attachment-free mails set to multipart/mixed
         msg["From"] = self.from_addr
@@ -88,8 +86,9 @@ class MailManager:
                 part = MIMEApplication(file_like.read(), "octet-stream")
                 part["Content-Disposition"] = 'attachment; filename="{}"'.format(name)
                 msg.attach(part)
-        server = smtplib.SMTP_SSL(self.hostname)
-        server.login(self.username, self.password)
+        server = (smtplib.SMTP_SSL if self.use_tls else smtplib.SMTP)(self.hostname)
+        if self.username not in [None, ""] and self.password not in [None, ""]:
+            server.login(self.username, self.password)
         server.sendmail(self.from_addr, to_addr, msg.as_string())
         server.quit()
 

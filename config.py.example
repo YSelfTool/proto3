@@ -10,8 +10,9 @@ DEBUG = False
 MAIL_ACTIVE = True
 MAIL_FROM = "protokolle@example.com"
 MAIL_HOST = "mail.example.com:465"
-MAIL_USER = "user"
-MAIL_PASSWORD = "password"
+MAIL_USER = "user" # set to "" for unauthenticated sending
+MAIL_PASSWORD = "password" # set to "" for unauthenticated sending
+MAIL_USE_TLS = True # should match the port in MAIL_HOST (if present there)
 
 # (local) message queue (necessary)
 CELERY_BROKER_URL = "redis://localhost:6379/0"
