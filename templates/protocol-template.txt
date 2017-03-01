@@ -5,18 +5,21 @@
 #Autor;
 #Ort;
 
-{% macro render_top(top) %}
+{% macro render_top(top, use_description=False) %}
 {TOP {{top.name}}
             {% if top.name == "Todos" %}
                 {% set todos=protocol.get_open_todos() %}
                 {% if todos|length > 0 %}
                     {% for todo in todos %}
-    {{todo.render_template()}};
+                        {{-todo.render_template()|indent(indentfirst=True)}};
                     {% endfor %}
                 {% else %}
 
                 {% endif %}
             {% else %}
+                {% if use_description %}
+                    {{-top.description|indent(indentfirst=True)}}
+                {% endif %}
 
             {% endif %}
 }
@@ -30,7 +33,7 @@
     {% endfor %}
 {% endif %}
 {% for top in protocol.tops %}
-    {{-render_top(top)}}
+    {{-render_top(top, use_description=True)}}
 {% endfor %}
 {% if not protocol.has_nonplanned_tops() %}
     {% for default_top in protocol.protocoltype.default_tops %}

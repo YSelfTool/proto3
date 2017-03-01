@@ -302,12 +302,14 @@ class TOP(db.Model):
     name = db.Column(db.String)
     number = db.Column(db.Integer)
     planned = db.Column(db.Boolean)
+    description = db.Column(db.String)
 
-    def __init__(self, protocol_id, name, number, planned):
+    def __init__(self, protocol_id, name, number, planned, description):
         self.protocol_id = protocol_id
         self.name = name
         self.number = number
         self.planned = planned
+        self.description = description
 
     def __repr__(self):
         return "<TOP(id={}, protocol_id={}, name={}, number={}, planned={})>".format(
