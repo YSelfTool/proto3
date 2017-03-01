@@ -1222,7 +1222,6 @@ def check_and_send_reminders():
             usual_time = protocol.protocoltype.usual_time
             protocol_time = datetime(1, 1, 1, usual_time.hour, usual_time.minute)
             hour_difference = (protocol_time - current_time).seconds // 3600
-            print(protocol.get_identifier(), day_difference, hour_difference)
             for reminder in protocol.protocoltype.reminders:
                 if day_difference == reminder.days_before and hour_difference == 0:
                     tasks.send_reminder(reminder, protocol)
