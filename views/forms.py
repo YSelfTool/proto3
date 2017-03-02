@@ -159,7 +159,7 @@ class NewTodoForm(FlaskForm):
     protocoltype_id = SelectField("Typ", choices=[], coerce=int)
     who = StringField("Person", validators=[InputRequired("Bitte gib an, wer das Todo erledigen soll.")])
     description = StringField("Aufgabe", validators=[InputRequired("Bitte gib an, was erledigt werden soll.")])
-    state = SelectField("Status", choices=[], coerce=int, validators=[CheckTodoDateByState()])
+    state = SelectField("Status", choices=[], coerce=coerce_todostate, validators=[CheckTodoDateByState()])
     date = DateField("Datum", format="%d.%m.%Y", validators=[Optional()])
     
     def __init__(self, protocoltypes, **kwargs):
