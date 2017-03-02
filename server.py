@@ -86,8 +86,8 @@ def import_legacy():
     """Import the old todos and protocols from an sql dump"""
     filename = prompt("SQL-file")
     #filename = "legacy.sql"
-    with open(filename, "r") as sqlfile:
-        content = sqlfile.read()
+    with open(filename, "rb") as sqlfile:
+        content = sqlfile.read().decode("utf-8")
         import_old_todos(content)
         import_old_protocols(content)
     

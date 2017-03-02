@@ -62,10 +62,10 @@ def import_old_protocols(sql_text):
             deleted, sent, document_id) in _split_insert_line(protocol_line):
             date = datetime.strptime(date, "%Y-%m-%d")
             handle = type_id_to_handle[int(old_type_id)]
-            type = ProtocolType.query.filter(ProtocolType.short_name.ilike(handle)).first()
-            if type is None:
+            protocoltype = ProtocolType.query.filter(ProtocolType.short_name.ilike(handle)).first()
+            if protocoltype is None:
                 raise KeyError("No protocoltype for handle '{}'.".format(handle))
-            protocol = Protocol(type.id, date, source=source)
+            protocol = Protocol(protocoltype.id, date, source=source)
             db.session.add(protocol)
             db.session.commit()
             import tasks
@@ -73,6 +73,7 @@ def import_old_protocols(sql_text):
     for protocol in sorted(protocols, key=lambda p: p.date):
         print(protocol.date)
         tasks.parse_protocol(protocol)
+    print("done importing")
 
 
 def import_old_todos(sql_text):
@@ -106,7 +107,7 @@ def import_old_todos(sql_text):
         for old_id, protocol_id, who, what, start_time, end_time, done in _split_insert_line(todo_line):
             protocol_id = int(protocol_id)
             if protocol_id not in protocol_id_to_key:
-                print("Missing protocol with ID {} for Todo {}".format(protocol_id, what))
+                #print("Missing protocol with ID {} for Todo {}".format(protocol_id, what))
                 continue
             todo = OldTodo(old_id=old_id, who=who, description=what,
                 protocol_key=protocol_id_to_key[protocol_id])
