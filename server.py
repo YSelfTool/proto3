@@ -120,7 +120,8 @@ def index():
             and (protocol.has_public_view_right(user)
                 or protocol.has_private_view_right(user))
         ],
-        key=_protocol_sort_key
+        key=_protocol_sort_key,
+        reverse=True
     )
     protocol = finished_protocols[0] if len(finished_protocols) > 0 else None
     todos = None
