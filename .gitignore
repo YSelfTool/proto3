@@ -5,10 +5,9 @@ config.py
 venv/
 bin/
 lib/
-latex/bin/
-latex/*.tex
-latex/missfont.log
-latex/logos/
+include/
+share/
+man/
 documents/
 .bash_history
 .cache/
