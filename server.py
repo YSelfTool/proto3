@@ -2,7 +2,7 @@
 import locale
 locale.setlocale(locale.LC_TIME, "de_DE.utf8")
 
-from flask import Flask, g, current_app, request, session, flash, redirect, url_for, abort, render_template, Response, send_file
+from flask import Flask, g, current_app, request, session, flash, redirect, url_for, abort, render_template, Response#, send_file
 from werkzeug.utils import secure_filename
 from flask_script import Manager, prompt
 from flask_migrate import Migrate, MigrateCommand
@@ -17,6 +17,7 @@ from io import StringIO, BytesIO
 import os
 from datetime import datetime
 import math
+import mimetypes
 
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
@@ -24,7 +25,7 @@ from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable
-from legacy import import_old_todos, import_old_protocols
+from legacy import import_old_todos, import_old_protocols, import_old_todomails
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -90,8 +91,14 @@ def import_legacy():
         content = sqlfile.read().decode("utf-8")
         import_old_todos(content)
         import_old_protocols(content)
+        import_old_todomails(content)
     
-
+# cause uwsgi currently has a bug
+def send_file(file_like, cache_timeout, as_attachment, attachment_filename):
+    mimetype, _ = mimetypes.guess_type(attachment_filename)
+    response = Response(file_like.read(), mimetype)
+    response.headers["Content-Disposition"] = 'attachment; filename="{}"'.format(attachment_filename)
+    return response
 
 @app.route("/")
 def index():
@@ -979,6 +986,9 @@ def download_document(document_id):
             and not document.protocol.has_public_view_right(user))):
         flash("Keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
+    #response = Response(document.as_file_like().read(), mimetype="application/pdf")
+    #response.headers["Content-Disposition"] = 'attachment; filename="{}"'.format(document.name)
+    #return response
     return send_file(document.as_file_like(), cache_timeout=1, as_attachment=True, attachment_filename=document.name)
 
 @app.route("/document/upload/<int:protocol_id>", methods=["POST"])

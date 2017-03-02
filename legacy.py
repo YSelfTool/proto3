@@ -2,14 +2,14 @@ from datetime import datetime
 from fuzzywuzzy import fuzz, process
 import tempfile
 
-from models.database import Todo, OldTodo, Protocol, ProtocolType
+from models.database import Todo, OldTodo, Protocol, ProtocolType, TodoMail
 from shared import db
 
 import config
 
 def log_fuzzy(text):
-    with tempfile.NamedTemporaryFile(delete=False, mode="w") as tmpfile:
-        tmpfile.write(text + "\n\n")
+    #with tempfile.NamedTemporaryFile(delete=False, mode="w") as tmpfile:
+    #    tmpfile.write(text + "\n\n")
     print(text)
 
 def lookup_todo_id(old_candidates, new_who, new_description):
@@ -40,6 +40,7 @@ def lookup_todo_id(old_candidates, new_who, new_description):
 INSERT_PROTOCOLTYPE = "INSERT INTO `protocolManager_protocoltype`"
 INSERT_PROTOCOL = "INSERT INTO `protocolManager_protocol`"
 INSERT_TODO = "INSERT INTO `protocolManager_todo`"
+INSERT_TODOMAIL = "INSERT INTO `protocolManager_todonamemailassignment`"
 
 def import_old_protocols(sql_text):
     protocoltype_lines = []
@@ -73,6 +74,20 @@ def import_old_protocols(sql_text):
     for protocol in sorted(protocols, key=lambda p: p.date):
         print(protocol.date)
         tasks.parse_protocol(protocol)
+
+def import_old_todomails(sql_text):
+    todomail_lines = []
+    for line in sql_text.splitlines():
+        if line.startswith(INSERT_TODOMAIL):
+            todomail_lines.append(line)
+    if len(todomail_lines) == 0:
+        raise ValueError("Necessary lines not found.")
+    for line in todomail_lines:
+        for assignment_id, name, mail in _split_insert_line(line):
+            todomail = TodoMail(name, mail)
+            print(todomail)
+            db.session.add(todomail)
+            db.session.commit()
     print("done importing")
 
 
