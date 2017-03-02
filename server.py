@@ -169,7 +169,7 @@ def new_type():
         else:
             protocoltype = ProtocolType(form.name.data, form.short_name.data,
                 form.organization.data, form.usual_time.data, form.is_public.data,
-                form.private_group.data, form.public_group.data,
+                form.modify_group.data, form.private_group.data, form.public_group.data,
                 form.private_mail.data, form.public_mail.data,
                 form.use_wiki.data, form.wiki_category.data,
                 form.wiki_only_public.data, form.printer.data,
