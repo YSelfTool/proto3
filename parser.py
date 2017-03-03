@@ -156,7 +156,9 @@ class Content(Element):
     # v2: does not require the semicolon, but the newline
     #PATTERN = r"\s*(?<content>(?:[^\[\];\r\n]+)?(?:\[[^\]\r\n]+\][^;\[\]\r\n]*)*);?"
     # v3: does not allow braces in the content
-    PATTERN = r"\s*(?<content>(?:[^\[\];\r\n{}]+)?(?:\[[^\]\r\n{}]+\][^;\[\]\r\n{}]*)*);?"
+    #PATTERN = r"\s*(?<content>(?:[^\[\];\r\n{}]+)?(?:\[[^\]\r\n{}]+\][^;\[\]\r\n{}]*)*);?"
+    # v4: do not allow empty match (require either the first or the second part to be non-empty)
+    PATTERN = r"\s*(?<content>(?:(?:[^\[\];\r\n{}]+)|(?:[^\[\];\r\n{}]+)?(?:\[[^\]\r\n{}]+\][^;\[\]\r\n{}]*)+));?"
 
 class Text:
     def __init__(self, text, linenumber, fork):
