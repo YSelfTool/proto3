@@ -32,27 +32,51 @@
 
 \setmainlanguage[babelshorthands=true]{german}
 
+\ENV{macro specify_font(font, name)}
+    \set\VAR{name}font[
+    \ENV{if font.path is defined}
+        Path=\VAR{font.path},
+    \ENV{endif}
+    \ENV{if font.extension is defined}
+        Extension=\VAR{font.extension},
+    \ENV{endif}
+        BoldFont={\VAR{font.bold}},
+        ItalicFont={\VAR{font.italic}},
+        BoldItalicFont={\VAR{font.bolditalic}}
+    ]{\VAR{font.regular}}
+\ENV{endmacro}
+
 \RequirePackage{fontspec}
-\setromanfont[
-    BoldFont={\VAR{fonts.roman.bold}},
-    ItalicFont={\VAR{fonts.roman.italic}},
-    BoldItalicFont={\VAR{fonts.roman.bolditalic}}
-]{\VAR{fonts.roman.regular}}
-\setsansfont[
-    BoldFont={\VAR{fonts.sans.bold}},
-    ItalicFont={\VAR{fonts.sans.italic}},
-    BoldItalicFont={\VAR{fonts.sans.bolditalic}}
-]{\VAR{fonts.sans.regular}}
-\setmonofont[
-    BoldFont={\VAR{fonts.mono.bold}},
-    ItalicFont={\VAR{fonts.mono.italic}},
-    BoldItalicFont={\VAR{fonts.mono.bolditalic}}
-]{\VAR{fonts.mono.regular}}
-\setmainfont[
-    BoldFont={\VAR{fonts.main.bold}},
-    ItalicFont={\VAR{fonts.main.italic}},
-    BoldItalicFont={\VAR{fonts.main.bolditalic}}
-]{\VAR{fonts.main.regular}}
+\VAR{specify_font(fonts.roman, "roman")}
+\VAR{specify_font(fonts.sans, "sans")}
+\VAR{specify_font(fonts.mono, "mono")}
+\VAR{specify_font(fonts.main, "main")}
+%\setromanfont[
+%    BoldFont={\VAR{fonts.roman.bold}},
+%    ItalicFont={\VAR{fonts.roman.italic}},
+%    BoldItalicFont={\VAR{fonts.roman.bolditalic}}
+%]{\VAR{fonts.roman.regular}}
+%\setsansfont[
+%    BoldFont={\VAR{fonts.sans.bold}},
+%    ItalicFont={\VAR{fonts.sans.italic}},
+%    BoldItalicFont={\VAR{fonts.sans.bolditalic}}
+%]{\VAR{fonts.sans.regular}}
+%\setmonofont[
+%    BoldFont={\VAR{fonts.mono.bold}},
+%    ItalicFont={\VAR{fonts.mono.italic}},
+%    BoldItalicFont={\VAR{fonts.mono.bolditalic}}
+%]{\VAR{fonts.mono.regular}}
+%\setmainfont[
+%\ENV{if fonts.main.path is defined}
+%    Path=\VAR{fonts.main.path},
+%\ENV{endif}
+%\ENV{if fonts.main.extension is defined}
+%    Extension=\VAR{fonts.main.extension},
+%\ENV{endif}
+%    BoldFont={\VAR{fonts.main.bold}},
+%    ItalicFont={\VAR{fonts.main.italic}},
+%    BoldItalicFont={\VAR{fonts.main.bolditalic}}
+%]{\VAR{fonts.main.regular}}
 
 
 % nicht einrücken und benutzerinnendefinierte kopfzeile
