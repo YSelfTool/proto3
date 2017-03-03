@@ -9,9 +9,9 @@ from flask_migrate import Migrate, MigrateCommand
 #from flask_socketio import SocketIO
 from celery import Celery
 from sqlalchemy import or_, and_
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.cron import CronTrigger
-from apscheduler.triggers.interval import IntervalTrigger
+#from apscheduler.schedulers.background import BackgroundScheduler
+#from apscheduler.triggers.cron import CronTrigger
+#from apscheduler.triggers.interval import IntervalTrigger
 import atexit
 from io import StringIO, BytesIO
 import os
@@ -45,16 +45,16 @@ celery = make_celery(app, config)
 #    return socketio
 #socketio = make_socketio(app, config)
 
-def make_scheduler(app, config, function):
-    scheduler = BackgroundScheduler()
-    scheduler.start()
-    scheduler.add_job(
-        func=function,
-        trigger=CronTrigger(hour='*', minute=30),
-        id="scheduler",
-        name="Do an action regularly",
-        replace_existing=True)
-    atexit.register(scheduler.shutdown)
+#def make_scheduler(app, config, function):
+#    scheduler = BackgroundScheduler()
+#    scheduler.start()
+#    scheduler.add_job(
+#        func=function,
+#        trigger=CronTrigger(hour='*', minute=23),
+#        id="scheduler",
+#        name="Do an action regularly",
+#        replace_existing=True)
+#    atexit.register(scheduler.shutdown)
 
 app.jinja_env.trim_blocks = True
 app.jinja_env.lstrip_blocks = True
@@ -1226,25 +1226,33 @@ def logout():
         flash("You are not logged in.", "alert-error")
     return redirect(url_for(".index"))
 
-def check_and_send_reminders():
-    if not config.MAIL_ACTIVE:
-        return
-    with app.app_context():
-        current_time = datetime.now()
-        current_day = current_time.date()
-        print("regular action for reminders")
-        for protocol in Protocol.query.filter(Protocol.done == False).all():
-            day_difference = (protocol.date - current_day).days
-            usual_time = protocol.protocoltype.usual_time
-            protocol_time = datetime(1, 1, 1, usual_time.hour, usual_time.minute)
-            hour_difference = (protocol_time - current_time).seconds // 3600
-            print("diff: {} days, {} hours".format(day_difference, hour_difference))
-            for reminder in protocol.protocoltype.reminders:
-                print(reminder)
-                if day_difference == reminder.days_before and hour_difference == 0:
-                    print("reminder matching, sending")
-                    tasks.send_reminder(reminder, protocol)
+def make_scheduler():
+    from uwsgidecorators import timer as uwsgitimer, signal as uwsgisignal, cron as uwsgicron
+    @uwsgicron(30, -1, -1, -1, -1, target="mule")
+    def uwsgi_timer(signum):
+        if signum == 0:
+            check_and_send_reminders()
+
+    def check_and_send_reminders():
+        print("check and send reminders")
+        if not config.MAIL_ACTIVE:
+            return
+        with app.app_context():
+            current_time = datetime.now()
+            current_day = current_time.date()
+            print("regular action for reminders")
+            for protocol in Protocol.query.filter(Protocol.done == False).all():
+                day_difference = (protocol.date - current_day).days
+                usual_time = protocol.protocoltype.usual_time
+                protocol_time = datetime(1, 1, 1, usual_time.hour, usual_time.minute)
+                hour_difference = (protocol_time - current_time).seconds // 3600
+                print("diff: {} days, {} hours".format(day_difference, hour_difference))
+                for reminder in protocol.protocoltype.reminders:
+                    print(reminder)
+                    if day_difference == reminder.days_before and hour_difference == 0:
+                        print("reminder matching, sending")
+                        tasks.send_reminder(reminder, protocol)
 
 if __name__ == "__main__":
-    make_scheduler(app, config, check_and_send_reminders)
+    make_scheduler()
     manager.run()

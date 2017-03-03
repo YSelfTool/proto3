@@ -78,7 +78,6 @@ class ProtocolsTable(Table):
             result.append("Fertig" if protocol.is_done() else "Geplant")
         elif protocol in self.search_results:
             result.append(Markup(self.search_results[protocol]))
-        print(user, protocol.protocoltype.has_private_view_right(user))
         if check_login():
             if user is not None and protocol.protocoltype.has_private_view_right(user):
                 result.append(Table.link(url_for("show_type", type_id=protocol.protocoltype.id), protocol.protocoltype.short_name))
