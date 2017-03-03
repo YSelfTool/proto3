@@ -2,7 +2,7 @@
 import locale
 locale.setlocale(locale.LC_TIME, "de_DE.utf8")
 
-from flask import Flask, g, current_app, request, session, flash, redirect, url_for, abort, render_template, Response#, send_file
+from flask import Flask, g, current_app, request, session, flash, redirect, url_for, abort, render_template, Response, send_file as flask_send_file
 from werkzeug.utils import secure_filename
 from flask_script import Manager, prompt
 from flask_migrate import Migrate, MigrateCommand
@@ -97,7 +97,14 @@ def import_legacy():
 def send_file(file_like, cache_timeout, as_attachment, attachment_filename):
     mimetype, _ = mimetypes.guess_type(attachment_filename)
     response = Response(file_like.read(), mimetype)
-    response.headers["Content-Disposition"] = 'attachment; filename="{}"'.format(attachment_filename)
+    if as_attachment:
+        response.headers["Content-Disposition"] = 'attachment; filename="{}"'.format(attachment_filename)
+    content_type = mimetype
+    if mimetype.startswith("text/"):
+        content_type = "{}; charset=utf-8".format(content_type)
+    response.headers["Content-Type"] = content_type
+    response.headers["Cache-Control"] = "public, max-age={}".format(cache_timeout)
+    response.headers["Connection"] = "close"
     return response
 
 @app.route("/")
@@ -986,9 +993,6 @@ def download_document(document_id):
             and not document.protocol.has_public_view_right(user))):
         flash("Keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
-    #response = Response(document.as_file_like().read(), mimetype="application/pdf")
-    #response.headers["Content-Disposition"] = 'attachment; filename="{}"'.format(document.name)
-    #return response
     return send_file(document.as_file_like(), cache_timeout=1, as_attachment=True, attachment_filename=document.name)
 
 @app.route("/document/upload/<int:protocol_id>", methods=["POST"])
