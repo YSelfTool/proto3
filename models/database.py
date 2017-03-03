@@ -89,6 +89,9 @@ class ProtocolType(db.Model):
                 or (self.private_group != "" and self.private_group in user.groups))))
 
     def has_private_view_right(self, user):
+        print(user, self.private_group)
+        if user is not None:
+            print(user.groups)
         return (user is not None and self.private_group != "" and self.private_group in user.groups)
 
     def has_modify_right(self, user):

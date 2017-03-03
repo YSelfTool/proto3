@@ -7,11 +7,6 @@ from shared import db
 
 import config
 
-def log_fuzzy(text):
-    #with tempfile.NamedTemporaryFile(delete=False, mode="w") as tmpfile:
-    #    tmpfile.write(text + "\n\n")
-    print(text)
-
 def lookup_todo_id(old_candidates, new_who, new_description):
     # Check for perfect matches
     for candidate in old_candidates:
@@ -29,11 +24,11 @@ def lookup_todo_id(old_candidates, new_who, new_description):
     best_match, best_match_score = process.extractOne(
         new_description, content_to_number.keys())
     if best_match_score >= config.FUZZY_MIN_SCORE:
-        log_fuzzy("Used fuzzy matching on '{}', got '{}' with score {}.".format(
+        print("Used fuzzy matching on '{}', got '{}' with score {}.".format(
             new_description, best_match, best_match_score))
         return content_to_number[best_match]
     else:
-        log_fuzzy("Best match for '{}' is '{}' with score {}, rejecting.".format(
+        print("Best match for '{}' is '{}' with score {}, rejecting.".format(
             new_description, best_match, best_match_score))
         return None
 
@@ -122,7 +117,7 @@ def import_old_todos(sql_text):
         for old_id, protocol_id, who, what, start_time, end_time, done in _split_insert_line(todo_line):
             protocol_id = int(protocol_id)
             if protocol_id not in protocol_id_to_key:
-                #print("Missing protocol with ID {} for Todo {}".format(protocol_id, what))
+                print("Missing protocol with ID {} for Todo {}".format(protocol_id, what))
                 continue
             todo = OldTodo(old_id=old_id, who=who, description=what,
                 protocol_key=protocol_id_to_key[protocol_id])

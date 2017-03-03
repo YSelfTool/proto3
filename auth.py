@@ -41,7 +41,8 @@ class LdapManager:
 
     def groups(self, username):
         result = []
-        for _, result_dict in self.connection.search_s(self.base, ldap.SCOPE_SUBTREE, "(memberUid={})".format(username), ["cn"]):
+        # use username.lower() since memberUid is case sensitive here
+        for _, result_dict in self.connection.search_s(self.base, ldap.SCOPE_SUBTREE, "(memberUid={})".format(username.lower()), ["cn"]):
             result.append(result_dict["cn"][0])
         return result
 

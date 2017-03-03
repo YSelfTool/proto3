@@ -379,6 +379,7 @@ def compile_async(content, protocol_id, show_private=False, use_decision=False, 
             document.filename = target_filename
             shutil.copy(os.path.join(compile_dir, protocol_target_filename), os.path.join(config.DOCUMENTS_PATH, target_filename))
             db.session.commit()
+            shutil.copy(os.path.join(compile_dir, log_filename), "/tmp/proto-tex.log")
         except subprocess.SubprocessError:
             log = ""
             total_log_filename = os.path.join(compile_dir, log_filename)
