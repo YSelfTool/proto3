@@ -1228,13 +1228,17 @@ def check_and_send_reminders():
     with app.app_context():
         current_time = datetime.now()
         current_day = current_time.date()
+        print("regular action for reminders")
         for protocol in Protocol.query.filter(Protocol.done == False).all():
             day_difference = (protocol.date - current_day).days
             usual_time = protocol.protocoltype.usual_time
             protocol_time = datetime(1, 1, 1, usual_time.hour, usual_time.minute)
             hour_difference = (protocol_time - current_time).seconds // 3600
+            print("diff: {} days, {} hours".format(day_difference, hour_difference))
             for reminder in protocol.protocoltype.reminders:
+                print(reminder)
                 if day_difference == reminder.days_before and hour_difference == 0:
+                    print("reminder matching, sending")
                     tasks.send_reminder(reminder, protocol)
 
 if __name__ == "__main__":

@@ -445,8 +445,10 @@ def send_reminder_async(reminder_id, protocol_id):
         protocol = Protocol.query.filter_by(id=protocol_id).first()
         reminder_text = render_template("reminder-mail.txt", reminder=reminder, protocol=protocol)
         if reminder.send_public:
+            print("sending public reminder mail to {}".format(protocol.protocoltype.public_mail))
             send_mail(protocol, protocol.protocoltype.public_mail, "Tagesordnung der {}".format(protocol.protocoltype.name), reminder_text)
         if reminder.send_private:
+            print("sending private reminder mail to {}".format(protocol.protocoltype.private_mail))
             send_mail(protocol, protocol.protocoltype.private_mail, "Tagesordnung der {}".format(protocol.protocoltype.name), reminder_text)
 
 def send_protocol(protocol):
