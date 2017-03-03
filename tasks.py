@@ -143,11 +143,15 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         db.session.commit()
         return
     # todos
+    old_todo_number_map = {}
+    for todo in protocol.todos:
+        old_todo_number_map[todo.description] = todo.get_id()
     protocol.delete_orphan_todos()
     db.session.commit()
     old_todos = list(protocol.todos)
     for todo in old_todos:
         protocol.todos.remove(todo)
+    print(old_todo_number_map)
     db.session.commit()
     tags = tree.get_tags()
     todo_tags = [tag for tag in tags if tag.name == "todo"]
@@ -225,6 +229,12 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
                 db.session.add(error)
                 db.session.commit()
                 return
+        if todo is None and field_id is None and what in old_todo_number_map:
+            todo = Todo(type_id=protocol.protocoltype.id,
+                who=who, description=what, state=field_state,
+                date=field_date, number=old_todo_number_map[what])
+            db.session.add(todo)
+            db.session.commit()
         if todo is None:
             protocol_key = protocol.get_identifier()
             old_candidates = OldTodo.query.filter(
