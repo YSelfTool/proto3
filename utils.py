@@ -11,6 +11,7 @@ from email.mime.application import MIMEApplication
 from datetime import datetime, date, timedelta
 import requests
 from io import BytesIO
+import ipaddress
 
 import config
 
@@ -170,3 +171,17 @@ def add_line_numbers(text):
             line
         ))
     return "\n".join(lines)
+
+def check_ip_in_networks(networks_string):
+    address = ipaddress.ip_address(request.remote_addr)
+    if address == ipaddress.ip_address("127.0.0.1") and "X-Real-Ip" in request.headers:
+        address = ipaddress.ip_address(request.headers["X-Real-Ip"])
+    print(address)
+    try:
+        for network_string in networks_string.split(","):
+            network = ipaddress.ip_network(network_string.strip())
+            if address in network:
+                return True
+        return False
+    except ValueError:
+        return False

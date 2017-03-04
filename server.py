@@ -9,9 +9,9 @@ from flask_migrate import Migrate, MigrateCommand
 #from flask_socketio import SocketIO
 from celery import Celery
 from sqlalchemy import or_, and_
-#from apscheduler.schedulers.background import BackgroundScheduler
-#from apscheduler.triggers.cron import CronTrigger
-#from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 import atexit
 from io import StringIO, BytesIO
 import os
@@ -44,17 +44,6 @@ celery = make_celery(app, config)
 #    socketio = SocketIO(app)
 #    return socketio
 #socketio = make_socketio(app, config)
-
-#def make_scheduler(app, config, function):
-#    scheduler = BackgroundScheduler()
-#    scheduler.start()
-#    scheduler.add_job(
-#        func=function,
-#        trigger=CronTrigger(hour='*', minute=23),
-#        id="scheduler",
-#        name="Do an action regularly",
-#        replace_existing=True)
-#    atexit.register(scheduler.shutdown)
 
 app.jinja_env.trim_blocks = True
 app.jinja_env.lstrip_blocks = True
@@ -1227,11 +1216,25 @@ def logout():
     return redirect(url_for(".index"))
 
 def make_scheduler():
-    from uwsgidecorators import timer as uwsgitimer, signal as uwsgisignal, cron as uwsgicron
-    @uwsgicron(30, -1, -1, -1, -1, target="mule")
-    def uwsgi_timer(signum):
-        if signum == 0:
-            check_and_send_reminders()
+    try:
+        from uwsgidecorators import timer as uwsgitimer, signal as uwsgisignal, cron as uwsgicron
+        print("using uwsgi for cron-like tasks")
+        @uwsgicron(30, -1, -1, -1, -1, target="mule")
+        def uwsgi_timer(signum):
+            if signum == 0:
+                check_and_send_reminders()
+    except ModuleNotFoundError:
+        print("uwsgi not found, falling back to apscheduler for cron-like tasks")
+        def make_scheduler(app, config, function):
+            scheduler = BackgroundScheduler()
+            scheduler.start()
+            scheduler.add_job(
+                func=function,
+                trigger=CronTrigger(hour='*', minute=30),
+                id="scheduler",
+                name="Do an action regularly",
+                replace_existing=True)
+            atexit.register(scheduler.shutdown)
 
     def check_and_send_reminders():
         print("check and send reminders")

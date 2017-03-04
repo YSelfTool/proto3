@@ -125,9 +125,10 @@ class ProtocolTypeTable(SingleValueTable):
         calendar_headers = ["Kalender"]
         if not config.CALENDAR_ACTIVE:
             calendar_headers = []
+        network_headers = ["Netzwerke einschränken", "Erlaubte Netzwerke"]
         action_headers = ["Aktion"]
         return (general_headers + mail_headers + printing_headers
-           + wiki_headers + calendar_headers + action_headers)
+           + wiki_headers + calendar_headers + network_headers + action_headers)
 
     def row(self):
         general_part = [
@@ -159,8 +160,13 @@ class ProtocolTypeTable(SingleValueTable):
         calendar_part = [self.value.calendar if self.value.calendar is not None else ""]
         if not config.CALENDAR_ACTIVE:
             calendar_part = []
+        network_part = [
+            Table.bool(self.value.restrict_networks),
+            self.value.allowed_networks
+        ]
         action_part = [Table.link(url_for("delete_type", type_id=self.value.id), "Löschen", confirm="Bist du dir sicher, dass du den Protokolltype {} löschen möchtest?".format(self.value.name))]
-        return general_part + mail_part + printing_part + wiki_part + calendar_part + action_part
+        return (general_part + mail_part + printing_part + wiki_part + 
+            calendar_part + network_part + action_part)
 
 class DefaultTOPsTable(Table):
     def __init__(self, tops, protocoltype=None):

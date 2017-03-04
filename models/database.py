@@ -6,7 +6,7 @@ from io import StringIO, BytesIO
 from enum import Enum
 
 from shared import db, date_filter, date_filter_short, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY
-from utils import random_string, url_manager, get_etherpad_url, split_terms
+from utils import random_string, url_manager, get_etherpad_url, split_terms, check_ip_in_networks
 from models.errors import DateNotMatchingException
 
 import os
@@ -36,6 +36,8 @@ class ProtocolType(db.Model):
     wiki_only_public = db.Column(db.Boolean)
     printer = db.Column(db.String)
     calendar = db.Column(db.String)
+    restrict_networks = db.Column(db.Boolean)
+    allowed_networks = db.Column(db.String)
 
     protocols = relationship("Protocol", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="Protocol.id")
     default_tops = relationship("DefaultTOP", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="DefaultTOP.number")
@@ -45,8 +47,9 @@ class ProtocolType(db.Model):
 
     def __init__(self, name, short_name, organization, usual_time,
             is_public, modify_group, private_group, public_group,
-            private_mail, public_mail,
-            use_wiki, wiki_category, wiki_only_public, printer, calendar):
+            private_mail, public_mail, use_wiki, wiki_category,
+            wiki_only_public, printer, calendar,
+            restrict_networks, allowed_networks):
         self.name = name
         self.short_name = short_name
         self.organization = organization
@@ -62,18 +65,22 @@ class ProtocolType(db.Model):
         self.wiki_only_public = wiki_only_public
         self.printer = printer
         self.calendar = calendar
+        self.restrict_networks = restrict_networks
+        self.allowed_networks = allowed_networks
 
     def __repr__(self):
         return ("<ProtocolType(id={}, short_name={}, name={}, "
                 "organization={}, is_public={}, modify_group={}, "
                 "private_group={}, public_group={}, use_wiki={}, "
                 "wiki_category='{}', wiki_only_public={}, printer={}, "
-                "usual_time={}, calendar='{}')>".format(
+                "usual_time={}, calendar='{}', restrict_networks={}, "
+                "allowed_networks='{}')>".format(
             self.id, self.short_name, self.name,
             self.organization, self.is_public, self.modify_group,
             self.private_group, self.public_group, self.use_wiki,
             self.wiki_category, self.wiki_only_public, self.printer,
-            self.usual_time, self.calendar))
+            self.usual_time, self.calendar, self.restrict_networks,
+            self.allowed_networks))
 
     def get_latest_protocol(self):
         candidates = sorted([protocol for protocol in self.protocols if protocol.is_done()], key=lambda p: p.date, reverse=True)
@@ -81,12 +88,18 @@ class ProtocolType(db.Model):
             return None
         return candidates[0]
 
-    @hybrid_method
     def has_public_view_right(self, user):
+        return (self.has_public_anonymous_view_right()
+            or (user is not None and self.has_public_authenticated_view_right(user)))
+
+    def has_public_anonymous_view_right(self):
         return (self.is_public
-            or (user is not None and 
-                ((self.public_group != "" and self.public_group in user.groups)
-                or (self.private_group != "" and self.private_group in user.groups))))
+            and (not self.restrict_networks 
+                or check_ip_in_networks(self.allowed_networks)))
+
+    def has_public_authenticated_view_right(self, user):
+        return ((self.public_group != "" and self.public_group in user.groups)
+            or (self.private_group != "" and self.private_group in user.groups))
 
     def has_private_view_right(self, user):
         return (user is not None and self.private_group != "" and self.private_group in user.groups)

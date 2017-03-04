@@ -1,6 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField, FileField, DateTimeField, TextAreaField
+from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField, FileField, DateTimeField, TextAreaField, Field, widgets
 from wtforms.validators import InputRequired, Optional
+
+import ipaddress
 
 from models.database import TodoState
 from validators import CheckTodoDateByState
@@ -59,6 +61,36 @@ def coerce_todostate(key):
         key = TodoState[key_part]
     return key
 
+class IPNetworkField(Field):
+    widget = widgets.TextInput()
+
+    def __init__(self, label=None, validators=None, **kwargs):
+        super().__init__(label, validators, **kwargs)
+
+    def _value(self):
+        if self.raw_data:
+            print("raw_data in _value", self.raw_data)
+            return " ".join(self.raw_data)
+        else:
+            return self.data and str(self.data) or ""
+
+    def process_formdata(self, valuelist):
+        print("valuelist in process_formdata", valuelist)
+        if valuelist:
+            data_str = valuelist[0]
+            result_parts = []
+            try:
+                for part in data_str.split(","):
+                    part = part.strip()
+                    if len(part) > 0:
+                        network = ipaddress.ip_network(part)
+                        result_parts.append(network)
+            except ValueError as exc:
+                print(exc)
+                self.data = None
+                raise ValueError(self.gettext("Not a valid IP Network: {}".format(str(exc))))
+            self.data = ",".join(map(str, result_parts))
+
 class LoginForm(FlaskForm):
     username = StringField("Benutzer", validators=[InputRequired("Bitte gib deinen Benutzernamen ein.")])
     password = PasswordField("Passwort", validators=[InputRequired("Bitte gib dein Passwort ein.")])
@@ -79,6 +111,8 @@ class ProtocolTypeForm(FlaskForm):
     wiki_only_public = BooleanField("Wiki ist öffentlich")
     printer = SelectField("Drucker", choices=[])
     calendar = SelectField("Kalender", choices=[])
+    restrict_networks = BooleanField("Netzwerke einschränken")
+    allowed_networks = IPNetworkField("Erlaubte Netzwerke")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
