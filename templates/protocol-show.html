@@ -25,7 +25,7 @@
                 {% if not protocol.is_done() %}
                     <a class="btn btn-default" href="{{url_for("get_protocol_template", protocol_id=protocol.id)}}">Vorlage</a>
                     {% if config.ETHERPAD_ACTIVE %}
-                    <a class="btn btn-primary" href="{{url_for("etherpush_protocol", protocol_id=protocol.id)}}">In Etherpad</a>
+                    <a class="btn btn-primary" href="{{url_for("etherpush_protocol", protocol_id=protocol.id)}}">Etherpad</a>
                     {% endif %}
                 {% else %}
                     {% if config.MAIL_ACTIVE %}
@@ -35,15 +35,13 @@
                         <a class="btn btn-default" href="{{url_for("publish_protocol", protocol_id=protocol.id)}}">Veröffentlichen</a>
                     {% endif %}
                 {% endif %}
-                {% if config.ETHERPAD_ACTIVE %}
-                <a class="btn btn-default" href="{{protocol.get_etherpad_link()}}" target="_blank">Etherpad</a>
-                {% endif %}
                 <a class="btn btn-default" href="{{url_for("show_type", type_id=protocol.protocoltype.id)}}">Typ</a>
                 {% if protocol.has_compiled_document() %}
                     <a class="btn btn-success" href="{{url_for("download_document", document_id=protocol.get_compiled_document().id)}}">Download</a>
                 {% endif %}
                 {% if has_admin_right %}
-                    <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_identifier()}} löschen möchtest?');">Löschen</a>
+		    <a class="btn btn-default" href="{{url_for("recompile_protocol", protocol_id=protocol.id)}}">Neu kompilieren</a>
+		    <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_identifier()}} löschen möchtest?');">Löschen</a>
                 {% endif %}
             {% endif %}
         </div>
