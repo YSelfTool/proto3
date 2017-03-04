@@ -80,6 +80,7 @@ MAX_INDEX_DAYS = 14
 
 # mail to contact in case of complex errors
 ADMIN_MAIL = "admin@example.com"
+ADMIN_GROUP = "admin"
 
 # accept protocols even with some errors
 # useful for importing old protocols

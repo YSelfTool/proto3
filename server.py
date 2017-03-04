@@ -177,7 +177,8 @@ def new_type():
                 form.private_mail.data, form.public_mail.data,
                 form.use_wiki.data, form.wiki_category.data,
                 form.wiki_only_public.data, form.printer.data,
-                form.calendar.data)
+                form.calendar.data, form.restrict_networks.data,
+                form.allowed_networks.data)
             db.session.add(protocoltype)
             db.session.commit()
             flash("Der Protokolltyp {} wurde angelegt.".format(protocoltype.name), "alert-success")
@@ -224,6 +225,7 @@ def show_type(type_id):
 
 @app.route("/type/delete/<int:type_id>")
 @login_required
+@group_required(config.ADMIN_GROUP)
 def delete_type(type_id):
     user = current_user()
     protocoltype = ProtocolType.query.filter_by(id=type_id).first()
@@ -279,6 +281,7 @@ def edit_reminder(type_id, reminder_id):
 
 @app.route("/type/reminder/delete/<int:type_id>/<int:reminder_id>")
 @login_required
+@group_required(config.ADMIN_GROUP)
 def delete_reminder(type_id, reminder_id):
     protocoltype = ProtocolType.query.filter_by(id=type_id).first()
     if protocoltype is None:
@@ -521,6 +524,7 @@ def show_protocol(protocol_id):
 
 @app.route("/protocol/delete/<int:protocol_id>")
 @login_required
+@group_required(config.ADMIN_GROUP)
 def delete_protocol(protocol_id):
     user = current_user()
     protocol = Protocol.query.filter_by(id=protocol_id).first()
@@ -1016,6 +1020,7 @@ def upload_document(protocol_id):
 
 @app.route("/document/delete/<int:document_id>")
 @login_required
+@group_required(config.ADMIN_GROUP)
 def delete_document(document_id):
     user = current_user()
     document = Document.query.filter_by(id=document_id).first()
@@ -1177,6 +1182,7 @@ def edit_defaultmeta(meta_id):
 
 @app.route("/defaultmeta/delete/<int:meta_id>")
 @login_required
+@group_required(config.ADMIN_GROUP)
 def delete_defaultmeta(meta_id):
     user = current_user()
     meta = DefaultMeta.query.filter_by(id=meta_id).first()
@@ -1186,8 +1192,8 @@ def delete_defaultmeta(meta_id):
     name = meta.name
     type_id = meta.protocoltype.id
     db.session.delete(meta)
-    db.session.delete()
-    flash("Metadatenfeld '{}' gelöscht.", "alert-error")
+    db.session.commit()
+    flash("Metadatenfeld '{}' gelöscht.".format(name), "alert-error")
     return redirect(request.args.get("next") or url_for("show_type", type_id=type_id))
 
 @app.route("/login", methods=["GET", "POST"])

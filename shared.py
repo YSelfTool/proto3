@@ -111,15 +111,17 @@ def login_required(function):
             return redirect(url_for("login", next=request.url))
     return decorated_function
 
-def group_required(function, group):
-    @wraps(function)
-    def decorated_function(*args, **kwargs):
-        if group in current_user.groups:
-            return function(*args, **kwargs)
-        else:
-            flash("You do not have the necessary permissions to view this page.")
-            return redirect(request.args.get("next") or url_for("index"))
-    return decorated_function
+def group_required(group):
+    def decorator(function):
+        @wraps(function)
+        def decorated_function(*args, **kwargs):
+            if group in current_user().groups:
+                return function(*args, **kwargs)
+            else:
+                flash("You do not have the necessary permissions to view this page.")
+                return redirect(request.args.get("next") or url_for("index"))
+        return decorated_function
+    return decorator
 
 DATE_KEY = "Datum"
 START_TIME_KEY = "Beginn"

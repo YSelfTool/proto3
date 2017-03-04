@@ -107,6 +107,9 @@ class ProtocolType(db.Model):
     def has_modify_right(self, user):
         return (user is not None and self.modify_group != "" and self.modify_group in user.groups)
 
+    def has_admin_right(self, user):
+        return (user is not None and config.ADMIN_GROUP in user.groups)
+
     @staticmethod
     def get_modifiable_protocoltypes(user):
         return [

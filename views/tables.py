@@ -81,7 +81,8 @@ class ProtocolsTable(Table):
         if check_login():
             if user is not None and protocol.protocoltype.has_private_view_right(user):
                 result.append(Table.link(url_for("show_type", type_id=protocol.protocoltype.id), protocol.protocoltype.short_name))
-                result.append(Table.link(url_for("delete_protocol", protocol_id=protocol.id), "Löschen", confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?".format(protocol.get_identifier())))
+                if protocol.protocoltype.has_admin_right(user):
+                    result.append(Table.link(url_for("delete_protocol", protocol_id=protocol.id), "Löschen", confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?".format(protocol.get_identifier())))
             else:
                 result.extend(["", ""])
         return result
@@ -131,6 +132,7 @@ class ProtocolTypeTable(SingleValueTable):
            + wiki_headers + calendar_headers + network_headers + action_headers)
 
     def row(self):
+        user = current_user()
         general_part = [
             self.value.name,
             self.value.short_name,
@@ -165,6 +167,8 @@ class ProtocolTypeTable(SingleValueTable):
             self.value.allowed_networks
         ]
         action_part = [Table.link(url_for("delete_type", type_id=self.value.id), "Löschen", confirm="Bist du dir sicher, dass du den Protokolltype {} löschen möchtest?".format(self.value.name))]
+        if not self.value.has_admin_right(user):
+            action_part = [""]
         return (general_part + mail_part + printing_part + wiki_part + 
             calendar_part + network_part + action_part)
 
@@ -197,15 +201,19 @@ class MeetingRemindersTable(Table):
         return ["Zeit", "Einladen", "Zusätzlicher Mailinhalt", ""]
 
     def row(self, reminder):
-        return [
+        user = current_user()
+        general_part = [
             "{} Tage".format(reminder.days_before),
             self.get_send_summary(reminder),
-            reminder.additional_text or "",
-            Table.concat([
-                Table.link(url_for("edit_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Ändern"),
-                Table.link(url_for("delete_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Löschen", confirm="Bist du dir sicher, dass du die Einladungsmail {} Tage vor der Sitzung löschen willst?".format(reminder.days_before))
-            ])
+            reminder.additional_text or ""
         ]
+        action_links = [
+            Table.link(url_for("edit_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Ändern"),
+        ]
+        if self.protocoltype.has_admin_right(user):
+            action_links.append(Table.link(url_for("delete_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Löschen", confirm="Bist du dir sicher, dass du die Einladungsmail {} Tage vor der Sitzung löschen willst?".format(reminder.days_before)))
+        action_part = [Table.concat(action_links)]
+        return general_part + action_part
 
     def get_send_summary(self, reminder):
         parts = []
@@ -333,15 +341,15 @@ class DocumentsTable(Table):
 
     def row(self, document):
         user = current_user()
-        links = [Table.link(url_for("delete_document", document_id=document.id), "Löschen", confirm="Bist du dir sicher, dass du das Dokument {} löschen willst?".format(document.name))]
-        if config.PRINTING_ACTIVE:
+        links = []
+        if config.PRINTING_ACTIVE and document.protocol.has_modify_right(user):
             links.append(Table.link(url_for("print_document", document_id=document.id), "Drucken"))
+        if document.protocol.protocoltype.has_admin_right(user):
+            links.append(Table.link(url_for("delete_document", document_id=document.id), "Löschen", confirm="Bist du dir sicher, dass du das Dokument {} löschen willst?".format(document.name)))
         return [
             document.id,
             Table.link(url_for("download_document", document_id=document.id), document.name),
             Table.concat(links)
-                if document.protocol.protocoltype.has_modify_right(user)
-                else ""
         ]
 
 class TodoMailsTable(Table):
@@ -373,11 +381,16 @@ class DefaultMetasTable(Table):
         return ["Name", "Key", ""]
 
     def row(self, meta):
-        return [
+        user = current_user()
+        general_part = [
             meta.name,
             meta.key,
-            Table.concat([
-                Table.link(url_for("edit_defaultmeta", meta_id=meta.id), "Ändern"),
-                Table.link(url_for("delete_defaultmeta", meta_id=meta.id, confirm="Bist du dir sicher, dass du das Metadatenfeld {} löschen willst?".format(meta.name)), "Löschen")
-            ])
         ]
+        links = [
+            Table.link(url_for("edit_defaultmeta", meta_id=meta.id), "Ändern")
+        ]
+        if meta.protocoltype.has_admin_right(user):
+            links.append(Table.link(url_for("delete_defaultmeta", meta_id=meta.id, confirm="Bist du dir sicher, dass du das Metadatenfeld {} löschen willst?".format(meta.name)), "Löschen"))
+        link_part = [Table.concat(links)]
+        return general_part + link_part
+

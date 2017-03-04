@@ -8,6 +8,7 @@
 {% set has_public_view_right = protocol.has_public_view_right(user) %}
 {% set has_private_view_right = protocol.has_private_view_right(user) %}
 {% set has_modify_right = protocol.has_modify_right(user) %}
+{% set has_admin_right = protocol.protocoltype.has_admin_right(user) %}
 
 {% block content %}
 <div class="container">
@@ -41,7 +42,9 @@
                 {% if protocol.has_compiled_document() %}
                     <a class="btn btn-success" href="{{url_for("download_document", document_id=protocol.get_compiled_document().id)}}">Download</a>
                 {% endif %}
-                <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_identifier()}} löschen möchtest?');">Löschen</a>
+                {% if has_admin_right %}
+                    <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_identifier()}} löschen möchtest?');">Löschen</a>
+                {% endif %}
             {% endif %}
         </div>
     {% endif %}
