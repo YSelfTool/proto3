@@ -57,7 +57,7 @@ class Client:
             return
         candidates = [
             Event.from_raw_event(raw_event)
-            for raw_event in self.calendar.date_search(begin)
+            for raw_event in self.calendar.date_search(begin, begin + timedelta(hours=1))
         ]
         candidates = [event for event in candidates if event.name == name]
         event = None
