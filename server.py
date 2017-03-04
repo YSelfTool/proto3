@@ -1232,9 +1232,8 @@ try:
         if signum == 0:
             check_and_send_reminders()
 except ImportError as exc:
+    print("uwsgi not found, falling back to apscheduler for cron-like tasks")
     def make_scheduler():
-        print(exc)
-        print("uwsgi not found, falling back to apscheduler for cron-like tasks")
         scheduler = BackgroundScheduler()
         scheduler.start()
         scheduler.add_job(
