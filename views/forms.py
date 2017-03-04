@@ -69,13 +69,11 @@ class IPNetworkField(Field):
 
     def _value(self):
         if self.raw_data:
-            print("raw_data in _value", self.raw_data)
             return " ".join(self.raw_data)
         else:
             return self.data and str(self.data) or ""
 
     def process_formdata(self, valuelist):
-        print("valuelist in process_formdata", valuelist)
         if valuelist:
             data_str = valuelist[0]
             result_parts = []

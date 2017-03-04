@@ -1223,7 +1223,7 @@ def make_scheduler():
         def uwsgi_timer(signum):
             if signum == 0:
                 check_and_send_reminders()
-    except ModuleNotFoundError:
+    except ImportError:
         print("uwsgi not found, falling back to apscheduler for cron-like tasks")
         def make_scheduler(app, config, function):
             scheduler = BackgroundScheduler()
