@@ -535,13 +535,6 @@ class Todo(db.Model):
         ]
         return " ".join(parts)
 
-    def render_html_short(self):
-        parts = [
-            "<strong>{}:</strong>".format(self.who),
-            self.description
-        ]
-        return " ".join(parts)
-
     def render_latex(self, current_protocol=None):
         return r"\textbf{{{}}}: {}: {} -- {}".format(
             "Neuer Todo" if self.is_new(current_protocol) else "Todo",

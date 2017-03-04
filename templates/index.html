@@ -26,7 +26,7 @@
             <ul>
                 {% if todos|length > 0 %}
                     {% for todo in todos %}
-                        <li>{{todo.render_html_short()|safe}}</li>
+                        <li>{{todo.render_html()|safe}}</li>
                     {% endfor %}
                 {% else %}
                     <li>Keine Todos</li>
