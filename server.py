@@ -637,7 +637,17 @@ def upload_new_protocol_by_file():
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     return redirect(request.args.get("fail") or url_for("new_protocol"))
 
-
+@app.route("/protocol/recompile/<int:protocol_id>")
+@login_required
+@group_required(config.ADMIN_GROUP)
+def recompile_protocol(protocol_id):
+    user = current_user()
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+        return redirect(request.args.get("next") or url_for("index"))
+    tasks.parse_protocol(protocol)
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
 
 @app.route("/protocol/source/<int:protocol_id>")
 @login_required
@@ -833,9 +843,7 @@ def list_todos():
             if search_term.lower() in todo.description.lower()
         ]
     def _sort_key(todo):
-        first_protocol = todo.get_first_protocol()
-        result = (not todo.is_done(), first_protocol.date if first_protocol is not None else datetime.now().date())
-        return result
+        return (not todo.is_done(), todo.get_id())
     todos = sorted(todos, key=_sort_key, reverse=True)
     page = _get_page()
     page_count = int(math.ceil(len(todos) / config.PAGE_LENGTH))
