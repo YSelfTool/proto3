@@ -81,7 +81,7 @@ def import_legacy():
         import_old_todos(content)
         import_old_protocols(content)
         import_old_todomails(content)
-    
+
 # cause uwsgi currently has a bug
 def send_file(file_like, cache_timeout, as_attachment, attachment_filename):
     mimetype, _ = mimetypes.guess_type(attachment_filename)
@@ -1221,46 +1221,49 @@ def logout():
         flash("You are not logged in.", "alert-error")
     return redirect(url_for(".index"))
 
+print("making scheduler")
 def make_scheduler():
-    try:
-        from uwsgidecorators import timer as uwsgitimer, signal as uwsgisignal, cron as uwsgicron
-        print("using uwsgi for cron-like tasks")
-        @uwsgicron(30, -1, -1, -1, -1, target="mule")
-        def uwsgi_timer(signum):
-            if signum == 0:
-                check_and_send_reminders()
-    except ImportError:
+    pass
+try:
+    from uwsgidecorators import timer as uwsgitimer, signal as uwsgisignal, cron as uwsgicron
+    print("using uwsgi for cron-like tasks")
+    @uwsgicron(30, -1, -1, -1, -1, target="mule")
+    def uwsgi_timer(signum):
+        if signum == 0:
+            check_and_send_reminders()
+except ImportError as exc:
+    def make_scheduler():
+        print(exc)
         print("uwsgi not found, falling back to apscheduler for cron-like tasks")
-        def make_scheduler(app, config, function):
-            scheduler = BackgroundScheduler()
-            scheduler.start()
-            scheduler.add_job(
-                func=function,
-                trigger=CronTrigger(hour='*', minute=30),
-                id="scheduler",
-                name="Do an action regularly",
-                replace_existing=True)
-            atexit.register(scheduler.shutdown)
+        scheduler = BackgroundScheduler()
+        scheduler.start()
+        scheduler.add_job(
+            func=check_and_send_reminders,
+            trigger=CronTrigger(hour='*', minute=30),
+            id="scheduler",
+            name="Do an action regularly",
+            replace_existing=True)
+        atexit.register(scheduler.shutdown)
 
-    def check_and_send_reminders():
-        print("check and send reminders")
-        if not config.MAIL_ACTIVE:
-            return
-        with app.app_context():
-            current_time = datetime.now()
-            current_day = current_time.date()
-            print("regular action for reminders")
-            for protocol in Protocol.query.filter(Protocol.done == False).all():
-                day_difference = (protocol.date - current_day).days
-                usual_time = protocol.protocoltype.usual_time
-                protocol_time = datetime(1, 1, 1, usual_time.hour, usual_time.minute)
-                hour_difference = (protocol_time - current_time).seconds // 3600
-                print("diff: {} days, {} hours".format(day_difference, hour_difference))
-                for reminder in protocol.protocoltype.reminders:
-                    print(reminder)
-                    if day_difference == reminder.days_before and hour_difference == 0:
-                        print("reminder matching, sending")
-                        tasks.send_reminder(reminder, protocol)
+def check_and_send_reminders():
+    print("check and send reminders")
+    if not config.MAIL_ACTIVE:
+        return
+    with app.app_context():
+        current_time = datetime.now()
+        current_day = current_time.date()
+        print("regular action for reminders")
+        for protocol in Protocol.query.filter(Protocol.done == False).all():
+            day_difference = (protocol.date - current_day).days
+            usual_time = protocol.protocoltype.usual_time
+            protocol_time = datetime(1, 1, 1, usual_time.hour, usual_time.minute)
+            hour_difference = (protocol_time - current_time).seconds // 3600
+            print("diff: {} days, {} hours".format(day_difference, hour_difference))
+            for reminder in protocol.protocoltype.reminders:
+                print(reminder)
+                if day_difference == reminder.days_before and hour_difference == 0:
+                    print("reminder matching, sending")
+                    tasks.send_reminder(reminder, protocol)
 
 if __name__ == "__main__":
     make_scheduler()
