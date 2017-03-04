@@ -281,7 +281,6 @@ def edit_reminder(type_id, reminder_id):
 
 @app.route("/type/reminder/delete/<int:type_id>/<int:reminder_id>")
 @login_required
-@group_required(config.ADMIN_GROUP)
 def delete_reminder(type_id, reminder_id):
     protocoltype = ProtocolType.query.filter_by(id=type_id).first()
     if protocoltype is None:

@@ -209,9 +209,8 @@ class MeetingRemindersTable(Table):
         ]
         action_links = [
             Table.link(url_for("edit_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Ändern"),
+            Table.link(url_for("delete_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Löschen", confirm="Bist du dir sicher, dass du die Einladungsmail {} Tage vor der Sitzung löschen willst?".format(reminder.days_before))
         ]
-        if self.protocoltype.has_admin_right(user):
-            action_links.append(Table.link(url_for("delete_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Löschen", confirm="Bist du dir sicher, dass du die Einladungsmail {} Tage vor der Sitzung löschen willst?".format(reminder.days_before)))
         action_part = [Table.concat(action_links)]
         return general_part + action_part
 
@@ -387,10 +386,9 @@ class DefaultMetasTable(Table):
             meta.key,
         ]
         links = [
-            Table.link(url_for("edit_defaultmeta", meta_id=meta.id), "Ändern")
+            Table.link(url_for("edit_defaultmeta", meta_id=meta.id), "Ändern"),
+            Table.link(url_for("delete_defaultmeta", meta_id=meta.id, confirm="Bist du dir sicher, dass du das Metadatenfeld {} löschen willst?".format(meta.name)), "Löschen")
         ]
-        if meta.protocoltype.has_admin_right(user):
-            links.append(Table.link(url_for("delete_defaultmeta", meta_id=meta.id, confirm="Bist du dir sicher, dass du das Metadatenfeld {} löschen willst?".format(meta.name)), "Löschen"))
         link_part = [Table.concat(links)]
         return general_part + link_part
 
