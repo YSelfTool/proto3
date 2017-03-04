@@ -20,6 +20,7 @@ from todostates import make_states
 
 class ProtocolType(db.Model):
     __tablename__ = "protocoltypes"
+    __object_name__ = "protocoltype"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True)
     short_name = db.Column(db.String, unique=True)
@@ -139,6 +140,7 @@ class ProtocolType(db.Model):
 
 class Protocol(db.Model):
     __tablename__ = "protocols"
+    __object_name__ = "protocol"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     source = db.Column(db.String)
@@ -303,6 +305,7 @@ def on_protocol_delete(mapper, connection, protocol):
 
 class DefaultTOP(db.Model):
     __tablename__ = "defaulttops"
+    __object_name__ = "defaulttop"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     name = db.Column(db.String)
@@ -322,6 +325,7 @@ class DefaultTOP(db.Model):
 
 class TOP(db.Model):
     __tablename__ = "tops"
+    __object_name__ = "top"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     name = db.Column(db.String)
@@ -342,6 +346,7 @@ class TOP(db.Model):
 
 class Document(db.Model):
     __tablename__ = "documents"
+    __object_name__ = "document"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     name = db.Column(db.String)
@@ -376,6 +381,7 @@ def on_document_delete(mapper, connection, document):
 
 class DecisionDocument(db.Model):
     __tablename__ = "decisiondocuments"
+    __object_name__ = "decisiondocument"
     id = db.Column(db.Integer, primary_key=True)
     decision_id = db.Column(db.Integer, db.ForeignKey("decisions.id"))
     name = db.Column(db.String)
@@ -483,6 +489,7 @@ class TodoState(Enum):
 
 class Todo(db.Model):
     __tablename__ = "todos"
+    __object_name__ = "todo"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     number = db.Column(db.Integer)
@@ -582,6 +589,7 @@ class TodoProtocolAssociation(db.Model):
 
 class Decision(db.Model):
     __tablename__ = "decisions"
+    __object_name__ = "decision"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     content = db.Column(db.String)
@@ -598,6 +606,7 @@ class Decision(db.Model):
 
 class MeetingReminder(db.Model):
     __tablename__ = "meetingreminders"
+    __object_name__ = "meetingreminder"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     days_before = db.Column(db.Integer)
@@ -618,6 +627,7 @@ class MeetingReminder(db.Model):
 
 class Error(db.Model):
     __tablename__ = "errors"
+    __object_name__ = "error"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     action = db.Column(db.String)
@@ -644,6 +654,7 @@ class Error(db.Model):
 
 class TodoMail(db.Model):
     __tablename__ = "todomails"
+    __object_name__ = "todomail"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True)
     mail = db.Column(db.String)
@@ -661,6 +672,7 @@ class TodoMail(db.Model):
 
 class OldTodo(db.Model):
     __tablename__ = "oldtodos"
+    __object_name__ = "oldtodo"
     id = db.Column(db.Integer, primary_key=True)
     old_id = db.Column(db.Integer)
     who = db.Column(db.String)
@@ -680,6 +692,7 @@ class OldTodo(db.Model):
 
 class DefaultMeta(db.Model):
     __tablename__ = "defaultmetas"
+    __object_name__ = "defaultmeta"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     key = db.Column(db.String)
@@ -696,6 +709,7 @@ class DefaultMeta(db.Model):
 
 class Meta(db.Model):
     __tablename__ = "metas"
+    __object_name__ = "meta"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     name = db.Column(db.String)

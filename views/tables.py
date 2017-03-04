@@ -80,7 +80,7 @@ class ProtocolsTable(Table):
             result.append(Markup(self.search_results[protocol]))
         if check_login():
             if user is not None and protocol.protocoltype.has_private_view_right(user):
-                result.append(Table.link(url_for("show_type", type_id=protocol.protocoltype.id), protocol.protocoltype.short_name))
+                result.append(Table.link(url_for("show_type", protocoltype_id=protocol.protocoltype.id), protocol.protocoltype.short_name))
                 if protocol.protocoltype.has_admin_right(user):
                     result.append(Table.link(url_for("delete_protocol", protocol_id=protocol.id), "Löschen", confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?".format(protocol.get_identifier())))
             else:
@@ -99,7 +99,7 @@ class ProtocolTypesTable(Table):
         user = current_user()
         has_modify_right = protocoltype.has_modify_right(user)
         return [
-            Table.link(url_for("show_type", type_id=protocoltype.id), protocoltype.short_name) if has_modify_right else protocoltype.short_name,
+            Table.link(url_for("show_type", protocoltype_id=protocoltype.id), protocoltype.short_name) if has_modify_right else protocoltype.short_name,
             protocoltype.name,
             Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier()) if protocol is not None else "Noch kein Protokoll",
             Table.link(url_for("new_protocol", type_id=protocoltype.id), "Neues Protokoll") if has_modify_right else ""
@@ -108,7 +108,7 @@ class ProtocolTypesTable(Table):
 
 class ProtocolTypeTable(SingleValueTable):
     def __init__(self, protocoltype):
-        super().__init__(protocoltype.name, protocoltype, newlink=url_for("edit_type", type_id=protocoltype.id))
+        super().__init__(protocoltype.name, protocoltype, newlink=url_for("edit_type", protocoltype_id=protocoltype.id))
 
     def headers(self):
         general_headers = ["Name", "Abkürzung", "Organisation", "Beginn",
@@ -166,7 +166,7 @@ class ProtocolTypeTable(SingleValueTable):
             Table.bool(self.value.restrict_networks),
             self.value.allowed_networks
         ]
-        action_part = [Table.link(url_for("delete_type", type_id=self.value.id), "Löschen", confirm="Bist du dir sicher, dass du den Protokolltype {} löschen möchtest?".format(self.value.name))]
+        action_part = [Table.link(url_for("delete_type", protocoltype_id=self.value.id), "Löschen", confirm="Bist du dir sicher, dass du den Protokolltype {} löschen möchtest?".format(self.value.name))]
         if not self.value.has_admin_right(user):
             action_part = [""]
         return (general_part + mail_part + printing_part + wiki_part + 
@@ -194,7 +194,7 @@ class DefaultTOPsTable(Table):
 
 class MeetingRemindersTable(Table):
     def __init__(self, reminders, protocoltype=None):
-        super().__init__("Einladungsmails", reminders, newlink=url_for("new_reminder", type_id=protocoltype.id) if protocoltype is not None else None)
+        super().__init__("Einladungsmails", reminders, newlink=url_for("new_reminder", protocoltype_id=protocoltype.id) if protocoltype is not None else None)
         self.protocoltype = protocoltype
 
     def headers(self):
@@ -208,8 +208,8 @@ class MeetingRemindersTable(Table):
             reminder.additional_text or ""
         ]
         action_links = [
-            Table.link(url_for("edit_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Ändern"),
-            Table.link(url_for("delete_reminder", type_id=self.protocoltype.id, reminder_id=reminder.id), "Löschen", confirm="Bist du dir sicher, dass du die Einladungsmail {} Tage vor der Sitzung löschen willst?".format(reminder.days_before))
+            Table.link(url_for("edit_reminder", protocoltype_id=self.protocoltype.id, meetingreminder_id=reminder.id), "Ändern"),
+            Table.link(url_for("delete_reminder", protocoltype_id=self.protocoltype.id, meetingreminder_id=reminder.id), "Löschen", confirm="Bist du dir sicher, dass du die Einladungsmail {} Tage vor der Sitzung löschen willst?".format(reminder.days_before))
         ]
         action_part = [Table.concat(action_links)]
         return general_part + action_part
@@ -373,7 +373,7 @@ class DefaultMetasTable(Table):
         super().__init__(
             "Metadatenfelder",
             metas,
-            url_for("new_defaultmeta", type_id=protocoltype.id)
+            url_for("new_defaultmeta", protocoltype_id=protocoltype.id)
         )
 
     def headers(self):

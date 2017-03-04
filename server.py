@@ -22,6 +22,7 @@ import mimetypes
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
+from decorators import db_lookup
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable
@@ -185,13 +186,10 @@ def new_type():
         return redirect(request.args.get("next") or url_for("list_types"))
     return render_template("type-new.html", form=form)
 
-@app.route("/type/edit/<int:type_id>", methods=["GET", "POST"])
+@app.route("/type/edit/<int:protocoltype_id>", methods=["GET", "POST"])
 @login_required
-def edit_type(type_id):
-    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
-    if protocoltype is None:
-        flash("Dieser Protokolltyp existiert nicht.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+@db_lookup(ProtocolType)
+def edit_type(protocoltype):
     user = current_user()
     if not protocoltype.has_private_view_right(user):
         flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
@@ -203,16 +201,13 @@ def edit_type(type_id):
         else:
             form.populate_obj(protocoltype)
             db.session.commit()
-            return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
+            return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
     return render_template("type-edit.html", form=form, protocoltype=protocoltype)
 
-@app.route("/type/show/<int:type_id>")
+@app.route("/type/show/<int:protocoltype_id>")
 @login_required
-def show_type(type_id):
-    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
-    if protocoltype is None:
-        flash("Dieser Protokolltyp existiert nicht.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+@db_lookup(ProtocolType)
+def show_type(protocoltype):
     user = current_user()
     if not protocoltype.has_private_view_right(user):
         flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
@@ -223,164 +218,123 @@ def show_type(type_id):
     metas_table = DefaultMetasTable(protocoltype.metas, protocoltype)
     return render_template("type-show.html", protocoltype=protocoltype, protocoltype_table=protocoltype_table, default_tops_table=default_tops_table, metas_table=metas_table, reminders_table=reminders_table, mail_active=config.MAIL_ACTIVE)
 
-@app.route("/type/delete/<int:type_id>")
+@app.route("/type/delete/<int:protocoltype_id>")
 @login_required
 @group_required(config.ADMIN_GROUP)
-def delete_type(type_id):
+@db_lookup(ProtocolType)
+def delete_type(protocoltype):
     user = current_user()
-    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
-    if protocoltype is None or not protocoltype.has_modify_right(user):
-        flash("Invalider Protokolltyp oder fehlende Zugriffsrechte.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+    if not protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
+        return redirect(reqeust.args.get("next") or url_for("index"))
     name = protocoltype.name
     db.session.delete(protocoltype) 
     db.session.commit()
     flash("Der Protokolltype {} wurde gelöscht.".format(name), "alert-success")
     return redirect(request.args.get("next") or url_for("list_types"))
 
-@app.route("/type/reminders/new/<int:type_id>", methods=["GET", "POST"])
+@app.route("/type/reminders/new/<int:protocoltype_id>", methods=["GET", "POST"])
 @login_required
-def new_reminder(type_id):
-    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
-    if protocoltype is None:
-        flash("Dieser Protokolltyp existiert nicht.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+@db_lookup(ProtocolType)
+def new_reminder(protocoltype):
     user = current_user()
     if not protocoltype.has_modify_right(user):
         flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     form = MeetingReminderForm()
     if form.validate_on_submit():
-        reminder = MeetingReminder(protocoltype.id, form.days_before.data, form.send_public.data, form.send_private.data, form.additional_text.data)
-        db.session.add(reminder)
+        meetingreminder = MeetingReminder(protocoltype.id, form.days_before.data, form.send_public.data, form.send_private.data, form.additional_text.data)
+        db.session.add(meetingreminder)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
+        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
     return render_template("reminder-new.html", form=form, protocoltype=protocoltype)
 
-@app.route("/type/reminder/edit/<int:type_id>/<int:reminder_id>", methods=["GET", "POST"])
+@app.route("/type/reminder/edit/<int:meetingreminder_id>", methods=["GET", "POST"])
 @login_required
-def edit_reminder(type_id, reminder_id):
-    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
-    if protocoltype is None:
-        flash("Dieser Protokolltyp existiert nicht.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+@db_lookup(MeetingReminder)
+def edit_reminder(meetingreminder):
     user = current_user()
-    if not protocoltype.has_modify_right(user):
+    if not meetingreminder.protocoltype.has_modify_right(user):
         flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
-    reminder = MeetingReminder.query.filter_by(id=reminder_id).first()
-    if reminder is None or reminder.protocoltype != protocoltype:
-        flash("Invalide Erinnerung.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
-    form = MeetingReminderForm(obj=reminder)
+    form = MeetingReminderForm(obj=meetingreminder)
     if form.validate_on_submit():
-        form.populate_obj(reminder)
+        form.populate_obj(meetingreminder)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
-    return render_template("reminder-edit.html", form=form, protocoltype=protocoltype, reminder=reminder)
+        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
+    return render_template("reminder-edit.html", form=form, protocoltype=protocoltype, meetingreminder=meetingreminder)
 
-@app.route("/type/reminder/delete/<int:type_id>/<int:reminder_id>")
+@app.route("/type/reminder/delete/<int:meetingreminder_id>")
 @login_required
-def delete_reminder(type_id, reminder_id):
-    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
-    if protocoltype is None:
-        flash("Dieser Protokolltyp existiert nicht.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+@db_lookup(MeetingReminder)
+def delete_reminder(meetingreminder):
     user = current_user()
-    if not protocoltype.has_modify_right(user):
+    if not meetingreminder.protocoltype.has_modify_right(user):
         flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
-    reminder = MeetingReminder.query.filter_by(id=reminder_id).first()
-    if reminder is None or reminder.protocoltype != protocoltype:
-        flash("Invalide Erinnerung.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
-    db.session.delete(reminder)
+    protocoltype = meetingreminder.protocoltype
+    db.session.delete(meetingreminder)
     db.session.commit()
-    return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
+    return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
 
-@app.route("/type/tops/new/<int:type_id>", methods=["GET", "POST"])
+@app.route("/type/tops/new/<int:protocoltype_id>", methods=["GET", "POST"])
 @login_required
-def new_default_top(type_id):
-    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
-    if protocoltype is None:
-        flash("Dieser Protokolltyp existiert nicht.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+@db_lookup(ProtocolType)
+def new_default_top(protocoltype):
     user = current_user()
     if not protocoltype.has_modify_right(user):
         flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     form = DefaultTopForm()
     if form.validate_on_submit():
-        default_top = DefaultTOP(protocoltype.id, form.name.data, form.number.data)
-        db.session.add(default_top)
+        defaulttop = DefaultTOP(protocoltype.id, form.name.data, form.number.data)
+        db.session.add(defaulttop)
         db.session.commit()
-        flash("Der Standard-TOP {} wurde für dem Protokolltyp {} hinzugefügt.".format(default_top.name, protocoltype.name), "alert-success")
+        flash("Der Standard-TOP {} wurde für dem Protokolltyp {} hinzugefügt.".format(defaulttop.name, protocoltype.name), "alert-success")
         return redirect(request.args.get("next") or url_for("index"))
     return render_template("default-top-new.html", form=form, protocoltype=protocoltype)
 
-@app.route("/type/tops/edit/<int:type_id>/<int:top_id>", methods=["GET", "POST"])
+@app.route("/type/tops/edit/<int:protocoltype_id>/<int:defaulttop_id>", methods=["GET", "POST"])
 @login_required
-def edit_default_top(type_id, top_id):
-    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
-    if protocoltype is None:
-        flash("Dieser Protokolltyp existiert nicht.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+@db_lookup(ProtocolType, DefaultTOP)
+def edit_default_top(protocoltype, defaulttop):
     user = current_user()
     if not protocoltype.has_modify_right(user):
         flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
-    default_top = DefaultTOP.query.filter_by(id=top_id).first()
-    if default_top is None or default_top.protocoltype != protocoltype:
-        flash("Invalider Standard-TOP.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
-    form = DefaultTopForm(obj=default_top)
+    form = DefaultTopForm(obj=defaulttop)
     if form.validate_on_submit():
-        form.populate_obj(default_top)
+        form.populate_obj(defaulttop)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
-    return render_template("default-top-edit.html", form=form, protocoltype=protocoltype, default_top=default_top)
+        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
+    return render_template("default-top-edit.html", form=form, protocoltype=protocoltype, defaulttop=defaulttop)
 
-@app.route("/type/tops/delete/<int:type_id>/<int:top_id>")
+@app.route("/type/tops/delete/<int:defaulttop_id>")
 @login_required
-def delete_default_top(type_id, top_id):
-    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
-    if protocoltype is None:
-        flash("Dieser Protokolltyp existiert nicht.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+@db_lookup(DefaultTOP)
+def delete_default_top(defaulttop):
     user = current_user()
-    if not protocoltype.has_modify_right(user):
+    if not defaulttop.protocoltype.has_modify_right(user):
         flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
-    default_top = DefaultTOP.query.filter_by(id=top_id).first()
-    if default_top is None or default_top.protocoltype != protocoltype:
-        flash("Invalider Standard-TOP.", "alert-error")
-        return redirect(request.args.get("nexT") or url_for("index"))
-    db.session.delete(default_top)
+    db.session.delete(defaulttop)
     db.session.commit()
-    return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
+    return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
 
-@app.route("/type/tops/move/<int:type_id>/<int:top_id>/<diff>/")
+@app.route("/type/tops/move/<int:defaulttop_id>/<diff>/")
 @login_required
-def move_default_top(type_id, top_id, diff):
-    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
-    if protocoltype is None:
-        flash("Dieser Protokolltyp existiert nicht.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+@db_lookup(DefaultTOP)
+def move_default_top(defaulttop, diff):
     user = current_user()
-    if not protocoltype.has_modify_right(user):
+    if not defaulttop.protocoltype.has_modify_right(user):
         flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
-    default_top = DefaultTOP.query.filter_by(id=top_id).first()
-    if default_top is None or default_top.protocoltype != protocoltype:
-        flash("Invalider Standard-TOP.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     try:
-        default_top.number += int(diff)
+        defaulttop.number += int(diff)
         db.session.commit()
     except ValueError:
         flash("Die angegebene Differenz ist keine Zahl.", "alert-error")
-    return redirect(request.args.get("next") or url_for("show_type", type_id=protocoltype.id))
-
+    return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=defaulttop.protocoltype.id))
 
 @app.route("/protocols/list")
 def list_protocols():
@@ -504,11 +458,11 @@ def new_protocol():
     return render_template("protocol-new.html", form=form, upload_form=upload_form, file_upload_form=file_upload_form, protocoltypes=protocoltypes)
 
 @app.route("/protocol/show/<int:protocol_id>")
-def show_protocol(protocol_id):
+@db_lookup(Protocol)
+def show_protocol(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_public_view_right(user):
-        flash("Invalides Protokoll oder fehlende Zugriffsrechte.", "alert-error")
+    if not protocol.protocoltype.has_public_view_right(user):
+        flash("Die fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     errors_table = ErrorsTable(protocol.errors)
     visible_documents = [
@@ -524,11 +478,11 @@ def show_protocol(protocol_id):
 @app.route("/protocol/delete/<int:protocol_id>")
 @login_required
 @group_required(config.ADMIN_GROUP)
-def delete_protocol(protocol_id):
+@db_lookup(Protocol)
+def delete_protocol(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+    if not protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     name = protocol.get_identifier()
     protocol.delete_orphan_todos()
@@ -539,11 +493,11 @@ def delete_protocol(protocol_id):
 
 @app.route("/protocol/etherpull/<int:protocol_id>")
 @login_required
-def etherpull_protocol(protocol_id):
+@db_lookup(Protocol)
+def etherpull_protocol(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+    if not protocol.protocoltype.has_modify_right(user):
+        flash("Die fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     if not config.ETHERPAD_ACTIVE:
         flash("Die Etherpadfunktion ist nicht aktiviert.", "alert-error")
@@ -556,11 +510,11 @@ def etherpull_protocol(protocol_id):
 
 @app.route("/protocol/upload/known/<int:protocol_id>", methods=["POST"])
 @login_required
-def upload_source_to_known_protocol(protocol_id):
+@db_lookup(Protocol)
+def upload_source_to_known_protocol(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+    if not protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     form = KnownProtocolSourceUploadForm()
     if form.validate_on_submit():
@@ -640,43 +594,43 @@ def upload_new_protocol_by_file():
 @app.route("/protocol/recompile/<int:protocol_id>")
 @login_required
 @group_required(config.ADMIN_GROUP)
-def recompile_protocol(protocol_id):
+@db_lookup(Protocol)
+def recompile_protocol(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+    if not protocol.protocoltype.has_modify_right(user):
+        flash("Die fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     tasks.parse_protocol(protocol)
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
 
 @app.route("/protocol/source/<int:protocol_id>")
 @login_required
-def get_protocol_source(protocol_id):
+@db_lookup(Protocol)
+def get_protocol_source(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+    if not protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     file_like = BytesIO(protocol.source.encode("utf-8"))
     return send_file(file_like, cache_timeout=1, as_attachment=True, attachment_filename="{}.txt".format(protocol.get_identifier()))
 
 @app.route("/protocol/template/<int:protocol_id>")
 @login_required
-def get_protocol_template(protocol_id):
+@db_lookup(Protocol)
+def get_protocol_template(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+    if not protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     file_like = BytesIO(protocol.get_template().encode("utf-8"))
     return send_file(file_like, cache_timeout=1, as_attachment=True, attachment_filename="{}-template.txt".format(protocol.get_identifier()))
 
 @app.route("/protocol/etherpush/<int:protocol_id>")
 @login_required
-def etherpush_protocol(protocol_id):
+@db_lookup(Protocol)
+def etherpush_protocol(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
+    if not protocol.protocoltype.has_modify_right(user):
         flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     if not config.ETHERPAD_ACTIVE:
@@ -688,11 +642,11 @@ def etherpush_protocol(protocol_id):
 
 @app.route("/protocol/update/<int:protocol_id>", methods=["GET", "POST"])
 @login_required
-def update_protocol(protocol_id):
+@db_lookup(Protocol)
+def update_protocol(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+    if not protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     upload_form = KnownProtocolSourceUploadForm()
     edit_form = ProtocolForm(obj=protocol)
@@ -705,24 +659,23 @@ def update_protocol(protocol_id):
 
 @app.route("/protocol/publish/<int:protocol_id>")
 @login_required
-def publish_protocol(protocol_id):
+@db_lookup(Protocol)
+def publish_protocol(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+    if not protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     protocol.public = True
     db.session.commit()
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
 
-
 @app.route("/prococol/send/<int:protocol_id>")
 @login_required
-def send_protocol(protocol_id):
+@db_lookup(Protocol)
+def send_protocol(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+    if not protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     if not config.MAIL_ACTIVE:
         flash("Die Mailfunktion ist nicht aktiviert.", "alert-error")
@@ -730,15 +683,14 @@ def send_protocol(protocol_id):
     tasks.send_protocol(protocol)
     flash("Das Protokoll wurde versandt.", "alert-success")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
-    
 
 @app.route("/protocol/tops/new/<int:protocol_id>", methods=["GET", "POST"])
 @login_required
-def new_top(protocol_id):
+@db_lookup(Protocol)
+def new_top(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+    if not protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen dir nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     form = TopForm()
     if form.validate_on_submit():
@@ -755,11 +707,11 @@ def new_top(protocol_id):
 
 @app.route("/protocol/top/edit/<int:top_id>", methods=["GET", "POST"])
 @login_required
-def edit_top(top_id):
+@db_lookup(TOP)
+def edit_top(top):
     user = current_user()
-    top = TOP.query.filter_by(id=top_id).first()
-    if top is None or not top.protocol.protocoltype.has_modify_right(user):
-        flash("Invalider TOP oder keine Berechtigung.", "alert-error")
+    if not top.protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     form = TopForm(obj=top)
     if form.validate_on_submit():
@@ -771,11 +723,11 @@ def edit_top(top_id):
 
 @app.route("/protocol/top/delete/<int:top_id>")
 @login_required
-def delete_top(top_id):
+@db_lookup(TOP)
+def delete_top(top):
     user = current_user()
-    top = TOP.query.filter_by(id=top_id).first()
-    if top is None or not top.protocol.protocoltype.has_modify_right(user):
-        flash("Invalider TOP oder keine Berechtigung.", "alert-error")
+    if not top.protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     name = top.name
     protocol = top.protocol
@@ -787,11 +739,11 @@ def delete_top(top_id):
 
 @app.route("/protocol/top/move/<int:top_id>/<diff>")
 @login_required
-def move_top(top_id, diff):
+@db_lookup(TOP)
+def move_top(top, diff):
     user = current_user()
-    top = TOP.query.filter_by(id=top_id).first()
-    if top is None or not top.protocol.protocoltype.has_modify_right(user):
-        flash("Invalider TOP oder keine Berechtigung.", "alert-error")
+    if not top.protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     try:
         top.number += int(diff)
@@ -897,10 +849,10 @@ def new_todo():
 
 @app.route("/todo/edit/<int:todo_id>", methods=["GET", "POST"])
 @login_required
-def edit_todo(todo_id):
+@db_lookup(Todo)
+def edit_todo(todo):
     user = current_user()
-    todo = Todo.query.filter_by(id=todo_id).first()
-    if todo is None or not todo.protocoltype.has_modify_right(user):
+    if not todo.protocoltype.has_modify_right(user):
         flash("Invalides Todo oder unzureichende Berechtigung.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     form = TodoForm(obj=todo)
@@ -912,22 +864,22 @@ def edit_todo(todo_id):
 
 @app.route("/todo/show/<int:todo_id>")
 @login_required
-def show_todo(todo_id):
+@db_lookup(Todo)
+def show_todo(todo):
     user = current_user()
-    todo = Todo.query.filter_by(id=todo_id).first()
-    if todo is None or not todo.protocoltype.has_private_view_right(user):
-        flash("Invalides Todo oder unzureichende Berechtigung.", "alert-error")
+    if not todo.protocoltype.has_private_view_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     todo_table = TodoTable(todo)
     return render_template("todo-show.html", todo=todo, todo_table=todo_table)
 
 @app.route("/todo/delete/<int:todo_id>")
 @login_required
-def delete_todo(todo_id):
+@db_lookup(Todo)
+def delete_todo(todo):
     user = current_user()
-    todo = Todo.query.filter_by(id=todo_id).first()
-    if todo is None or not todo.protocoltype.has_private_view_right(user):
-        flash("Invalides Todo oder unzureichende Berechtigung.", "alert-error")
+    if not todo.protocoltype.has_private_view_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     type_id = todo.protocoltype.id
     db.session.delete(todo)
@@ -979,29 +931,25 @@ def list_decisions():
     decisions_table = DecisionsTable(decisions)
     return render_template("decisions-list.html", decisions=decisions, decisions_table=decisions_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term)
 
-
 @app.route("/document/download/<int:document_id>")
-def download_document(document_id):
+@db_lookup(Document)
+def download_document(document):
     user = current_user()
-    document = Document.query.filter_by(id=document_id).first()
-    if document is None:
-        flash("Invalides Dokument.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
     if ((document.is_private
             and not document.protocol.protocoltype.has_private_view_right(user))
         or (not document.is_private
             and not document.protocol.has_public_view_right(user))):
-        flash("Keine Berechtigung.", "alert-error")
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     return send_file(document.as_file_like(), cache_timeout=1, as_attachment=True, attachment_filename=document.name)
 
 @app.route("/document/upload/<int:protocol_id>", methods=["POST"])
 @login_required
-def upload_document(protocol_id):
+@db_lookup(Protocol)
+def upload_document(protocol):
     user = current_user()
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    if protocol is None or not protocol.protocoltype.has_modify_right(user):
-        flash("Unzureichende Berechtigung.", "alert-error")
+    if not protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     form = DocumentUploadForm()
     if form.document.data is None:
@@ -1028,11 +976,11 @@ def upload_document(protocol_id):
 @app.route("/document/delete/<int:document_id>")
 @login_required
 @group_required(config.ADMIN_GROUP)
-def delete_document(document_id):
+@db_lookup(Document)
+def delete_document(document):
     user = current_user()
-    document = Document.query.filter_by(id=document_id).first()
-    if document is None or not document.protocol.protocoltype.has_modify_right(user):
-        flash("Unzureichende Berechtigung.", "alert-error")
+    if not document.protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     name = document.name
     protocol = document.protocol
@@ -1043,11 +991,11 @@ def delete_document(document_id):
 
 @app.route("/document/print/<int:document_id>")
 @login_required
-def print_document(document_id):
+@db_lookup(Document)
+def print_document(document):
     user = current_user()
-    document = Document.query.filter_by(id=document_id).first()
-    if document is None or not document.protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Protokoll oder keine Berechtigung.", "alert-error")
+    if not document.protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     if not config.PRINTING_ACTIVE:
         flash("Die Druckfunktion ist nicht aktiviert.", "alert-error")
@@ -1056,20 +1004,20 @@ def print_document(document_id):
     flash("Das Dokument {} wird gedruckt.".format(document.name), "alert-success")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.protocol.id))
 
-@app.route("/decision/print/<int:document_id>")
+@app.route("/decision/print/<int:decisiondocument_id>")
 @login_required
-def print_decision(document_id):
+@db_lookup(DecisionDocument)
+def print_decision(decisiondocument):
     user = current_user()
-    document = DecisionDocument.query.filter_by(id=document_id).first()
-    if document is None or not document.decision.protocol.protocoltype.has_modify_right(user):
-        flash("Invalides Dokument oder keine Berechtigung.", "alert-error")
+    if not decisiondocument.decision.protocol.protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     if not config.PRINTING_ACTIVE:
         flash("Die Druckfunktion ist nicht aktiviert.", "alert-error")
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.decision.protocol.id))
-    tasks.print_file(document.get_filename(), document.decision.protocol)
-    flash("Das Dokument {} wird gedruckt.".format(document.name), "alert-success")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.decision.protocol.id))
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=decisiondocument.decision.protocol.id))
+    tasks.print_file(decisiondocument.get_filename(), decisiondocument.decision.protocol)
+    flash("Das Dokument {} wird gedruckt.".format(decisiondocument.name), "alert-success")
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=decisiondocument.decision.protocol.id))
 
 @app.route("/errors/list")
 @login_required
@@ -1084,21 +1032,21 @@ def list_errors():
 
 @app.route("/error/show/<int:error_id>")
 @login_required
-def show_error(error_id):
+@db_lookup(Error)
+def show_error(error):
     user = current_user()
-    error = Error.query.filter_by(id=error_id).first()
-    if error is None or not error.protocol.protocoltype.has_modify_right(user):
-        flash("Invalider Fehler oder fehlende Zugriffsrechte.", "alert-error")
+    if not error.protocol.protocoltype.has_modify_right(user):
+        flash("Die fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     error_table = ErrorTable(error)
     return render_template("error-show.html", error=error, error_table=error_table)
 
 @app.route("/error/delete/<int:error_id>")
 @login_required
-def delete_error(error_id):
+@db_lookup(Error)
+def delete_error(error):
     user = current_user()
-    error = Error.query.filter_by(id=error_id).first()
-    if error is None or not error.protocol.protocoltype.has_modify_right(user):
+    if not error.protocol.protocoltype.has_modify_right(user):
         flash("Invalider Fehler oder fehlende Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     name = error.name
@@ -1128,11 +1076,8 @@ def new_todomail():
 
 @app.route("/todomail/edit/<int:todomail_id>", methods=["GET", "POST"])
 @login_required
-def edit_todomail(todomail_id):
-    todomail = TodoMail.query.filter_by(id=todomail_id).first()
-    if todomail is None:
-        flash("Invalide Todo-Mail-Zuordnung.", "alert-error")
-        return redirect(request.args.get("next") or url_for("list_todomails"))
+@db_lookup(TodoMail)
+def edit_todomail(todomail):
     form = TodoMailForm(obj=todomail)
     if form.validate_on_submit():
         form.populate_obj(todomail)
@@ -1143,65 +1088,62 @@ def edit_todomail(todomail_id):
 
 @app.route("/todomail/delete/<int:todomail_id>")
 @login_required
-def delete_todomail(todomail_id):
-    todomail = TodoMail.query.filter_by(id=todomail_id).first()
-    if todomail is None:
-        flash("Invalide Todomailzuordnung.", "alert-error")
-        return redirect(request.args.get("next") or url_for("list_todomails"))
+@db_lookup(TodoMail)
+def delete_todomail(todomail):
     name = todomail.name
     db.session.delete(todomail)
     db.session.commit()
     flash("Die Todo-Mail-Zuordnung für {} wurde gelöscht.".format(name), "alert-success")
     return redirect(request.args.get("next") or url_for("list_todomails"))
     
-@app.route("/defaultmeta/new/<int:type_id>", methods=["GET", "POST"])
+@app.route("/defaultmeta/new/<int:protocoltype_id>", methods=["GET", "POST"])
 @login_required
-def new_defaultmeta(type_id):
+@db_lookup(ProtocolType)
+def new_defaultmeta(protocoltype):
     user = current_user()
-    protocoltype = ProtocolType.query.filter_by(id=type_id).first()
-    if protocoltype is None or not protocoltype.has_modify_right(user):
-        flash("Invalider Protokolltyp oder unzureichende Rechte.", "alert-error")
+    if not protocoltype.has_modify_right(user):
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
     form = DefaultMetaForm()
     if form.validate_on_submit():
-        meta = DefaultMeta(protocoltype_id=type_id, key=form.key.data,
+        meta = DefaultMeta(protocoltype_id=protocoltype.id, key=form.key.data,
             name=form.name.data)
         db.session.add(meta)
         db.session.commit()
         flash("Metadatenfeld hinzugefügt.", "alert-success")
-        return redirect(request.args.get("next") or url_for("show_type", type_id=type_id))
+        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
     return render_template("defaultmeta-new.html", form=form, protocoltype=protocoltype)
 
-@app.route("/defaultmeta/edit/<int:meta_id>", methods=["GET", "POST"])
+@app.route("/defaultmeta/edit/<int:defaultmeta_id>", methods=["GET", "POST"])
 @login_required
-def edit_defaultmeta(meta_id):
+@db_lookup(DefaultMeta)
+def edit_defaultmeta(defaultmeta):
     user = current_user()
-    meta = DefaultMeta.query.filter_by(id=meta_id).first()
-    if meta is None or not meta.protocoltype.has_modify_right(user):
+    if not defaultmeta.protocoltype.has_modify_right(user):
         flash("Invalider Protokolltyp oder unzureichende Rechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
-    form = DefaultMetaForm(obj=meta)
+    form = DefaultMetaForm(obj=defaultmeta)
     if form.validate_on_submit():
-        form.populate_obj(meta)
+        form.populate_obj(defaultmeta)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_type", type_id=meta.protocoltype.id))
-    return render_template("defaultmeta-edit.html", form=form, meta=meta)
+        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=defaultmeta.protocoltype.id))
+    return render_template("defaultmeta-edit.html", form=form, defaultmeta=defaultmeta)
 
-@app.route("/defaultmeta/delete/<int:meta_id>")
+@app.route("/defaultmeta/delete/<int:defaultmeta_id>")
 @login_required
 @group_required(config.ADMIN_GROUP)
-def delete_defaultmeta(meta_id):
+@db_lookup(DefaultMeta)
+def delete_defaultmeta(defaultmeta):
     user = current_user()
-    meta = DefaultMeta.query.filter_by(id=meta_id).first()
-    if meta is None or not meta.protocoltype.has_modify_right(user):
+    if not meta.protocoltype.has_modify_right(user):
         flash("Invalider Protokolltyp oder unzureichende Rechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("index"))
-    name = meta.name
-    type_id = meta.protocoltype.id
+    name = defaultmeta.name
+    type_id = defaultmeta.protocoltype.id
     db.session.delete(meta)
     db.session.commit()
     flash("Metadatenfeld '{}' gelöscht.".format(name), "alert-error")
-    return redirect(request.args.get("next") or url_for("show_type", type_id=type_id))
+    return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=type_id))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
