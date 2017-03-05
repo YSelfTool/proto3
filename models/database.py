@@ -22,7 +22,6 @@ class DatabaseModel(db.Model):
     __abstract__ = True
 
     def has_public_view_right(self, user):
-        print("DBModel")
         return self.get_parent().has_public_view_right(user)
 
     def has_private_view_right(self, user):
@@ -105,14 +104,14 @@ class ProtocolType(DatabaseModel):
             return None
         return candidates[0]
 
-    def has_public_view_right(self, user):
-        return (self.has_public_anonymous_view_right()
+    def has_public_view_right(self, user, check_networks=True):
+        return (self.has_public_anonymous_view_right(check_networks=check_networks)
             or (user is not None and self.has_public_authenticated_view_right(user))
             or self.has_admin_right(user))
 
-    def has_public_anonymous_view_right(self):
+    def has_public_anonymous_view_right(self, check_networks=True):
         return (self.is_public
-            and (not self.restrict_networks 
+            and ((not self.restrict_networks or not check_networks)
                 or check_ip_in_networks(self.allowed_networks)))
 
     def has_public_authenticated_view_right(self, user):

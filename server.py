@@ -136,14 +136,15 @@ def index():
     user = current_user()
     protocols = [
         protocol for protocol in Protocol.query.all()
-        if protocol.protocoltype.has_public_view_right(user)
+        if protocol.protocoltype.has_public_view_right(user,
+            check_networks=False)
     ]
     def _protocol_sort_key(protocol):
         if protocol.date is not None:
             return protocol.date
         return datetime.now().date()
     current_day = datetime.now().date()
-    open_protocols = sorted(
+    all_open_protocols = sorted(
         [
             protocol for protocol in protocols
             if not protocol.done
@@ -151,12 +152,17 @@ def index():
         ],
         key=_protocol_sort_key
     )
+    open_protocols = [
+        protocol for protocol in all_open_protocols
+        if protocol.protocoltype.has_public_view_right(user)
+    ]
     finished_protocols = sorted(
         [
             protocol for protocol in protocols
             if protocol.done
             and (protocol.has_public_view_right(user)
                 or protocol.has_private_view_right(user))
+            and protocol.protocoltype.has_public_view_right(user)
         ],
         key=_protocol_sort_key,
         reverse=True
@@ -174,7 +180,7 @@ def index():
             return protocol.date if protocol.date is not None else datetime.now().date()
         todos = sorted(todos, key=_todo_sort_key, reverse=True)
     todos_table = TodosTable(todos) if todos is not None else None
-    return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos, todos_table=todos_table)
+    return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos, todos_table=todos_table, all_open_protocols=all_open_protocols)
 
 @app.route("/documentation")
 @login_required
