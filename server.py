@@ -23,7 +23,7 @@ import config
 from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable
 from legacy import import_old_todos, import_old_protocols, import_old_todomails
 
@@ -81,6 +81,40 @@ def import_legacy():
         import_old_todos(content)
         import_old_protocols(content)
         import_old_todomails(content)
+
+@manager.command
+def recompile_all():
+    for protocol in sorted(Protocol.query.all(), key=lambda p: p.date):
+        if protocol.is_done():
+            print(protocol.get_identifier())
+            tasks.parse_protocol(protocol)
+
+@manager.command
+def merge_todos():
+    todo_by_id = {}
+    todos = Todo.query.all()
+    for todo in todos:
+        todo_id = todo.get_id()
+        if todo_id in todo_by_id:
+            todo1, todo2 = todo, todo_by_id[todo_id]
+            print(todo1)
+            print(todo2)
+            if todo2.id > todo1.id:
+                todo2, todo1 = todo1, todo2
+            for protocol in todo2.protocols:
+                if protocol not in todo1.protocols:
+                    todo1.protocols.append(protocol)
+                todo2.protocols.remove(protocol)
+            db.session.delete(todo2)
+            db.session.commit()
+            todo_by_id[todo_id] = todo1
+        else:
+            todo_by_id[todo_id] = todo
+
+@manager.command
+def runserver():
+    app.run()
+    make_scheduler()
 
 # cause uwsgi currently has a bug
 def send_file(file_like, cache_timeout, as_attachment, attachment_filename):
@@ -935,6 +969,29 @@ def delete_todo(todo_id):
     flash("Todo gelöscht.", "alert-success")
     return redirect(request.args.get("next") or url_for("list_todos", protocoltype=type_id))
 
+@app.route("/todo/merge", methods=["GET", "POST"])
+@login_required
+@group_required(config.ADMIN_GROUP)
+def merge_todos():
+    form = MergeTodosForm(request.args.get("todo_id"))
+    if form.validate_on_submit():
+        todo1 = Todo.query.filter_by(id=form.todo1.data).first()
+        todo2 = Todo.query.filter_by(id=todo.todo2.data).first()
+        if todo1 is None or todo2 is None:
+            flash("Missing todos.", "alert-error")
+        else:
+            id1 = todo1.id
+            id2 = todo2.id
+            for protocol in todo2.protocols:
+                if protocol not in todo1.protocols:
+                    todo1.protocols.append(protocol)
+                todo2.protocols.remove(protocol)
+            db.session.delete(todo2)
+            db.session.commit()
+            flash("Merged todos {} and {}.".format(id1, id2), "alert-success")
+            return redirect(request.args.get("next") or url_for("show_todos"))
+    return render_template("todos-merge.html", form=form, next_url=request.args.get("next"))
+
 @app.route("/decisions/list")
 def list_decisions():
     is_logged_In = check_login()
@@ -1240,7 +1297,6 @@ try:
             check_and_send_reminders()
 except ImportError as exc:
     def make_scheduler():
-        print(exc)
         print("uwsgi not found, falling back to apscheduler for cron-like tasks")
         scheduler = BackgroundScheduler()
         scheduler.start()
@@ -1273,5 +1329,4 @@ def check_and_send_reminders():
                     tasks.send_reminder(reminder, protocol)
 
 if __name__ == "__main__":
-    make_scheduler()
     manager.run()

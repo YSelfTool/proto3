@@ -6,6 +6,7 @@ import shutil
 import tempfile
 from datetime import datetime
 import traceback
+from copy import copy
 
 from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP, MeetingReminder, TodoMail, DecisionDocument, TodoState, OldTodo
 from models.errors import DateNotMatchingException
@@ -89,8 +90,8 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
     for error in old_errors:
         protocol.errors.remove(error)
     db.session.commit()
-    if protocol.source is None:
-        error = protocol.create_error("Parsing", "Protocol source is None", "")
+    if protocol.source is None or len(protocol.source.strip()) == 0:
+        error = protocol.create_error("Parsing", "Protocol source is empty", "")
         db.session.add(error)
         db.session.commit()
         return
@@ -111,7 +112,7 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         db.session.commit()
         return
     remarks = {element.name: element for element in tree.children if isinstance(element, Remark)}
-    required_fields = KNOWN_KEYS
+    required_fields = copy(KNOWN_KEYS)
     for default_meta in protocol.protocoltype.metas:
         required_fields.append(default_meta.key)
     if not config.PARSER_LAZY:
@@ -151,7 +152,6 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
     old_todos = list(protocol.todos)
     for todo in old_todos:
         protocol.todos.remove(todo)
-    print(old_todo_number_map)
     db.session.commit()
     tags = tree.get_tags()
     todo_tags = [tag for tag in tags if tag.name == "todo"]

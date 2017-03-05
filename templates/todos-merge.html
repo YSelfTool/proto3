@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_form %}
+{% block title %}Todo mergen{% endblock %}
+
+{% block content %}
+<div class="container">
+    {{render_form(form, action_url=url_for("merge_todos"), action_text="Mergen")}}
+</div>
+{% endblock %}
