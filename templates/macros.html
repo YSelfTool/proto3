@@ -109,6 +109,7 @@ to not render a label for the CRSFTokenField -->
 {%- endmacro %}
 
 {% macro render_table(table) -%}
+    {% set classes = table.classes() %}
     <h3>
         {{table.title}}
         {% if table.newlink is not none %}
@@ -118,16 +119,16 @@ to not render a label for the CRSFTokenField -->
     <table class="table table-striped">
         <thead>
             <tr>
-                {% for header in table.headers() %}
-                    <th>{{header}}</th>
+                {% for (header, class) in zip(table.headers(), classes) %}
+                    <th{% if class is not none %} class="{{class}}"{% endif %}>{{header}}</th>
                 {% endfor %}
             </tr>
         </thead>
         <tbody>
             {% for row in table.rows() %}
                 <tr>
-                    {% for entry in row %}
-                        <td>{{entry}}</td>
+                    {% for (entry, class) in zip(row, classes) %}
+                        <td{% if class is not none %} class="{{class}}"{% endif %}>{{entry}}</td>
                     {% endfor %}
                 </tr>
             {% endfor %}

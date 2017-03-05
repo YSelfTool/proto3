@@ -3,7 +3,7 @@
 {% block title %}Startseite{% endblock %}
 
 {% block content %}
-{% if protocol is not none %}
+{% if check_login() %}
 <div class="row">
     <div id="left-column" class="col-lg-6">
 {% endif %}
@@ -25,56 +25,56 @@
 		{% endif %}
             {% endif %}
         </ul>
-        {% if check_login() %}
-            <h3>Offene Todos <a href="{{url_for("list_todos")}}">Alle</a></h3>
-            <ul>
-                {% if todos|length > 0 %}
-                    {% for todo in todos %}
-		    <li>{{todo.render_html()|safe}} ({{todo.protocoltype.name}})</li>
-                    {% endfor %}
-                {% else %}
-                    <li>Keine Todos</li>
+        {% if protocol is not none %}
+            <h3>Letztes Protokoll</h3>
+            <div class="well">
+                <div class="btn-group">
+                    <a class="btn btn-primary" href="{{url_for("show_protocol", protocol_id=protocol.id)}}">Details anzeigen</a>
+                    {% if protocol.protocoltype.has_modify_right(current_user()) %}
+                        <a class="btn btn-default" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Protokoll editieren</a>
+                    {% endif %}
+                    {% if protocol.has_compiled_document() %}
+                        <a class="btn btn-success" href="{{url_for("download_document", document_id=protocol.get_compiled_document().id)}}">Download</a>
+                    {% endif %}
+                </div>
+                <h2>Protokoll: {{protocol.protocoltype.name}} {% if protocol.date is not none %}vom {{protocol.date|datify}}{% endif %}</h2>
+                {% if protocol.date is not none %}
+                    <p><strong>Datum:</strong> {{protocol.date|datify_long}}</p>
                 {% endif %}
-            </ul>
+                {% if protocol.start_time is not none and protocol.end_time is not none %}
+                    <p><strong>Zeit:</strong> von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}</p>
+                {% endif %}
+                {% for meta in protocol.metas %}
+                    <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
+                {% endfor %}
+                <h3>Tagesordnung{% if has_modify_right and not protocol.has_nonplanned_tops() %} <a href="{{url_for("new_top", protocol_id=protocol.id)}}">Top hinzufügen</a>{% endif %}</h3>
+                {% include "protocol-tops-include.html" %}
+
+                <h3>Beschlüsse</h3>
+                <ul>
+                    {% if protocol.decisions|length > 0 %}
+                        {% for decision in protocol.decisions %}
+                            <li>{{decision.content}}</li>
+                        {% endfor %}
+                    {% else %}
+                        <li>Keine Beschlüsse</li>
+                    {% endif %}
+                </ul>
+            </div>
         {% endif %}
-{% if protocol is not none %}
+{% if check_login() %}
     </div>
     <div id="right-column" class="col-lg-6">
-        <h3>Letztes Protokoll</h3>
-        <div class="well">
-            <div class="btn-group">
-                <a class="btn btn-primary" href="{{url_for("show_protocol", protocol_id=protocol.id)}}">Details anzeigen</a>
-                {% if protocol.protocoltype.has_modify_right(current_user()) %}
-                    <a class="btn btn-default" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Protokoll editieren</a>
-                {% endif %}
-                {% if protocol.has_compiled_document() %}
-                    <a class="btn btn-success" href="{{url_for("download_document", document_id=protocol.get_compiled_document().id)}}">Download</a>
-                {% endif %}
-            </div>
-            <h2>Protokoll: {{protocol.protocoltype.name}} {% if protocol.date is not none %}vom {{protocol.date|datify}}{% endif %}</h2>
-            {% if protocol.date is not none %}
-                <p><strong>Datum:</strong> {{protocol.date|datify_long}}</p>
+        <h3>Offene Todos <a href="{{url_for("list_todos")}}">Alle</a></h3>
+        <ul>
+            {% if todos|length > 0 %}
+                {% for todo in todos %}
+        <li>{{todo.render_html()|safe}} ({{todo.protocoltype.name}})</li>
+                {% endfor %}
+            {% else %}
+                <li>Keine Todos</li>
             {% endif %}
-            {% if protocol.start_time is not none and protocol.end_time is not none %}
-                <p><strong>Zeit:</strong> von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}</p>
-            {% endif %}
-            {% for meta in protocol.metas %}
-                <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
-            {% endfor %}
-            <h3>Tagesordnung{% if has_modify_right and not protocol.has_nonplanned_tops() %} <a href="{{url_for("new_top", protocol_id=protocol.id)}}">Top hinzufügen</a>{% endif %}</h3>
-            {% include "protocol-tops-include.html" %}
-
-            <h3>Beschlüsse</h3>
-            <ul>
-                {% if protocol.decisions|length > 0 %}
-                    {% for decision in protocol.decisions %}
-                        <li>{{decision.content}}</li>
-                    {% endfor %}
-                {% else %}
-                    <li>Keine Beschlüsse</li>
-                {% endif %}
-            </ul>
-    </div>
+        </ul>
     </div>
 </div>
 {% endif %}

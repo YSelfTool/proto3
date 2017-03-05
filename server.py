@@ -114,7 +114,7 @@ def merge_todos():
 
 @manager.command
 def runserver():
-    app.run()
+    app.run(host="192.168.0.13")
     make_scheduler()
 
 # cause uwsgi currently has a bug
@@ -430,7 +430,7 @@ def list_protocols():
                     "<b>{}</b>".format(text) if matched else text
                     for text, matched in parts
                 ]))
-            search_results[protocol] = "<br />\n".join(formatted_lines)
+            search_results[protocol] = " …<br />\n".join(formatted_lines)
     protocols = sorted(protocols, key=lambda protocol: protocol.date, reverse=True)
     page = _get_page()
     page_count = int(math.ceil(len(protocols) / config.PAGE_LENGTH))

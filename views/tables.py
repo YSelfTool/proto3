@@ -15,6 +15,9 @@ class Table:
     def rows(self):
         return [row for row in [self.row(value) for value in self.values] if row is not None]
 
+    def classes(self):
+        return [None for header in self.headers()]
+
     @staticmethod
     def link(target, text, confirm=None):
         confirmation = ""
@@ -55,7 +58,7 @@ class ProtocolsTable(Table):
         self.search_results = search_results
 
     def headers(self):
-        result = ["ID", "Sitzung", "Datum"]
+        result = ["ID", "Sitzung", "Sitzung", "Datum"]
         state_part = ["Status"]
         search_part = ["Suchergebnis"]
         login_part = ["Typ", "Löschen"]
@@ -67,11 +70,22 @@ class ProtocolsTable(Table):
             result.extend(login_part)
         return result
 
+    def classes(self):
+        state_or_search_class = "hidden-xs" if self.search_results is None else None
+        result = ["hidden-xs", "hidden-sm hidden-md hidden-lg", "hidden-xs", "hidden-xs", None]
+        #result.append(state_or_search_class)
+        login_part = ["hidden-xs", "hidden-xs"]
+        if check_login():
+            result.extend(login_part)
+        return result
+
     def row(self, protocol):
         user = current_user()
+        protocol_link = url_for("show_protocol", protocol_id=protocol.id)
         result = [
-            Table.link(url_for("show_protocol", protocol_id=protocol.id), str(protocol.id)),
-            Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.protocoltype.name),
+            Table.link(protocol_link, str(protocol.id)),
+            Markup("<br>").join([Table.link(protocol_link, protocol.protocoltype.name), date_filter(protocol.date)]),
+            Table.link(protocol_link, protocol.protocoltype.name),
             date_filter(protocol.date),
         ]
         if self.search_results is None:
@@ -92,19 +106,41 @@ class ProtocolTypesTable(Table):
         super().__init__("Protokolltypen", types, newlink=url_for("new_type"))
 
     def headers(self):
-        return ["Typ", "Name", "Neuestes Protokoll", ""]
+        return [
+            "Typ", "Protokoll",
+            "Typ", "Name", "Neuestes Protokoll", ""
+        ]
+
+    def classes(self):
+        return [
+            "hidden-sm hidden-md hidden-lg", "hidden-sm hidden-md hidden-lg",
+            "hidden-xs", "hidden-xs", "hidden-xs", "hidden-xs"
+        ]
 
     def row(self, protocoltype):
         protocol = protocoltype.get_latest_protocol()
         user = current_user()
+        has_private_view_right = protocoltype.has_private_view_right(user)
         has_modify_right = protocoltype.has_modify_right(user)
-        return [
-            Table.link(url_for("show_type", protocoltype_id=protocoltype.id), protocoltype.short_name) if has_modify_right else protocoltype.short_name,
+        protocoltype_link = url_for("show_type", protocoltype_id=protocoltype.id)
+        protocol_link = url_for("show_protocol", protocol_id=protocol.id)
+        new_protocol_link = url_for("new_protocol", type_id=protocoltype.id)
+        mobile_name = "{} ({})".format(protocoltype.name, protocoltype.short_name)
+        mobile_links = [Table.link(protocol_link, protocol.get_identifier())]
+        if has_modify_right:
+            mobile_links.append(Table.link(new_protocol_link, "Neues Protokoll"))
+        mobile_part = [
+            Table.link(protocoltype_link, mobile_name) if has_private_view_right else mobile_name,
+            Markup("<br>".join(mobile_links))
+        ]
+        desktop_part = [
+            Table.link(protocoltype_link, protocoltype.short_name) if has_private_view_right else protocoltype.short_name,
             protocoltype.name,
-            Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier()) if protocol is not None else "Noch kein Protokoll",
-            Table.link(url_for("new_protocol", type_id=protocoltype.id), "Neues Protokoll") if has_modify_right else ""
+            Table.link(protocol_link, protocol.get_identifier()) if protocol is not None else "Noch kein Protokoll",
+            Table.link(new_protocol_link, "Neues Protokoll") if has_modify_right else ""
             "" # TODO: add link for modify, delete
         ]
+        return mobile_part + desktop_part
 
 class ProtocolTypeTable(SingleValueTable):
     def __init__(self, protocoltype):
@@ -229,6 +265,9 @@ class ErrorsTable(Table):
     def headers(self):
         return ["Protokoll", "Aktion", "Fehler", "Zeitpunkt", "Beschreibung", ""]
 
+    def classes(self):
+        return [None, None, None, None, "hidden-xs"]
+
     def row(self, error):
         return [
             Table.link(url_for("show_protocol", protocol_id=error.protocol.id), error.protocol.get_identifier()),
@@ -260,12 +299,20 @@ class TodosTable(Table):
         super().__init__("Todos", todos, newlink=url_for("new_todo"))
 
     def headers(self):
-        return ["ID", "Status", "Sitzung", "Name", "Aufgabe", ""]
+        return ["Todo", "ID", "Status", "Sitzung", "Name", "Aufgabe", ""]
+
+    def classes(self):
+        return ["hidden-sm hidden-md hidden-lg", "hidden-xs", "hidden-xs", "hidden-xs", "hidden-xs", None, "hidden-xs"]
 
     def row(self, todo):
         user = current_user()
         protocol = todo.get_first_protocol()
         row = [
+            Markup("<br>").join([
+                Table.link(url_for("show_todo", todo_id=todo.id), todo.get_state()),
+                Table.link(url_for("show_protocol", protocol_id=protocol.id), todo.protocoltype.short_name),
+                todo.who
+            ]),
             Table.link(url_for("show_todo", todo_id=todo.id), todo.get_id()),
             todo.get_state(),
             Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier())
@@ -337,6 +384,9 @@ class DocumentsTable(Table):
 
     def headers(self):
         return ["ID", "Name", ""]
+
+    def classes(self):
+        return [None, None, "hidden-xs"]
 
     def row(self, document):
         user = current_user()
