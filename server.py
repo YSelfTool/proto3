@@ -371,10 +371,8 @@ def list_protocols():
             ))
     protocols = [
         protocol for protocol in protocol_query.all()
-        if (not is_logged_in and protocol.protocoltype.is_public)
-        or (is_logged_in and (
-            protocol.protocoltype.public_group in user.groups
-            or protocol.protocoltype.private_group in user.groups))]
+        if protocol.protocoltype.has_public_view_right(user)
+    ]
     def _matches_search(content):
         content = content.lower()
         for search_term in search_terms:
