@@ -371,7 +371,7 @@ class DecisionsTable(Table):
         return [
             Table.link(url_for("show_protocol", protocol_id=decision.protocol.id), decision.protocol.get_identifier()),
             decision.content,
-            Table.link(url_for("print_decision", document_id=decision.document.id), "Drucken")
+            Table.link(url_for("print_decision", decisiondocument_id=decision.document.id), "Drucken")
                 if config.PRINTING_ACTIVE
                 and decision.protocol.protocoltype.has_modify_right(user)
                 and decision.document is not None 
