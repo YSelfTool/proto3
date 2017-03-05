@@ -220,3 +220,11 @@ class MetaForm(FlaskForm):
 class DefaultMetaForm(FlaskForm):
     key = StringField("Key", validators=[InputRequired("Bitte gib den Protokoll-Syntax-Schlüssel der Metadaten an.")])
     name = StringField("Name", validators=[InputRequired("Bitte gib den Namen der Metadaten an.")])
+
+class MergeTodosForm(FlaskForm):
+    todo1 = IntegerField("todo 1", validators=[InputRequired()])
+    todo2 = IntegerField("todo 2", validators=[InputRequired()])
+
+    def __init__(self, todo=None):
+        if todo is not None:
+            self.todo1.data = todo.id
