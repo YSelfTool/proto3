@@ -174,7 +174,7 @@ class ProtocolTypeTable(SingleValueTable):
 
 class DefaultTOPsTable(Table):
     def __init__(self, tops, protocoltype=None):
-        super().__init__("Standard-TOPs", tops, newlink=url_for("new_default_top", type_id=protocoltype.id) if protocoltype is not None else None)
+        super().__init__("Standard-TOPs", tops, newlink=url_for("new_default_top", protocoltype_id=protocoltype.id) if protocoltype is not None else None)
         self.protocoltype = protocoltype
 
     def headers(self):
@@ -185,10 +185,10 @@ class DefaultTOPsTable(Table):
             top.name,
             top.number,
             Table.concat([
-                Table.link(url_for("move_default_top", type_id=self.protocoltype.id, top_id=top.id, diff=1), "Runter"),
-                Table.link(url_for("move_default_top", type_id=self.protocoltype.id, top_id=top.id, diff=-1), "Hoch"),
-                Table.link(url_for("edit_default_top", type_id=self.protocoltype.id, top_id=top.id), "Ändern"),
-                Table.link(url_for("delete_default_top", type_id=self.protocoltype.id, top_id=top.id), "Löschen", confirm="Bist du dir sicher, dass du den Standard-TOP {} löschen willst?".format(top.name))
+                Table.link(url_for("move_default_top", protocoltype_id=self.protocoltype.id, defaulttop_id=top.id, diff=1), "Runter"),
+                Table.link(url_for("move_default_top", protocoltype_id=self.protocoltype.id, defaulttop_id=top.id, diff=-1), "Hoch"),
+                Table.link(url_for("edit_default_top", protocoltype_id=self.protocoltype.id, defaulttop_id=top.id), "Ändern"),
+                Table.link(url_for("delete_default_top", protocoltype_id=self.protocoltype.id, defaulttop_id=top.id), "Löschen", confirm="Bist du dir sicher, dass du den Standard-TOP {} löschen willst?".format(top.name))
             ])
         ]
 
@@ -386,8 +386,8 @@ class DefaultMetasTable(Table):
             meta.key,
         ]
         links = [
-            Table.link(url_for("edit_defaultmeta", meta_id=meta.id), "Ändern"),
-            Table.link(url_for("delete_defaultmeta", meta_id=meta.id, confirm="Bist du dir sicher, dass du das Metadatenfeld {} löschen willst?".format(meta.name)), "Löschen")
+            Table.link(url_for("edit_defaultmeta", defaultmeta_id=meta.id), "Ändern"),
+            Table.link(url_for("delete_defaultmeta", defaultmeta_id=meta.id, confirm="Bist du dir sicher, dass du das Metadatenfeld {} löschen willst?".format(meta.name)), "Löschen")
         ]
         link_part = [Table.concat(links)]
         return general_part + link_part

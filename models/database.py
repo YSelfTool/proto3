@@ -18,9 +18,25 @@ from sqlalchemy.ext.hybrid import hybrid_method
 import config
 from todostates import make_states
 
-class ProtocolType(db.Model):
+class DatabaseModel(db.Model):
+    __abstract__ = True
+
+    def has_public_view_right(self, user):
+        print("DBModel")
+        return self.get_parent().has_public_view_right(user)
+
+    def has_private_view_right(self, user):
+        return self.get_parent().has_private_view_right(user)
+
+    def has_modify_right(self, user):
+        return self.get_parent().has_modify_right(user)
+
+    def has_admin_right(self, user):
+        return self.get_parent().has_admin_right(user)
+
+class ProtocolType(DatabaseModel):
     __tablename__ = "protocoltypes"
-    __object_name__ = "protocoltype"
+    __model_name__ = "protocoltype"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True)
     short_name = db.Column(db.String, unique=True)
@@ -91,7 +107,8 @@ class ProtocolType(db.Model):
 
     def has_public_view_right(self, user):
         return (self.has_public_anonymous_view_right()
-            or (user is not None and self.has_public_authenticated_view_right(user)))
+            or (user is not None and self.has_public_authenticated_view_right(user))
+            or self.has_admin_right(user))
 
     def has_public_anonymous_view_right(self):
         return (self.is_public
@@ -103,10 +120,15 @@ class ProtocolType(db.Model):
             or (self.private_group != "" and self.private_group in user.groups))
 
     def has_private_view_right(self, user):
-        return (user is not None and self.private_group != "" and self.private_group in user.groups)
+        return ((user is not None
+            and (self.private_group != "" and self.private_group in user.groups))
+            or self.has_admin_right(user))
+            
 
     def has_modify_right(self, user):
-        return (user is not None and self.modify_group != "" and self.modify_group in user.groups)
+        return ((user is not None
+            and (self.modify_group != "" and self.modify_group in user.groups))
+            or self.has_admin_right(user))
 
     def has_admin_right(self, user):
         return (user is not None and config.ADMIN_GROUP in user.groups)
@@ -138,9 +160,9 @@ class ProtocolType(db.Model):
     def get_wiki_infobox_title(self):
         return "Vorlage:{}".format(self.get_wiki_infobox())
 
-class Protocol(db.Model):
+class Protocol(DatabaseModel):
     __tablename__ = "protocols"
-    __object_name__ = "protocol"
+    __model_name__ = "protocol"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     source = db.Column(db.String)
@@ -172,6 +194,9 @@ class Protocol(db.Model):
     def __repr__(self):
         return "<Protocol(id={}, protocoltype_id={})>".format(
             self.id, self.protocoltype_id)
+
+    def get_parent(self):
+        return self.protocoltype
 
     def create_error(self, action, name, description):
         now = datetime.now()
@@ -224,12 +249,6 @@ class Protocol(db.Model):
             (self.public and self.protocoltype.has_public_view_right(user))
             or self.protocoltype.has_private_view_right(user)
         )
-
-    def has_private_view_right(self, user):
-        return self.protocoltype.has_private_view_right(user)
-
-    def has_modify_right(self, user):
-        return self.protocoltype.has_modify_right(user)
 
     def is_done(self):
         return self.done
@@ -303,9 +322,9 @@ def on_protocol_delete(mapper, connection, protocol):
     protocol.delete_orphan_todos()
 
 
-class DefaultTOP(db.Model):
+class DefaultTOP(DatabaseModel):
     __tablename__ = "defaulttops"
-    __object_name__ = "defaulttop"
+    __model_name__ = "defaulttop"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     name = db.Column(db.String)
@@ -320,12 +339,15 @@ class DefaultTOP(db.Model):
         return "<DefaultTOP(id={}, protocoltype_id={}, name={}, number={})>".format(
             self.id, self.protocoltype_id, self.name, self.number)
 
+    def get_parent(self):
+        return self.protocoltype
+
     def is_at_end(self):
         return self.number > 0
 
-class TOP(db.Model):
+class TOP(DatabaseModel):
     __tablename__ = "tops"
-    __object_name__ = "top"
+    __model_name__ = "top"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     name = db.Column(db.String)
@@ -344,9 +366,12 @@ class TOP(db.Model):
         return "<TOP(id={}, protocol_id={}, name={}, number={}, planned={})>".format(
             self.id, self.protocol_id, self.name, self.number, self.planned)
 
-class Document(db.Model):
+    def get_parent(self):
+        return self.protocol
+
+class Document(DatabaseModel):
     __tablename__ = "documents"
-    __object_name__ = "document"
+    __model_name__ = "document"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     name = db.Column(db.String)
@@ -365,6 +390,9 @@ class Document(db.Model):
         return "<Document(id={}, protocol_id={}, name={}, filename={}, is_compiled={}, is_private={})>".format(
             self.id, self.protocol_id, self.name, self.filename, self.is_compiled, self.is_private)
 
+    def get_parent(self):
+        return self.protocol
+
     def get_filename(self):
         return os.path.join(config.DOCUMENTS_PATH, self.filename)
 
@@ -379,9 +407,9 @@ def on_document_delete(mapper, connection, document):
         if os.path.isfile(document_path):
             os.remove(document_path)
 
-class DecisionDocument(db.Model):
+class DecisionDocument(DatabaseModel):
     __tablename__ = "decisiondocuments"
-    __object_name__ = "decisiondocument"
+    __model_name__ = "decisiondocument"
     id = db.Column(db.Integer, primary_key=True)
     decision_id = db.Column(db.Integer, db.ForeignKey("decisions.id"))
     name = db.Column(db.String)
@@ -395,6 +423,9 @@ class DecisionDocument(db.Model):
     def __repr__(self):
         return "<DecisionDocument(id={}, decision_id={}, name={}, filename={})>".format(
             self.id, self.decision_id, self.name, self.filename)
+
+    def get_parent(self):
+        return self.decision
 
     def get_filename(self):
         return os.path.join(config.DOCUMENTS_PATH, self.filename)
@@ -487,9 +518,9 @@ class TodoState(Enum):
         return state, date
 
 
-class Todo(db.Model):
+class Todo(DatabaseModel):
     __tablename__ = "todos"
-    __object_name__ = "todo"
+    __model_name__ = "todo"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     number = db.Column(db.Integer)
@@ -511,6 +542,9 @@ class Todo(db.Model):
     def __repr__(self):
         return "<Todo(id={}, number={}, who={}, description={}, state={}, date={})>".format(
             self.id, self.number, self.who, self.description, self.state, self.date)
+
+    def get_parent(self):
+        return self.protocoltype
 
     def is_done(self):
         if self.state.needs_date():
@@ -581,15 +615,14 @@ class Todo(db.Model):
         parts.append("id {}".format(self.get_id()))
         return "[{}]".format(";".join(parts))
 
-
-class TodoProtocolAssociation(db.Model):
+class TodoProtocolAssociation(DatabaseModel):
     __tablename__ = "todoprotocolassociations"
     todo_id = db.Column(db.Integer, db.ForeignKey("todos.id"), primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"), primary_key=True)
 
-class Decision(db.Model):
+class Decision(DatabaseModel):
     __tablename__ = "decisions"
-    __object_name__ = "decision"
+    __model_name__ = "decision"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     content = db.Column(db.String)
@@ -604,9 +637,12 @@ class Decision(db.Model):
         return "<Decision(id={}, protocol_id={}, content='{}')>".format(
             self.id, self.protocol_id, self.content)
 
-class MeetingReminder(db.Model):
+    def get_parent(self):
+        return self.protocol
+
+class MeetingReminder(DatabaseModel):
     __tablename__ = "meetingreminders"
-    __object_name__ = "meetingreminder"
+    __model_name__ = "meetingreminder"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     days_before = db.Column(db.Integer)
@@ -625,9 +661,12 @@ class MeetingReminder(db.Model):
         return "<MeetingReminder(id={}, protocoltype_id={}, days_before={}, send_public={}, send_private={})>".format(
             self.id, self.protocoltype_id, self.days_before, self.send_public, self.send_private)
 
-class Error(db.Model):
+    def get_parent(self):
+        return self.protocoltype
+
+class Error(DatabaseModel):
     __tablename__ = "errors"
-    __object_name__ = "error"
+    __model_name__ = "error"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     action = db.Column(db.String)
@@ -646,15 +685,18 @@ class Error(db.Model):
         return "<Error(id={}, protocol_id={}, action={}, name={}, datetime={})>".format(
             self.id, self.protocol_id, self.action, self.name, self.datetime)
 
+    def get_parent(self):
+        return self.protocol
+
     def get_short_description(self):
         lines = self.description.splitlines()
         if len(lines) <= 4:
             return "\n".join(lines)
         return "\n".join([*lines[:2], "…", *lines[-2:]])
 
-class TodoMail(db.Model):
+class TodoMail(DatabaseModel):
     __tablename__ = "todomails"
-    __object_name__ = "todomail"
+    __model_name__ = "todomail"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True)
     mail = db.Column(db.String)
@@ -670,9 +712,9 @@ class TodoMail(db.Model):
     def get_formatted_mail(self):
         return "{} <{}>".format(self.name, self.mail)
 
-class OldTodo(db.Model):
+class OldTodo(DatabaseModel):
     __tablename__ = "oldtodos"
-    __object_name__ = "oldtodo"
+    __model_name__ = "oldtodo"
     id = db.Column(db.Integer, primary_key=True)
     old_id = db.Column(db.Integer)
     who = db.Column(db.String)
@@ -690,9 +732,9 @@ class OldTodo(db.Model):
             "protocol={}".format(self.id, self.old_id, self.who,
             self.description, self.protocol_key))
 
-class DefaultMeta(db.Model):
+class DefaultMeta(DatabaseModel):
     __tablename__ = "defaultmetas"
-    __object_name__ = "defaultmeta"
+    __model_name__ = "defaultmeta"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     key = db.Column(db.String)
@@ -707,9 +749,12 @@ class DefaultMeta(db.Model):
         return ("<DefaultMeta(id={}, protocoltype_id={}, key='{}', "
             "name='{}')>".format(self.id, self.protocoltype_id, self.key))
 
-class Meta(db.Model):
+    def get_parent(self):
+        return self.protocoltype
+
+class Meta(DatabaseModel):
     __tablename__ = "metas"
-    __object_name__ = "meta"
+    __model_name__ = "meta"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     name = db.Column(db.String)
@@ -724,3 +769,11 @@ class Meta(db.Model):
         return "<Meta(id={}, protocoltype_id={}, name={}, value={})>".format(
             self.id, self.protocoltype_id, self.name, self.value)
 
+    def get_parent(self):
+        return self.protocol
+
+ALL_MODELS = [
+    ProtocolType, Protocol, DefaultTOP, TOP, Document, DecisionDocument,
+    Todo, Decision, MeetingReminder, Error, DefaultMeta, Meta
+]
+    

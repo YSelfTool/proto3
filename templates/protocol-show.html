@@ -8,7 +8,7 @@
 {% set has_public_view_right = protocol.has_public_view_right(user) %}
 {% set has_private_view_right = protocol.has_private_view_right(user) %}
 {% set has_modify_right = protocol.has_modify_right(user) %}
-{% set has_admin_right = protocol.protocoltype.has_admin_right(user) %}
+{% set has_admin_right = protocol.has_admin_right(user) %}
 
 {% block content %}
 <div class="container">
@@ -114,8 +114,8 @@
                 {% endif %}
             {% endif %}
             {% if has_modify_right %}
-            {{render_form(source_upload_form, action_url=url_for("upload_source_to_known_protocol", protocol_id=protocol.id, next=url_for("show_protocol", protocol_id=protocol.id)), action_text="Hochladen", enctype="multipart/form-data")}}
-            {{render_form(document_upload_form, action_url=url_for("upload_document", protocol_id=protocol.id, next=url_for("show_protocol", protocol_id=protocol.id)), action_text="Hochladen", enctype="multipart/form-data")}}
+                {{render_form(source_upload_form, action_url=url_for("upload_source_to_known_protocol", protocol_id=protocol.id, next=url_for("show_protocol", protocol_id=protocol.id)), action_text="Hochladen", enctype="multipart/form-data")}}
+                {{render_form(document_upload_form, action_url=url_for("upload_document", protocol_id=protocol.id, next=url_for("show_protocol", protocol_id=protocol.id)), action_text="Hochladen", enctype="multipart/form-data")}}
             {% endif %}
         </div>
     </div>

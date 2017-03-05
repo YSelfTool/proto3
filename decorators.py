@@ -1,20 +1,28 @@
-from flask import redirect, flash, request
+from flask import redirect, flash, request, url_for
 
 from functools import wraps
+
+from models.database import ALL_MODELS
+from shared import db, current_user
 
 ID_KEY = "id"
 KEY_NOT_PRESENT_MESSAGE = "Missing {}_id."
 OBJECT_DOES_NOT_EXIST_MESSAGE = "There is no {} with id {}."
 
+MISSING_VIEW_RIGHT = "Dir fehlenden die nötigen Zugriffsrechte."
+
 def default_redirect():
     return redirect(request.args.get("next") or url_for("index"))
+
+def login_redirect():
+    return redirect(request.args.get("next") or url_for("login"))
 
 def db_lookup(*models, check_exists=True):
     def _decorator(function):
         @wraps(function)
         def _decorated_function(*args, **kwargs):
             for model in models:
-                key = model.__object_name__
+                key = model.__model_name__
                 id_key = "{}_{}".format(key, ID_KEY)
                 if id_key not in kwargs:
                     flash(KEY_NOT_PRESENT_MESSAGE.format(key), "alert-error")
@@ -31,3 +39,39 @@ def db_lookup(*models, check_exists=True):
             return function(*args, **kwargs)
         return _decorated_function
     return _decorator
+
+def require_right(right, require_exist):
+    necessary_right_name = "has_{}_right".format(right)
+    def _decorator(function):
+        @wraps(function)
+        def _decorated_function(*args, **kwargs):
+            user = current_user()
+            for model in ALL_MODELS:
+                model_name = model.__model_name__
+                if model_name in kwargs:
+                    model = kwargs[model_name]
+                    if model is None:
+                        if require_exist:
+                            flash(MISSING_VIEW_RIGHT, "alert-error")
+                            return login_redirect()
+                        else:
+                            continue
+                    necessary_right = getattr(model, necessary_right_name)
+                    if not necessary_right(user):
+                        flash(MISSING_VIEW_RIGHT, "alert-error")
+                        return login_redirect()
+            return function(*args, **kwargs)
+        return _decorated_function
+    return _decorator
+
+def require_public_view_right(require_exist=True):
+    return require_right("public_view", require_exist)
+
+def require_private_view_right(require_exist=True):
+    return require_right("private_view", require_exist)
+
+def require_modify_right(require_exist=True):
+    return require_right("modify", require_exist)
+
+def require_admin_right(require_exist=True):
+    return require_right("admin", require_exist)
