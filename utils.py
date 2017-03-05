@@ -12,6 +12,8 @@ from datetime import datetime, date, timedelta
 import requests
 from io import BytesIO
 import ipaddress
+from socket import getfqdn
+from uuid import uuid4
 
 import config
 
@@ -81,6 +83,7 @@ class MailManager:
         msg["From"] = self.from_addr
         msg["To"] = to_addr
         msg["Subject"] = subject
+        msg["Message-ID"] = "{}@{}".format(uuid4(), getfqdn())
         msg.attach(MIMEText(content, _charset="utf-8"))
         if appendix is not None:
             for name, file_like in appendix:
