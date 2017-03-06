@@ -79,7 +79,7 @@
                                 <li>
                                     {{decision.content}}
                                     {% if config.PRINTING_ACTIVE and has_private_view_right and decision.document is not none %}
-                                        <a href="{{url_for("print_decision", document_id=decision.document.id)}}">Drucken</a>
+                                        <a href="{{url_for("print_decision", decisiondocument_id=decision.document.id)}}">Drucken</a>
                                     {% endif %}
                                 </li>
                             {% endfor %}
