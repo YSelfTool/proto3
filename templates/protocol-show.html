@@ -60,9 +60,11 @@
                 {% if protocol.start_time is not none and protocol.end_time is not none %}
                     <p><strong>Zeit:</strong> von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}</p>
                 {% endif %}
-                {% for meta in protocol.metas %}
-                    <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
-                {% endfor %}
+                {% if has_public_view_right %}
+                    {% for meta in protocol.metas %}
+                        <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
+                    {% endfor %}
+		{% endif %}
             {% else %}
                 {% if protocol.date is not none %}<p><strong>Geplant:</strong> {{protocol.date|datify_long}}{% endif %}</p>
             {% endif %}
