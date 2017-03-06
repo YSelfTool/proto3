@@ -266,7 +266,7 @@ class ErrorsTable(Table):
         return ["Protokoll", "Aktion", "Fehler", "Zeitpunkt", "Beschreibung", ""]
 
     def classes(self):
-        return [None, None, None, None, "hidden-xs"]
+        return [None, None, None, None, "hidden-xs", "hidden-xs"]
 
     def row(self, error):
         return [
