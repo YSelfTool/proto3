@@ -83,7 +83,7 @@ class MailManager:
         msg["From"] = self.from_addr
         msg["To"] = to_addr
         msg["Subject"] = subject
-        msg["Message-ID"] = "{}@{}".format(uuid4(), getfqdn())
+        msg["Message-ID"] = "<{}@{}>".format(uuid4(), getfqdn())
         msg.attach(MIMEText(content, _charset="utf-8"))
         if appendix is not None:
             for name, file_like in appendix:
