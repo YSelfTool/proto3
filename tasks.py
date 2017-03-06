@@ -95,6 +95,11 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         db.session.add(error)
         db.session.commit()
         return
+    if protocol.source == config.EMPTY_ETHERPAD:
+        error = protocol.create_error("Parsing", "The etherpad is unmodified and does not contain a protocol.", protocol.source)
+        db.session.add(error)
+        db.session.commit()
+        return
     tree = None
     try:
         tree = parse(protocol.source)
