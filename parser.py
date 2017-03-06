@@ -158,9 +158,9 @@ class Content(Element):
     # v3: does not allow braces in the content
     #PATTERN = r"\s*(?<content>(?:[^\[\];\r\n{}]+)?(?:\[[^\]\r\n{}]+\][^;\[\]\r\n{}]*)*);?"
     # v4: do not allow empty match (require either the first or the second part to be non-empty)
-    #PATTERN = r"\s*(?<content>(?:(?:[^\[\];\r\n{}]+)|(?:[^\[\];\r\n{}]+)?(?:\[[^\]\r\n{}]+\][^;\[\]\r\n{}]*)+));?"
+    PATTERN = r"\s*(?<content>(?:(?:[^\[\];\r\n{}]+)|(?:[^\[\];\r\n{}]+)?(?:\[[^\]\r\n{}]+\][^;\[\]\r\n{}]*)+));?"
     # v5: do match emptystring if followed by a semi colon
-    PATTERN = r"\s*(?<content>(?:[^\[\];\r\n{}]+);?|(?:[^\[\];\r\n{}]+)?(?:\[[^\]\r\n{}]+\][^;\[\]\r\n{}]*)+;?|;)"
+    #PATTERN = r"\s*(?<content>(?:[^\[\];\r\n{}]+);?|(?:[^\[\];\r\n{}]+)?(?:\[[^\]\r\n{}]+\][^;\[\]\r\n{}]*)+;?|;)"
 
 class Text:
     def __init__(self, text, linenumber, fork):
@@ -271,7 +271,7 @@ class Empty(Element):
         linenumber = Element.parse_inner(match, current, linenumber)
         return current, linenumber
 
-    PATTERN = r"\s+"
+    PATTERN = r"(?:\s+|;)"
 
 class Remark(Element):
     def __init__(self, name, value, linenumber):

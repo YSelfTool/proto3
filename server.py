@@ -114,7 +114,7 @@ def merge_todos():
 
 @manager.command
 def runserver():
-    app.run(host="192.168.0.13")
+    app.run()
     make_scheduler()
 
 # cause uwsgi currently has a bug
@@ -536,7 +536,7 @@ def upload_source_to_known_protocol(protocol):
 @login_required
 def upload_new_protocol():
     user = current_user()
-    available_types = ProtocolType.get_modifiable_protocoltypes()
+    available_types = ProtocolType.get_modifiable_protocoltypes(user)
     form = NewProtocolSourceUploadForm(protocoltypes=available_types)
     if form.validate_on_submit():
         if form.source.data is None:
