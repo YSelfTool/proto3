@@ -18,11 +18,7 @@
                     <li><a href="{{url_for("show_protocol", protocol_id=protocol.id)}}">{{protocol.protocoltype.name}}</a> am {{protocol.date|datify}}</li>
                 {% endfor %}
             {% else %}
-	        {% if all_open_protocols|length == 0 %}
-                    <li>Keine anstehenden Sitzungen</li>
-		{% else %}
-                    <li>Die Sitzungen sind nur aus einem eingeschränkten Teil des Internets, nicht weltweit sichtbar.</li>
-		{% endif %}
+                <li>Keine anstehenden Sitzungen</li>
             {% endif %}
         </ul>
         {% if protocol is not none %}

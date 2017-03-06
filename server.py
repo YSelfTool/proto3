@@ -144,7 +144,7 @@ def index():
             return protocol.date
         return datetime.now().date()
     current_day = datetime.now().date()
-    all_open_protocols = sorted(
+    open_protocols = sorted(
         [
             protocol for protocol in protocols
             if not protocol.done
@@ -152,10 +152,6 @@ def index():
         ],
         key=_protocol_sort_key
     )
-    open_protocols = [
-        protocol for protocol in all_open_protocols
-        if protocol.protocoltype.has_public_view_right(user)
-    ]
     finished_protocols = sorted(
         [
             protocol for protocol in protocols
@@ -180,7 +176,7 @@ def index():
             return protocol.date if protocol.date is not None else datetime.now().date()
         todos = sorted(todos, key=_todo_sort_key, reverse=True)
     todos_table = TodosTable(todos) if todos is not None else None
-    return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos, todos_table=todos_table, all_open_protocols=all_open_protocols)
+    return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos)
 
 @app.route("/documentation")
 @login_required
@@ -377,7 +373,7 @@ def list_protocols():
             ))
     protocols = [
         protocol for protocol in protocol_query.all()
-        if protocol.protocoltype.has_public_view_right(user)
+        if protocol.protocoltype.has_public_view_right(user, check_networks=False)
     ]
     def _matches_search(content):
         content = content.lower()
@@ -471,7 +467,7 @@ def new_protocol():
 def show_protocol(protocol):
     user = current_user()
     errors_table = ErrorsTable(protocol.errors)
-    if not protocol.protocoltype.has_public_view_right(user): # yes, feature
+    if not protocol.protocoltype.has_public_view_right(user, check_networks=False): # yes, feature
         flash("Die fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("login"))
     visible_documents = [

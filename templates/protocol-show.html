@@ -70,22 +70,26 @@
             <h3>Tagesordnung{% if has_modify_right and not protocol.has_nonplanned_tops() %} <a href="{{url_for("new_top", protocol_id=protocol.id)}}">Top hinzufügen</a>{% endif %}</h3>
             {% include "protocol-tops-include.html" %}
 
-            {% if protocol.is_done() and has_public_view_right %}
-            <h3>Beschlüsse</h3>
-            <ul>
-                {% if protocol.decisions|length > 0 %}
-                    {% for decision in protocol.decisions %}
-                        <li>
-                            {{decision.content}}
-                            {% if config.PRINTING_ACTIVE and has_private_view_right and decision.document is not none %}
-                                <a href="{{url_for("print_decision", document_id=decision.document.id)}}">Drucken</a>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                {% else %}
-                    <li>Keine Beschlüsse</li>
-                {% endif %}
-            </ul>
+            {% if protocol.is_done() %}
+                <h3>Beschlüsse</h3>
+                <ul>
+                    {% if protocol.decisions|length > 0 %}
+                        {% if has_public_view_right %}
+                            {% for decision in protocol.decisions %}
+                                <li>
+                                    {{decision.content}}
+                                    {% if config.PRINTING_ACTIVE and has_private_view_right and decision.document is not none %}
+                                        <a href="{{url_for("print_decision", document_id=decision.document.id)}}">Drucken</a>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li>Protokoll und Beschlüsse sind in einem eingeschränkten Netzwerk sichtbar.</li>
+                        {% endif %}
+                    {% else %}
+                        <li>Keine Beschlüsse</li>
+                    {% endif %}
+                </ul>
             {% endif %}
         </div>
         <div id="right-column" class="col-lg-6">
