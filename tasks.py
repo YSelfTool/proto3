@@ -478,7 +478,10 @@ def send_protocol_async(protocol_id, show_private):
 def send_todomails_async(protocol_id):
     with app.app_context():
         protocol = Protocol.query.filter_by(id=protocol_id).first()
-        all_todos = Todo.query.filter(Todo.done == False).all()
+        all_todos = [
+            todo for todo in Todo.query.filter.all()
+            if not todo.is_done()
+        ]
         users = {user for todo in all_todos for user in todo.get_users()}
         grouped_todos = {
             user: [todo for todo in all_todos if user in todo.get_users()]
