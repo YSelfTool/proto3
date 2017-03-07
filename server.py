@@ -755,6 +755,7 @@ def list_todos():
         todos = [
             todo for todo in todos
             if search_term.lower() in todo.description.lower()
+            or search_term.lower() in todo.who.lower()
         ]
     def _sort_key(todo):
         return (not todo.is_done(), todo.get_id())
