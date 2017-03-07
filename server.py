@@ -665,7 +665,7 @@ def send_protocol(protocol):
 def new_top(protocol):
     form = TopForm()
     if form.validate_on_submit():
-        top = TOP(protocol_id=protocol.id, name=form.name.data, number=form.number.data, planned=True)
+        top = TOP(protocol_id=protocol.id, name=form.name.data, number=form.number.data, planned=True, description=form.description.data)
         db.session.add(top)
         db.session.commit()
         tasks.push_tops_to_calendar(top.protocol)
