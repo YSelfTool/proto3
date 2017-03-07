@@ -124,7 +124,7 @@ class ProtocolTypesTable(Table):
         has_modify_right = protocoltype.has_modify_right(user)
         protocoltype_link = url_for("show_type", protocoltype_id=protocoltype.id)
         protocol_link = url_for("show_protocol", protocol_id=protocol.id)
-        new_protocol_link = url_for("new_protocol", type_id=protocoltype.id)
+        new_protocol_link = url_for("new_protocol", protocoltype_id=protocoltype.id)
         mobile_name = "{} ({})".format(protocoltype.name, protocoltype.short_name)
         mobile_links = [Table.link(protocol_link, protocol.get_identifier())]
         if has_modify_right:
@@ -221,10 +221,10 @@ class DefaultTOPsTable(Table):
             top.name,
             top.number,
             Table.concat([
-                Table.link(url_for("move_default_top", protocoltype_id=self.protocoltype.id, defaulttop_id=top.id, diff=1), "Runter"),
-                Table.link(url_for("move_default_top", protocoltype_id=self.protocoltype.id, defaulttop_id=top.id, diff=-1), "Hoch"),
+                Table.link(url_for("move_default_top", defaulttop_id=top.id, diff=1), "Runter"),
+                Table.link(url_for("move_default_top", defaulttop_id=top.id, diff=-1), "Hoch"),
                 Table.link(url_for("edit_default_top", protocoltype_id=self.protocoltype.id, defaulttop_id=top.id), "Ändern"),
-                Table.link(url_for("delete_default_top", protocoltype_id=self.protocoltype.id, defaulttop_id=top.id), "Löschen", confirm="Bist du dir sicher, dass du den Standard-TOP {} löschen willst?".format(top.name))
+                Table.link(url_for("delete_default_top", defaulttop_id=top.id), "Löschen", confirm="Bist du dir sicher, dass du den Standard-TOP {} löschen willst?".format(top.name))
             ])
         ]
 
@@ -244,8 +244,8 @@ class MeetingRemindersTable(Table):
             reminder.additional_text or ""
         ]
         action_links = [
-            Table.link(url_for("edit_reminder", protocoltype_id=self.protocoltype.id, meetingreminder_id=reminder.id), "Ändern"),
-            Table.link(url_for("delete_reminder", protocoltype_id=self.protocoltype.id, meetingreminder_id=reminder.id), "Löschen", confirm="Bist du dir sicher, dass du die Einladungsmail {} Tage vor der Sitzung löschen willst?".format(reminder.days_before))
+            Table.link(url_for("edit_reminder", meetingreminder_id=reminder.id), "Ändern"),
+            Table.link(url_for("delete_reminder", meetingreminder_id=reminder.id), "Löschen", confirm="Bist du dir sicher, dass du die Einladungsmail {} Tage vor der Sitzung löschen willst?".format(reminder.days_before))
         ]
         action_part = [Table.concat(action_links)]
         return general_part + action_part
@@ -317,7 +317,7 @@ class TodosTable(Table):
             todo.get_state(),
             Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier())
                 if protocol is not None
-                else Table.link(url_for("list_protocols", protocoltype=todo.protocoltype.id), todo.protocoltype.short_name),
+                else Table.link(url_for("list_protocols", protocoltype_id=todo.protocoltype.id), todo.protocoltype.short_name),
             todo.who,
             todo.description,
         ]
@@ -437,7 +437,7 @@ class DefaultMetasTable(Table):
         ]
         links = [
             Table.link(url_for("edit_defaultmeta", defaultmeta_id=meta.id), "Ändern"),
-            Table.link(url_for("delete_defaultmeta", defaultmeta_id=meta.id, confirm="Bist du dir sicher, dass du das Metadatenfeld {} löschen willst?".format(meta.name)), "Löschen")
+            Table.link(url_for("delete_defaultmeta", defaultmeta_id=meta.id), confirm="Bist du dir sicher, dass du das Metadatenfeld {} löschen willst?".format(meta.name), "Löschen")
         ]
         link_part = [Table.concat(links)]
         return general_part + link_part

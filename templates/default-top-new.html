@@ -4,6 +4,6 @@
 
 {% block content %}
 <div class="container">
-    {{render_form(form, action_url=url_for("new_default_top", type_id=protocoltype.id, next=url_for("show_type", protocoltype_id=protocoltype.id)), action_text="Anlegen")}}
+    {{render_form(form, action_url=url_for("new_default_top", protocoltype_id=protocoltype.id, next=url_for("show_type", protocoltype_id=protocoltype.id)), action_text="Anlegen")}}
 </div>
 {% endblock %}

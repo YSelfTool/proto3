@@ -350,7 +350,7 @@ def list_protocols():
     protocoltype = None
     protocoltype_id = None
     try:
-        protocoltype_id = int(request.args.get("protocoltype"))
+        protocoltype_id = int(request.args.get("protocoltype_id"))
     except (ValueError, TypeError):
         pass
     search_term = request.args.get("search")
@@ -456,7 +456,7 @@ def new_protocol():
         db.session.commit()
         tasks.push_tops_to_calendar(protocol)
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
-    type_id = request.args.get("type_id")
+    type_id = request.args.get("protocoltype_id")
     if type_id is not None:
         form.protocoltype.data = type_id
         upload_form.protocoltype.data = type_id
@@ -731,7 +731,7 @@ def list_todos():
     protocoltype = None
     protocoltype_id = None
     try:
-        protocoltype_id = int(request.args.get("protocoltype"))
+        protocoltype_id = int(request.args.get("protocoltype_id"))
     except (ValueError, TypeError):
         pass
     search_term = request.args.get("search")
@@ -774,7 +774,7 @@ def list_todos():
 @login_required
 def new_todo():
     user = current_user()
-    protocoltype_id = optional_int_arg("type_id")
+    protocoltype_id = optional_int_arg("protocoltype_id")
     protocol_id = optional_int_arg("protocol_id")
     protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
     protocol = Protocol.query.filter_by(id=protocol_id).first()
@@ -819,7 +819,7 @@ def edit_todo(todo):
     if form.validate_on_submit():
         form.populate_obj(todo)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("list_todos", protocoltype=todo.protocoltype.id))
+        return redirect(request.args.get("next") or url_for("list_todos", protocoltype_id=todo.protocoltype.id))
     return render_template("todo-edit.html", form=form, todo=todo)
 
 @app.route("/todo/show/<int:todo_id>")
@@ -839,7 +839,7 @@ def delete_todo(todo):
     db.session.delete(todo)
     db.session.commit()
     flash("Todo gelöscht.", "alert-success")
-    return redirect(request.args.get("next") or url_for("list_todos", protocoltype=type_id))
+    return redirect(request.args.get("next") or url_for("list_todos", protocoltype_id=type_id))
 
 @app.route("/todo/merge", methods=["GET", "POST"])
 @login_required
@@ -861,7 +861,7 @@ def merge_todos():
             db.session.delete(todo2)
             db.session.commit()
             flash("Merged todos {} and {}.".format(id1, id2), "alert-success")
-            return redirect(request.args.get("next") or url_for("show_todos"))
+            return redirect(request.args.get("next") or url_for("list_todos"))
     return render_template("todos-merge.html", form=form, next_url=request.args.get("next"))
 
 @app.route("/decisions/list")
