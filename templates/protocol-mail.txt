@@ -4,7 +4,7 @@ Datum: {{protocol.date|datify_long}}
 {% if protocol.start_time is not none and protocol.end_time is not none %}
 Zeit: von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}
 {% endif %}
-{% for meta in protocol.meta %}
+{% for meta in protocol.metas %}
 {{meta.name}}: {{meta.value}}
 {% endfor %}
 
