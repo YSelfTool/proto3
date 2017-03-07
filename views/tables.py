@@ -437,7 +437,7 @@ class DefaultMetasTable(Table):
         ]
         links = [
             Table.link(url_for("edit_defaultmeta", defaultmeta_id=meta.id), "Ändern"),
-            Table.link(url_for("delete_defaultmeta", defaultmeta_id=meta.id), confirm="Bist du dir sicher, dass du das Metadatenfeld {} löschen willst?".format(meta.name), "Löschen")
+            Table.link(url_for("delete_defaultmeta", defaultmeta_id=meta.id), "Löschen", confirm="Bist du dir sicher, dass du das Metadatenfeld {} löschen willst?".format(meta.name))
         ]
         link_part = [Table.concat(links)]
         return general_part + link_part
