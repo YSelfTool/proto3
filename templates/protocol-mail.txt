@@ -5,7 +5,7 @@ Datum: {{protocol.date|datify_long}}
 Zeit: von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}
 {% endif %}
 {% for meta in protocol.meta %}
-{{meta.name}}: meta.value
+{{meta.name}}: {{meta.value}}
 {% endfor %}
 
 Die Tagesordnung ist:
