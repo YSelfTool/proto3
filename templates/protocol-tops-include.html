@@ -7,9 +7,9 @@
         {% endfor %}
     {% endif %}
     {% for top in protocol.tops %}
-        <li>
+        <li{% if has_private_view_right %} class="expansion-button" id="top-{{top.id}}" title="{{top.description}}"{% endif %}>
             {{top.name}}
-            {% if not protocol.is_done() and has_public_type_view_right %}
+            {% if not protocol.is_done() and has_modify_right %}
                 ({{top.number}})
             {% endif %}
             {% if not protocol.is_done() and has_modify_right %}
@@ -17,6 +17,12 @@
                 <a href="{{url_for('move_top', top_id=top.id, diff=1)}}">Runter</a>
                 <a href="{{url_for('move_top', top_id=top.id, diff=-1)}}">Hoch</a>
                 <a href="{{url_for('delete_top', top_id=top.id)}}" onclick="return confirm('Bist du dir sicher, dass du den TOP {{top.name}} löschen möchtest?');">Löschen</a>
+            {% endif %}
+            {% if has_private_view_right and top.description|length > 0 %}
+                <span class="glyphicon glyphicon-info-sign"></span>
+                <pre id="top-{{top.id}}-description" class="expansion-text">
+                    {{-top.description-}}
+                </pre>
             {% endif %}
         </li>
     {% endfor %}

@@ -44,3 +44,7 @@ input[type="file"] {
 pre.error-description {
     white-space: pre-wrap;
 }
+
+.expansion-text {
+    display: none;
+}

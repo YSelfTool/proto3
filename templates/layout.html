@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{url_for("static", filename="css/style.css")}}" />
     {% block additional_js %}
     {% endblock %}
+    <script src="{{url_for("static", filename="js/script.js")}}" async></script>
     <title>{% block title %}Unbenannte Seite{% endblock %} - Protokollsystem</title>
     {% endblock %}
 </head>
