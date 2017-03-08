@@ -10,7 +10,6 @@ window.onload=function() {
     var buttons = document.getElementsByClassName("expansion-button");
     for (var i = 0; i < buttons.length; i++) {
         var button = buttons[i];
-        console.log(button);
         button.onclick = toggle_expansion;
     }
 };
