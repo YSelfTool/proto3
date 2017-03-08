@@ -40,3 +40,7 @@ input[type="file"] {
 .centered > a {
     margin: 8px;
 }
+
+pre.error-description {
+    white-space: pre-wrap;
+}

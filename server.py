@@ -512,6 +512,7 @@ def etherpull_protocol(protocol):
 @db_lookup(Protocol)
 @require_modify_right()
 def upload_source_to_known_protocol(protocol):
+    form = KnownProtocolSourceUploadForm()
     if form.validate_on_submit():
         if form.source.data is None:
             flash("Es wurde keine Datei ausgewählt.", "alert-error")

@@ -283,15 +283,14 @@ class ErrorTable(SingleValueTable):
         super().__init__(error.action, error)
 
     def headers(self):
-        return ["Protokoll", "Aktion", "Fehler", "Zeitpunkt", "Beschreibung"]
+        return ["Protokoll", "Aktion", "Fehler", "Zeitpunkt"]
 
     def row(self):
         return [
             Table.link(url_for("show_protocol", protocol_id=self.value.protocol.id), self.value.protocol.get_identifier()),
             self.value.action,
             self.value.name,
-            datetime_filter(self.value.datetime),
-            Markup("<pre>{}</pre>".format(self.value.description))
+            datetime_filter(self.value.datetime)
         ]
 
 class TodosTable(Table):

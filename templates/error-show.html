@@ -5,5 +5,8 @@
 {% block content %}
 <div class="container">
     {{render_single_table(error_table)}}
+    <pre class="error-description">
+        {{-error.description}}
+    </pre>
 </div>
 {% endblock %}
