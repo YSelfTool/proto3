@@ -75,6 +75,8 @@ def date_filter_short(date):
     return date.strftime("%d.%m.%Y")
 def time_filter(time):
     return time.strftime("%H:%M Uhr")
+def time_filter_short(time):
+    return time.strftime("%H:%M")
 
 def needs_date_test(todostate):
     return todostate.needs_date()

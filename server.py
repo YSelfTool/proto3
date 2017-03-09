@@ -20,7 +20,7 @@ import math
 import mimetypes
 
 import config
-from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
+from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, time_filter_short, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
 from decorators import db_lookup, require_public_view_right, require_private_view_right, require_modify_right, require_admin_right
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta
@@ -51,6 +51,7 @@ app.jinja_env.lstrip_blocks = True
 app.jinja_env.filters["datify"] = date_filter
 app.jinja_env.filters["datetimify"] = datetime_filter
 app.jinja_env.filters["timify"] = time_filter
+app.jinja_env.filters["timify_short"] = time_filter_short
 app.jinja_env.filters["datify_short"] = date_filter_short
 app.jinja_env.filters["datify_long"] = date_filter_long
 app.jinja_env.filters["url_complete"] = url_manager.complete

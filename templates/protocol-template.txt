@@ -1,5 +1,5 @@
 #Datum;{{protocol.date|datify_short}}
-#Beginn;{{protocol.protocoltype.usual_time|timify}}
+#Beginn;{{protocol.protocoltype.usual_time|timify_short}}
 #Ende;
 {% for defaultmeta in protocol.protocoltype.metas %}
 #{{defaultmeta.key}};
