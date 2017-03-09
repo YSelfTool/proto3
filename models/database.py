@@ -201,7 +201,7 @@ class Protocol(DatabaseModel):
         for default_meta in self.protocoltype.metas:
             if default_meta.key in remarks:
                 value = remarks[default_meta.key].value.strip()
-                meta = Meta(self.id, default_meta.name, value)
+                meta = Meta(protocol_id=self.id, name=default_meta.name, value=value)
                 db.session.add(meta)
         db.session.commit()
 
