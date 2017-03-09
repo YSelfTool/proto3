@@ -661,6 +661,33 @@ def send_protocol(protocol):
     flash("Das Protokoll wurde versandt.", "alert-success")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
 
+@app.route("/protocol/reminder/<int:protocol_id>")
+@login_required
+@db_lookup(Protocol)
+@require_modify_right()
+def send_protocol_reminder(protocol):
+    if not config.MAIL_ACTIVE:
+        flash("Die Mailfunktion ist nicht aktiviert.", "alert-error")
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
+    meetingreminders = MeetingReminder.query.filter_by(protocoltype_id=protocol.protocoltype.id).all()
+    if len(meetingreminders) == 0:
+        flash("Für diesen Protokolltyp sind keine Einladungsmails konfiguriert.", "alert-error")
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
+    day_difference = (protocol.date - datetime.now().date()).days
+    past_reminders = [
+        meetingreminder for meetingreminder in meetingreminders
+        if meetingreminder.days_before > day_difference
+    ]
+    if len(past_reminders) == 0:
+        flash("Bisher hätte keine Einladungsmail verschickt werden sollen, schicke letzte.", "alert-info")
+        past_reminders = meetingreminders
+    past_reminders = sorted(past_reminders, key=lambda r: r.days_before)
+    choosen_reminder = past_reminders[0]
+    tasks.send_reminder(choosen_reminder, protocol)
+    flash("Einladungsmail ist versandt.", "alert-success")
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+        
+
 @app.route("/protocol/tops/new/<int:protocol_id>", methods=["GET", "POST"])
 @login_required
 @db_lookup(Protocol)

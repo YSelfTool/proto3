@@ -27,6 +27,9 @@
                 {% endif %}
                 {% if not protocol.is_done() %}
                     <a class="btn btn-default" href="{{url_for("get_protocol_template", protocol_id=protocol.id)}}">Vorlage</a>
+                    {% if config.MAIL_ACTIVE %}
+                        <a class="btn btn-default" href="{{url_for("send_protocol_reminder", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.');">Einladung versenden</a>
+                    {% endif %}
                 {% else %}
                     {% if config.MAIL_ACTIVE %}
                         <a class="btn btn-default" href="{{url_for("send_protocol", protocol_id=protocol.id)}}">Mail versenden</a>
