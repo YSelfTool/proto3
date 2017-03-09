@@ -153,6 +153,9 @@ class ProtocolTypeTable(SingleValueTable):
         general_headers = ["Name", "Abkürzung", "Organisation", "Beginn",
             "Öffentlich", "Bearbeitungsgruppe", "Interne Gruppe",
             "Öffentliche Gruppe"]
+        etherpad_headers = ["Nicht-reproduzierbare Etherpadlinks"]
+        if not config.ETHERPAD_ACTIVE:
+            etherpad_headers = []
         mail_headers = ["Interner Verteiler", "Öffentlicher Verteiler"]
         if not config.MAIL_ACTIVE:
             mail_headers = []
@@ -167,8 +170,9 @@ class ProtocolTypeTable(SingleValueTable):
             calendar_headers = []
         network_headers = ["Netzwerke einschränken", "Erlaubte Netzwerke"]
         action_headers = ["Aktion"]
-        return (general_headers + mail_headers + printing_headers
-           + wiki_headers + calendar_headers + network_headers + action_headers)
+        return (general_headers + etherpad_headers + mail_headers
+            + printing_headers + wiki_headers + calendar_headers
+            + network_headers + action_headers)
 
     def row(self):
         user = current_user()
@@ -182,6 +186,11 @@ class ProtocolTypeTable(SingleValueTable):
             self.value.private_group,
             self.value.public_group,
         ]
+        etherpad_part = [
+            Table.bool(self.value.non_reproducible_pad_links)
+        ]
+        if not config.ETHERPAD_ACTIVE:
+            ethernet_part = []
         mail_part = [
             self.value.private_mail,
             self.value.public_mail,
@@ -208,8 +217,8 @@ class ProtocolTypeTable(SingleValueTable):
         action_part = [Table.link(url_for("delete_type", protocoltype_id=self.value.id), "Löschen", confirm="Bist du dir sicher, dass du den Protokolltype {} löschen möchtest?".format(self.value.name))]
         if not self.value.has_admin_right(user):
             action_part = [""]
-        return (general_part + mail_part + printing_part + wiki_part + 
-            calendar_part + network_part + action_part)
+        return (general_part + etherpad_part + mail_part + printing_part
+            + wiki_part +  calendar_part + network_part + action_part)
 
 class DefaultTOPsTable(Table):
     def __init__(self, tops, protocoltype=None):

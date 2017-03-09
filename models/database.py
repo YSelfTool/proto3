@@ -4,6 +4,7 @@ from datetime import datetime, time, date, timedelta
 import math
 from io import StringIO, BytesIO
 from enum import Enum
+from uuid import uuid4
 
 from shared import db, date_filter, date_filter_short, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY
 from utils import random_string, url_manager, get_etherpad_url, split_terms, check_ip_in_networks
@@ -57,6 +58,7 @@ class ProtocolType(DatabaseModel):
     public_group = db.Column(db.String)
     private_mail = db.Column(db.String)
     public_mail = db.Column(db.String)
+    non_reproducible_pad_links = db.Column(db.Boolean)
     use_wiki = db.Column(db.Boolean)
     wiki_category = db.Column(db.String)
     wiki_only_public = db.Column(db.Boolean)
@@ -145,6 +147,7 @@ class Protocol(DatabaseModel):
     end_time = db.Column(db.Time)
     done = db.Column(db.Boolean)
     public = db.Column(db.Boolean)
+    pad_identifier = db.Column(db.String)
 
     tops = relationship("TOP", backref=backref("protocol"), cascade="all, delete-orphan", order_by="TOP.number")
     decisions = relationship("Decision", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Decision.id")
@@ -222,10 +225,15 @@ class Protocol(DatabaseModel):
         return "Protokoll:{}-{:%Y-%m-%d}".format(self.protocoltype.short_name, self.date)
 
     def get_etherpad_link(self):
+        print(self.pad_identifier)
+        if self.pad_identifier is not None:
+            return self.pad_identifier
         identifier = self.get_identifier()
-        if identifier is None:
-            return ""
-        return get_etherpad_url(self.get_identifier())
+        if self.protocoltype.non_reproducible_pad_links:
+            identifier = str(uuid4())
+        self.pad_identifier = identifier
+        db.session.commit()
+        return get_etherpad_url(identifier)
 
     def get_datetime(self):
         return datetime(self.date.year, self.date.month, self.date.day, self.protocoltype.usual_time.hour, self.protocoltype.usual_time.minute)

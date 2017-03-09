@@ -102,6 +102,7 @@ class ProtocolTypeForm(FlaskForm):
     modify_group = SelectField("Bearbeitungsgruppe", choices=[])
     private_group = SelectField("Interne Gruppe", choices=[])
     public_group = SelectField("Öffentliche Gruppe", choices=[])
+    non_reproducible_pad_links = BooleanField("nicht nachvollziehbare Etherpad-Links")
     private_mail = StringField("Interner Verteiler")
     public_mail = StringField("Öffentlicher Verteiler")
     wiki_category = StringField("Wiki-Kategorie")
