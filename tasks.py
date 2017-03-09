@@ -235,7 +235,7 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
                 db.session.commit()
                 return
         if todo is None and field_id is None and what in old_todo_number_map:
-            todo = Todo(type_id=protocol.protocoltype.id,
+            todo = Todo(protocoltype_id=protocol.protocoltype.id,
                 who=who, description=what, state=field_state,
                 date=field_date, number=old_todo_number_map[what])
             db.session.add(todo)
@@ -246,7 +246,7 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
                 OldTodo.protocol_key == protocol_key).all()
             if len(old_candidates) == 0:
                 # new protocol
-                todo = Todo(type_id=protocol.protocoltype.id,
+                todo = Todo(protocoltype_id=protocol.protocoltype.id,
                     who=who, description=what, state=field_state,
                     date=field_date)
                 db.session.add(todo)
@@ -258,7 +258,7 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
                 number = field_id or lookup_todo_id(old_candidates, who, what)
                 todo = Todo.query.filter_by(number=number).first()
                 if todo is None:
-                    todo = Todo(type_id=protocol.protocoltype.id,
+                    todo = Todo(protocoltype_id=protocol.protocoltype.id,
                         who=who, description=what, state=field_state,
                         date=field_date, number=number)
                     db.session.add(todo)
@@ -295,7 +295,8 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         protocol.tops.remove(top)
     tops = []
     for index, fork in enumerate((child for child in tree.children if isinstance(child, Fork))):
-        top = TOP(protocol.id, fork.name, index, False)
+        top = TOP(protocol_id=protocol.id, name=fork.name, number=index,
+            planned=False)
         db.session.add(top)
     db.session.commit()
 
@@ -383,9 +384,21 @@ def compile_async(content, protocol_id, show_private=False, use_decision=False, 
                 for old_document in [document for document in protocol.documents if document.is_compiled and document.is_private == show_private]:
                     protocol.documents.remove(old_document)
                 db.session.commit()
-                document = Document(protocol.id, name="protokoll{}_{}_{}.pdf".format("_intern" if show_private else "", protocol.protocoltype.short_name, date_filter_short(protocol.date)), filename="", is_compiled=True, is_private=show_private)
+                document = Document(protocol_id=protocol.id,
+                    name="protokoll{}_{}_{}.pdf".format(
+                        "_intern" if show_private else "",
+                        protocol.protocoltype.short_name,
+                        date_filter_short(protocol.date)),
+                    filename="",
+                    is_compiled=True,
+                    is_private=show_private)
             else:
-                document = DecisionDocument(decision.id, name="beschluss_{}_{}_{}.pdf".format(protocol.protocoltype.short_name, date_filter_short(protocol.date), decision.id), filename="")
+                document = DecisionDocument(decision_id=decision.id,
+                    name="beschluss_{}_{}_{}.pdf".format(
+                        protocol.protocoltype.short_name,
+                        date_filter_short(protocol.date),
+                        decision.id),
+                    filename="")
             db.session.add(document)
             db.session.commit()
             target_filename = "compiled-{}-{}.pdf".format(document.id, "internal" if show_private else "public")

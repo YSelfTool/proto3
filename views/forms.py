@@ -133,12 +133,12 @@ class MeetingReminderForm(FlaskForm):
     additional_text = TextAreaField("Zusätzlicher Mailinhalt")
 
 class NewProtocolForm(FlaskForm):
-    protocoltype = SelectField("Typ", choices=[], coerce=int)
+    protocoltype_id = SelectField("Typ", choices=[], coerce=int)
     date = DateField("Datum", validators=[InputRequired("Du musst ein Datum angeben.")], format="%d.%m.%Y")
 
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
-        self.protocoltype.choices = get_protocoltype_choices(protocoltypes, add_all=False)
+        self.protocoltype_id.choices = get_protocoltype_choices(protocoltypes, add_all=False)
 
 class DocumentUploadForm(FlaskForm):
     document = FileField("Datei")
@@ -149,20 +149,20 @@ class KnownProtocolSourceUploadForm(FlaskForm):
 
 class NewProtocolSourceUploadForm(FlaskForm):
     source = FileField("Quellcode")
-    protocoltype = SelectField("Typ", choices=[], coerce=int)
+    protocoltype_id = SelectField("Typ", choices=[], coerce=int)
 
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
-        self.protocoltype.choices = get_protocoltype_choices(protocoltypes, add_all=False)
+        self.protocoltype_id.choices = get_protocoltype_choices(protocoltypes, add_all=False)
 
 class NewProtocolFileUploadForm(FlaskForm):
     file = FileField("Datei")
-    protocoltype = SelectField("Typ", choices=[], coerce=int)
+    protocoltype_id = SelectField("Typ", choices=[], coerce=int)
     private = BooleanField("Intern")
 
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
-        self.protocoltype.choices = get_protocoltype_choices(protocoltypes, add_all=False)
+        self.protocoltype_id.choices = get_protocoltype_choices(protocoltypes, add_all=False)
 
 class ProtocolForm(FlaskForm):
     date = DateField("Datum", validators=[InputRequired("Bitte gib das Datum des Protkolls an.")], format="%d.%m.%Y")

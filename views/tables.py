@@ -123,10 +123,13 @@ class ProtocolTypesTable(Table):
         has_private_view_right = protocoltype.has_private_view_right(user)
         has_modify_right = protocoltype.has_modify_right(user)
         protocoltype_link = url_for("show_type", protocoltype_id=protocoltype.id)
-        protocol_link = url_for("show_protocol", protocol_id=protocol.id)
+        protocol_link = (url_for("show_protocol", protocol_id=protocol.id)
+            if protocol is not None else "")
         new_protocol_link = url_for("new_protocol", protocoltype_id=protocoltype.id)
         mobile_name = "{} ({})".format(protocoltype.name, protocoltype.short_name)
-        mobile_links = [Table.link(protocol_link, protocol.get_identifier())]
+        mobile_links = []
+        if protocol is not None:
+            mobile_links.append(Table.link(protocol_link, protocol.get_identifier()))
         if has_modify_right:
             mobile_links.append(Table.link(new_protocol_link, "Neues Protokoll"))
         mobile_part = [

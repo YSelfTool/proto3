@@ -33,6 +33,16 @@ class DatabaseModel(db.Model):
     def has_admin_right(self, user):
         return self.get_parent().has_admin_right(user)
 
+    def __repr__(self):
+        columns = []
+        for column in self.__table__.columns:
+            column_name = column.key
+            value = getattr(self, column_name)
+            if isinstance(value, str):
+                value = "'" + value + "'"
+            columns.append("{}={}".format(column_name, value))
+        return "{}({})".format(self.__class__.__name__, ", ".join(columns))
+
 class ProtocolType(DatabaseModel):
     __tablename__ = "protocoltypes"
     __model_name__ = "protocoltype"
@@ -60,43 +70,6 @@ class ProtocolType(DatabaseModel):
     reminders = relationship("MeetingReminder", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="MeetingReminder.days_before")
     todos = relationship("Todo", backref=backref("protocoltype"), order_by="Todo.id")
     metas = relationship("DefaultMeta", backref=backref("protocoltype"), cascade="all, delete-orphan")
-
-    def __init__(self, name, short_name, organization, usual_time,
-            is_public, modify_group, private_group, public_group,
-            private_mail, public_mail, use_wiki, wiki_category,
-            wiki_only_public, printer, calendar,
-            restrict_networks, allowed_networks):
-        self.name = name
-        self.short_name = short_name
-        self.organization = organization
-        self.usual_time = usual_time
-        self.is_public = is_public
-        self.modify_group = modify_group
-        self.private_group = private_group
-        self.public_group = public_group
-        self.private_mail = private_mail
-        self.public_mail = public_mail
-        self.use_wiki = use_wiki
-        self.wiki_category = wiki_category
-        self.wiki_only_public = wiki_only_public
-        self.printer = printer
-        self.calendar = calendar
-        self.restrict_networks = restrict_networks
-        self.allowed_networks = allowed_networks
-
-    def __repr__(self):
-        return ("<ProtocolType(id={}, short_name={}, name={}, "
-                "organization={}, is_public={}, modify_group={}, "
-                "private_group={}, public_group={}, use_wiki={}, "
-                "wiki_category='{}', wiki_only_public={}, printer={}, "
-                "usual_time={}, calendar='{}', restrict_networks={}, "
-                "allowed_networks='{}')>".format(
-            self.id, self.short_name, self.name,
-            self.organization, self.is_public, self.modify_group,
-            self.private_group, self.public_group, self.use_wiki,
-            self.wiki_category, self.wiki_only_public, self.printer,
-            self.usual_time, self.calendar, self.restrict_networks,
-            self.allowed_networks))
 
     def get_latest_protocol(self):
         candidates = sorted([protocol for protocol in self.protocols if protocol.is_done()], key=lambda p: p.date, reverse=True)
@@ -179,27 +152,13 @@ class Protocol(DatabaseModel):
     errors = relationship("Error", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Error.id")
     metas = relationship("Meta", backref=backref("protocol"), cascade="all, delete-orphan")
 
-    def __init__(self, protocoltype_id, date, source=None, content_public=None, content_private=None, start_time=None, end_time=None, done=False, public=False):
-        self.protocoltype_id = protocoltype_id
-        self.date = date
-        self.source = source
-        self.content_private = content_private
-        self.content_public = content_public
-        self.start_time = start_time
-        self.end_time = end_time
-        self.done = done
-        self.public = public
-
-    def __repr__(self):
-        return "<Protocol(id={}, protocoltype_id={})>".format(
-            self.id, self.protocoltype_id)
-
     def get_parent(self):
         return self.protocoltype
 
     def create_error(self, action, name, description):
         now = datetime.now()
-        return Error(self.id, action, name, now, description)
+        return Error(protocol_id=self.id, action=action, name=name,
+            datetime=now, description=description)
 
     def fill_from_remarks(self, remarks):
         def _date_or_lazy(key, get_date=False, get_time=False):
@@ -329,15 +288,6 @@ class DefaultTOP(DatabaseModel):
     name = db.Column(db.String)
     number = db.Column(db.Integer)
 
-    def __init__(self, protocoltype_id, name, number):
-        self.protocoltype_id = protocoltype_id
-        self.name = name
-        self.number = number
-
-    def __repr__(self):
-        return "<DefaultTOP(id={}, protocoltype_id={}, name={}, number={})>".format(
-            self.id, self.protocoltype_id, self.name, self.number)
-
     def get_parent(self):
         return self.protocoltype
 
@@ -354,17 +304,6 @@ class TOP(DatabaseModel):
     planned = db.Column(db.Boolean)
     description = db.Column(db.String)
 
-    def __init__(self, protocol_id, name, number, planned, description=None):
-        self.protocol_id = protocol_id
-        self.name = name
-        self.number = number
-        self.planned = planned
-        self.description = description if description is not None else ""
-
-    def __repr__(self):
-        return "<TOP(id={}, protocol_id={}, name={}, number={}, planned={})>".format(
-            self.id, self.protocol_id, self.name, self.number, self.planned)
-
     def get_parent(self):
         return self.protocol
 
@@ -377,17 +316,6 @@ class Document(DatabaseModel):
     filename = db.Column(db.String)
     is_compiled = db.Column(db.Boolean)
     is_private = db.Column(db.Boolean)
-
-    def __init__(self, protocol_id, name, filename, is_compiled, is_private):
-        self.protocol_id = protocol_id
-        self.name = name
-        self.filename = filename
-        self.is_compiled = is_compiled
-        self.is_private = is_private
-
-    def __repr__(self):
-        return "<Document(id={}, protocol_id={}, name={}, filename={}, is_compiled={}, is_private={})>".format(
-            self.id, self.protocol_id, self.name, self.filename, self.is_compiled, self.is_private)
 
     def get_parent(self):
         return self.protocol
@@ -413,15 +341,6 @@ class DecisionDocument(DatabaseModel):
     decision_id = db.Column(db.Integer, db.ForeignKey("decisions.id"))
     name = db.Column(db.String)
     filename = db.Column(db.String)
-
-    def __init__(self, decision_id, name, filename):
-        self.decision_id = decision_id
-        self.name = name
-        self.filename = filename
-
-    def __repr__(self):
-        return "<DecisionDocument(id={}, decision_id={}, name={}, filename={})>".format(
-            self.id, self.decision_id, self.name, self.filename)
 
     def get_parent(self):
         return self.decision
@@ -530,18 +449,6 @@ class Todo(DatabaseModel):
 
     protocols = relationship("Protocol", secondary="todoprotocolassociations", backref="todos")
 
-    def __init__(self, type_id, who, description, state, date, number=None):
-        self.protocoltype_id = type_id
-        self.number = number
-        self.who = who
-        self.description = description
-        self.state = state
-        self.date = date
-
-    def __repr__(self):
-        return "<Todo(id={}, number={}, who={}, description={}, state={}, date={})>".format(
-            self.id, self.number, self.who, self.description, self.state, self.date)
-
     def get_parent(self):
         return self.protocoltype
 
@@ -628,14 +535,6 @@ class Decision(DatabaseModel):
 
     document = relationship("DecisionDocument", backref=backref("decision"), cascade="all, delete-orphan", uselist=False)
 
-    def __init__(self, protocol_id, content):
-        self.protocol_id = protocol_id
-        self.content = content
-
-    def __repr__(self):
-        return "<Decision(id={}, protocol_id={}, content='{}')>".format(
-            self.id, self.protocol_id, self.content)
-
     def get_parent(self):
         return self.protocol
 
@@ -649,17 +548,6 @@ class MeetingReminder(DatabaseModel):
     send_private = db.Column(db.Boolean)
     additional_text = db.Column(db.String)
 
-    def __init__(self, protocoltype_id, days_before, send_public, send_private, additional_text):
-        self.protocoltype_id = protocoltype_id
-        self.days_before = days_before
-        self.send_public = send_public
-        self.send_private = send_private
-        self.additional_text = additional_text
-
-    def __repr__(self):
-        return "<MeetingReminder(id={}, protocoltype_id={}, days_before={}, send_public={}, send_private={})>".format(
-            self.id, self.protocoltype_id, self.days_before, self.send_public, self.send_private)
-
     def get_parent(self):
         return self.protocoltype
 
@@ -672,17 +560,6 @@ class Error(DatabaseModel):
     name = db.Column(db.String)
     datetime = db.Column(db.DateTime)
     description = db.Column(db.String)
-
-    def __init__(self, protocol_id, action, name, datetime, description):
-        self.protocol_id = protocol_id
-        self.action = action
-        self.name = name
-        self.datetime = datetime
-        self.description = description
-
-    def __repr__(self):
-        return "<Error(id={}, protocol_id={}, action={}, name={}, datetime={})>".format(
-            self.id, self.protocol_id, self.action, self.name, self.datetime)
 
     def get_parent(self):
         return self.protocol
@@ -700,14 +577,6 @@ class TodoMail(DatabaseModel):
     name = db.Column(db.String, unique=True)
     mail = db.Column(db.String)
 
-    def __init__(self, name, mail):
-        self.name = name
-        self.mail = mail
-    
-    def __repr__(self):
-        return "<TodoMail(name='{}', mail='{}')>".format(
-            self.name, self.mail)
-
     def get_formatted_mail(self):
         return "{} <{}>".format(self.name, self.mail)
 
@@ -720,17 +589,6 @@ class OldTodo(DatabaseModel):
     description = db.Column(db.String)
     protocol_key = db.Column(db.String)
 
-    def __init__(self, old_id, who, description, protocol_key):
-        self.old_id = old_id
-        self.who = who
-        self.description = description
-        self.protocol_key = protocol_key
-
-    def __repr__(self):
-        return ("<OldTodo(id={}, old_id={}, who='{}', description='{}', "
-            "protocol={}".format(self.id, self.old_id, self.who,
-            self.description, self.protocol_key))
-
 class DefaultMeta(DatabaseModel):
     __tablename__ = "defaultmetas"
     __model_name__ = "defaultmeta"
@@ -738,15 +596,6 @@ class DefaultMeta(DatabaseModel):
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     key = db.Column(db.String)
     name = db.Column(db.String)
-
-    def __init__(self, protocoltype_id, key, name):
-        self.protocoltype_id = protocoltype_id
-        self.key = key
-        self.name = name
-
-    def __repr__(self):
-        return ("<DefaultMeta(id={}, protocoltype_id={}, key='{}', "
-            "name='{}')>".format(self.id, self.protocoltype_id, self.key))
 
     def get_parent(self):
         return self.protocoltype
@@ -758,15 +607,6 @@ class Meta(DatabaseModel):
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     name = db.Column(db.String)
     value = db.Column(db.String)
-
-    def __init__(self, protocol_id, name, value):
-        self.protocol_id = protocol_id
-        self.name = name
-        self.value = value
-
-    def __repr__(self):
-        return "<Meta(id={}, protocoltype_id={}, name={}, value={})>".format(
-            self.id, self.protocoltype_id, self.name, self.value)
 
     def get_parent(self):
         return self.protocol

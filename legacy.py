@@ -61,7 +61,7 @@ def import_old_protocols(sql_text):
             protocoltype = ProtocolType.query.filter(ProtocolType.short_name.ilike(handle)).first()
             if protocoltype is None:
                 raise KeyError("No protocoltype for handle '{}'.".format(handle))
-            protocol = Protocol(protocoltype.id, date, source=source)
+            protocol = Protocol(protocoltype_id=protocoltype.id, date=date, source=source)
             db.session.add(protocol)
             db.session.commit()
             import tasks

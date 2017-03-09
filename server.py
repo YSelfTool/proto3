@@ -208,14 +208,8 @@ def new_type():
         if form.private_group.data not in user.groups:
             flash("Du kannst keinen internen Protokolltypen anlegen, zu dem du selbst keinen Zugang hast.", "alert-error")
         else:
-            protocoltype = ProtocolType(form.name.data, form.short_name.data,
-                form.organization.data, form.usual_time.data, form.is_public.data,
-                form.modify_group.data, form.private_group.data, form.public_group.data,
-                form.private_mail.data, form.public_mail.data,
-                form.use_wiki.data, form.wiki_category.data,
-                form.wiki_only_public.data, form.printer.data,
-                form.calendar.data, form.restrict_networks.data,
-                form.allowed_networks.data)
+            protocoltype = ProtocolType()
+            form.populate_obj(protocoltype)
             db.session.add(protocoltype)
             db.session.commit()
             flash("Der Protokolltyp {} wurde angelegt.".format(protocoltype.name), "alert-success")
@@ -268,7 +262,8 @@ def delete_type(protocoltype):
 def new_reminder(protocoltype):
     form = MeetingReminderForm()
     if form.validate_on_submit():
-        meetingreminder = MeetingReminder(protocoltype.id, form.days_before.data, form.send_public.data, form.send_private.data, form.additional_text.data)
+        meetingreminder = MeetingReminder(protocoltype_id=protocoltype.id)
+        form.populate_obj(meetingreminder)
         db.session.add(meetingreminder)
         db.session.commit()
         return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
@@ -303,7 +298,8 @@ def delete_reminder(meetingreminder):
 def new_default_top(protocoltype):
     form = DefaultTopForm()
     if form.validate_on_submit():
-        defaulttop = DefaultTOP(protocoltype.id, form.name.data, form.number.data)
+        defaulttop = DefaultTOP(protocoltype_id=protocoltype.id)
+        form.populate_obj(defaulttop)
         db.session.add(defaulttop)
         db.session.commit()
         flash("Der Standard-TOP {} wurde für dem Protokolltyp {} hinzugefügt.".format(defaulttop.name, protocoltype.name), "alert-success")
@@ -447,11 +443,12 @@ def new_protocol():
     upload_form = NewProtocolSourceUploadForm(protocoltypes)
     file_upload_form = NewProtocolFileUploadForm(protocoltypes)
     if form.validate_on_submit():
-        protocoltype = ProtocolType.query.filter_by(id=form.protocoltype.data).first()
+        protocoltype = ProtocolType.query.filter_by(id=form.protocoltype_id.data).first()
         if protocoltype is None or not protocoltype.has_modify_right(user):
             flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
             return redirect(request.args.get("next") or url_for("index"))
-        protocol = Protocol(protocoltype.id, form.date.data)
+        protocol = Protocol(protocoltype_id=protocoltype.id)
+        form.populate_obj(protocol)
         db.session.add(protocol)
         db.session.commit()
         tasks.push_tops_to_calendar(protocol)
@@ -544,11 +541,11 @@ def upload_new_protocol():
             flash("Es wurde keine Datei ausgewählt.", "alert-error")
             return redirect(request.args.get("fail") or url_for("new_protocol"))
         source = file.stream.read().decode("utf-8")
-        protocoltype = ProtocolType.query.filter_by(id=form.protocoltype.data).first()
+        protocoltype = ProtocolType.query.filter_by(id=form.protocoltype_id.data).first()
         if protocoltype is None or not protocoltype.has_modify_right(user):
             flash("Invalider Protokolltyp oder keine Rechte.", "alert-error")
             return redirect(request.args.get("fail") or url_for("new_protocol"))
-        protocol = Protocol(protocoltype.id, None, source)
+        protocol = Protocol(protocoltype_id=protocoltype.id, source=source)
         db.session.add(protocol)
         db.session.commit()
         tasks.parse_protocol(protocol)
@@ -570,14 +567,16 @@ def upload_new_protocol_by_file():
             flash("Es wurde keine Datei ausgewählt.", "alert-error")
             return redirect(request.args.get("fail") or url_for("new_protocol"))
         filename = secure_filename(file.filename)
-        protocoltype = ProtocolType.query.filter_by(id=form.protocoltype.data).first()
+        protocoltype = ProtocolType.query.filter_by(id=form.protocoltype_id.data).first()
         if protocoltype is None or not protocoltype.has_modify_right(user):
             flash("Invalider Protokolltyp oder keine Rechte.", "alert-error")
             return redirect(request.args.get("fail") or url_for("new_protocol"))
-        protocol = Protocol(protocoltype.id, datetime.now().date(), done=True)
+        protocol = Protocol(protocoltype_id=protocoltype.id, date=datetime.now().date(), done=True)
         db.session.add(protocol)
         db.session.commit()
-        document = Document(protocol.id, filename, "", False, form.private.data)
+        document = Document(protocol_id=protocol.id, name=filename,
+            filename="", is_compiled=False)
+        form.populate_obj(document)
         db.session.add(document)
         db.session.commit()
         internal_filename = "{}-{}-{}".format(protocol.id, document.id, filename)
@@ -666,7 +665,8 @@ def send_protocol(protocol):
 def new_top(protocol):
     form = TopForm()
     if form.validate_on_submit():
-        top = TOP(protocol_id=protocol.id, name=form.name.data, number=form.number.data, planned=True, description=form.description.data)
+        top = TOP(protocol_id=protocol.id, planned=True)
+        form.populate_obj(top)
         db.session.add(top)
         db.session.commit()
         tasks.push_tops_to_calendar(top.protocol)
@@ -792,9 +792,8 @@ def new_todo():
         if added_protocoltype is None or not added_protocoltype.has_modify_right(user):
             flash("Invalider Protokolltyp.")
             return redirect(request.args.get("next") or url_for("index"))
-        todo = Todo(type_id=form.protocoltype_id.data, who=form.who.data,
-            description=form.description.data, tags=form.tags.data,
-            done=form.done.data)
+        todo = Todo()
+        form.populate_obj(todo)
         if protocol is not None:
             todo.protocols.append(protocol)
         db.session.add(todo)
@@ -937,7 +936,9 @@ def upload_document(protocol):
     # todo: Dateitypen einschränken?
     if file:
         filename = secure_filename(file.filename)
-        document = Document(protocol.id, filename, "", False, form.private.data)
+        document = Document(protocol_id=protocol.id, name=filename,
+            filename="", is_compiled=False)
+        form.populate_obj(document)
         db.session.add(document)
         db.session.commit()
         internal_filename = "{}-{}-{}".format(protocol.id, document.id, filename)
@@ -1028,7 +1029,8 @@ def list_todomails():
 def new_todomail():
     form = TodoMailForm()
     if form.validate_on_submit():
-        todomail = TodoMail(form.name.data, form.mail.data)
+        todomail = TodoMail()
+        form.populate_obj(todomail)
         db.session.add(todomail)
         db.session.commit()
         flash("Die Todomailzuordnung für {} wurde angelegt.".format(todomail.name), "alert-success")
@@ -1064,8 +1066,8 @@ def delete_todomail(todomail):
 def new_defaultmeta(protocoltype):
     form = DefaultMetaForm()
     if form.validate_on_submit():
-        meta = DefaultMeta(protocoltype_id=protocoltype.id, key=form.key.data,
-            name=form.name.data)
+        meta = DefaultMeta(protocoltype_id=protocoltype.id)
+        form.populate_obj(meta)
         db.session.add(meta)
         db.session.commit()
         flash("Metadatenfeld hinzugefügt.", "alert-success")
