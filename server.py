@@ -279,7 +279,7 @@ def edit_reminder(meetingreminder):
         form.populate_obj(meetingreminder)
         db.session.commit()
         return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
-    return render_template("reminder-edit.html", form=form, protocoltype=protocoltype, meetingreminder=meetingreminder)
+    return render_template("reminder-edit.html", form=form, meetingreminder=meetingreminder)
 
 @app.route("/type/reminder/delete/<int:meetingreminder_id>")
 @login_required
