@@ -134,7 +134,7 @@ class MeetingReminderForm(FlaskForm):
 
 class NewProtocolForm(FlaskForm):
     protocoltype = SelectField("Typ", choices=[], coerce=int)
-    date = DateField("Datum", validators=[InputRequired("Du musst ein Datum angeben.")], format="%d.%m.%Y")
+    date = DateField("Datum (dd.mm.yyyy)", validators=[InputRequired("Du musst ein Datum angeben.")], format="%d.%m.%Y")
 
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
@@ -165,7 +165,7 @@ class NewProtocolFileUploadForm(FlaskForm):
         self.protocoltype.choices = get_protocoltype_choices(protocoltypes, add_all=False)
 
 class ProtocolForm(FlaskForm):
-    date = DateField("Datum", validators=[InputRequired("Bitte gib das Datum des Protkolls an.")], format="%d.%m.%Y")
+    date = DateField("Datum (dd.mm.yyyy)", validators=[InputRequired("Bitte gib das Datum des Protkolls an.")], format="%d.%m.%Y")
     start_time = DateTimeField("Beginn", format="%H:%M", validators=[Optional()])
     end_time = DateTimeField("Ende", format="%H:%M", validators=[Optional()])
     location = StringField("Ort")
@@ -192,7 +192,7 @@ class NewTodoForm(FlaskForm):
     who = StringField("Person", validators=[InputRequired("Bitte gib an, wer das Todo erledigen soll.")])
     description = StringField("Aufgabe", validators=[InputRequired("Bitte gib an, was erledigt werden soll.")])
     state = SelectField("Status", choices=[], coerce=coerce_todostate, validators=[CheckTodoDateByState()])
-    date = DateField("Datum", format="%d.%m.%Y", validators=[Optional()])
+    date = DateField("Datum (dd.mm.yyyy)", format="%d.%m.%Y", validators=[Optional()])
     
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
@@ -203,7 +203,7 @@ class TodoForm(FlaskForm):
     who = StringField("Person")
     description = StringField("Aufgabe", validators=[InputRequired("Bitte gib an, was erledigt werden soll.")])
     state = SelectField("Status", choices=[], coerce=coerce_todostate, validators=[CheckTodoDateByState()])
-    date = DateField("Datum", format="%d.%m.%Y", validators=[Optional()])
+    date = DateField("Datum (dd.mm.yyyy)", format="%d.%m.%Y", validators=[Optional()])
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
