@@ -477,7 +477,6 @@ def show_protocol(protocol):
     document_upload_form = DocumentUploadForm()
     source_upload_form = KnownProtocolSourceUploadForm()
     time_diff = protocol.date - datetime.now().date()
-    print(time_diff)
     large_time_diff = not protocol.is_done() and time_diff.days > 0
     return render_template("protocol-show.html", protocol=protocol, errors_table=errors_table, documents_table=documents_table, document_upload_form=document_upload_form, source_upload_form=source_upload_form, time_diff=time_diff, large_time_diff=large_time_diff)
 

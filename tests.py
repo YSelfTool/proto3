@@ -104,6 +104,20 @@ class FullDBAnonymousTestCase(GeneralTestCase):
                 new_meta_route = "/defaultmeta/new/{}".format(protocoltype.id)
                 assert self.app.get(new_meta_route).status_code == STATUS_REDIRECT
                 assert self.app.post(new_meta_route).status_code == STATUS_REDIRECT
+
+    def test_protocols(self):
+        with proto3.app.app_context():
+            new_route = "/protocol/new"
+            assert self.app.get(new_route).status_code == STATUS_REDIRECT
+            assert self.app.post(new_route).status_code == STATUS_REDIRECT
+            protocols = Protocol.query.all()
+            for protocol in protocols:
+                visible = protocol.protocoltype.has_public_view_right(None, check_networks=False)
+                state_ok_or_redirect = STATUS_OK if visible else STATUS_REDIRECT
+                show_route = "/protocol/show/{}".format(protocol.id)
+                assert self.app.get(show_route).status_code == state_ok_or_redirect
+                assert self.app.post(show_route).status_code == STATUS_METHOD
+                
                 
 
 if __name__ == "__main__":
