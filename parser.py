@@ -408,6 +408,16 @@ class Fork(Element):
             return self
         return self.parent.get_top()
 
+    def get_top_number(self):
+        if self.is_root():
+            return 1
+        top = self.get_top()
+        tops = [child
+            for child in top.parent.children
+            if isinstance(child, Fork)
+        ]
+        return tops.index(top) + 1
+
     def get_maxdepth(self):
         child_depths = [
             child.get_maxdepth()
