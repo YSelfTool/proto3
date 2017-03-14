@@ -212,7 +212,7 @@ class ProtocolTypeTable(SingleValueTable):
             calendar_part = []
         network_part = [
             Table.bool(self.value.restrict_networks),
-            self.value.allowed_networks
+            ", ".join(map(str.strip, self.value.allowed_networks.split(",")))
         ]
         action_part = [Table.link(url_for("delete_type", protocoltype_id=self.value.id), "Löschen", confirm="Bist du dir sicher, dass du den Protokolltype {} löschen möchtest?".format(self.value.name))]
         if not self.value.has_admin_right(user):
