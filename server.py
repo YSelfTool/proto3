@@ -354,7 +354,7 @@ def list_protocols():
     protocoltypes = ProtocolType.get_public_protocoltypes(user)
     search_form = SearchForm(protocoltypes)
     if protocoltype_id is not None:
-        search_form.protocoltype.data = protocoltype_id
+        search_form.protocoltype_id.data = protocoltype_id
         protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
     if search_term is not None:
         search_form.search.data = search_term
@@ -769,7 +769,7 @@ def list_todos():
     protocoltypes = ProtocolType.get_public_protocoltypes(user)
     search_form = SearchForm(protocoltypes)
     if protocoltype_id is not None:
-        search_form.protocoltype.data = protocoltype_id
+        search_form.protocoltype_id.data = protocoltype_id
         protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
     if search_term is not None:
         search_form.search.data = search_term
@@ -901,14 +901,14 @@ def list_decisions():
     protocoltype = None
     protocoltype_id = None
     try:
-        protocoltype_id = int(request.args.get("protocoltype"))
+        protocoltype_id = int(request.args.get("protocoltype_id"))
     except (ValueError, TypeError):
         pass
     search_term = request.args.get("search")
     protocoltypes = ProtocolType.get_public_protocoltypes(user)
     search_form = SearchForm(protocoltypes)
     if protocoltype_id is not None:
-        search_form.protocoltype.data = protocoltype_id
+        search_form.protocoltype_id.data = protocoltype_id
         protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
     if search_term is not None:
         search_form.search.data = search_term

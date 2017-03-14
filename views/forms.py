@@ -182,11 +182,11 @@ class TopForm(FlaskForm):
 
 class SearchForm(FlaskForm):
     search = StringField("Suchbegriff")
-    protocoltype = SelectField("Typ", choices=[], coerce=int)
+    protocoltype_id = SelectField("Typ", choices=[], coerce=int)
 
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
-        self.protocoltype.choices = get_protocoltype_choices(protocoltypes)
+        self.protocoltype_id.choices = get_protocoltype_choices(protocoltypes)
 
 class NewTodoForm(FlaskForm):
     protocoltype_id = SelectField("Typ", choices=[], coerce=int)
