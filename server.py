@@ -467,7 +467,7 @@ def show_protocol(protocol):
     errors_table = ErrorsTable(protocol.errors)
     if not protocol.protocoltype.has_public_view_right(user, check_networks=False): # yes, feature
         flash("Die fehlen die nötigen Zugriffsrechte.", "alert-error")
-        return redirect(request.args.get("next") or url_for("login"))
+        return redirect(request.args.get("next") or url_for("login", next=request.url))
     visible_documents = [
         document for document in protocol.documents
         if (not document.is_private and document.protocol.has_public_view_right(user))
