@@ -145,5 +145,5 @@ def get_timezone_offset():
     return timedelta(hours=round(difference.seconds / 3600 + difference.days * 24))
 
 def encode_quopri(text):
-    return quopri.encodestring(text.encode("utf-8")).replace(b"\n", b"=0D=0A").decode("utf-8")
+    return quopri.encodestring(text.encode("utf-8")).replace(b"\n", b"=0A").decode("utf-8")
 
