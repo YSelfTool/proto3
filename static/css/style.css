@@ -48,3 +48,10 @@ pre.error-description {
 .expansion-text {
     display: none;
 }
+
+textarea {
+  border: 0 none white;
+  padding: 0;
+  outline: none;
+  background-color: #d0d0d0;
+}
