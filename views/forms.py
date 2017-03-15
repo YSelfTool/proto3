@@ -205,6 +205,9 @@ class DecisionSearchForm(SearchForm):
         super().__init__(protocoltypes=protocoltypes, **kwargs)
         self.decisioncategory_id.choices = get_category_choices(categories)
 
+class ProtocolSearchForm(SearchForm):
+    open = SelectField("Offen", choices=[(-1, "Alle"), (0, "Geplant"), (1, "Fertig")], coerce=int)
+
 class NewTodoForm(FlaskForm):
     protocoltype_id = SelectField("Typ", choices=[], coerce=int)
     who = StringField("Person", validators=[InputRequired("Bitte gib an, wer das Todo erledigen soll.")])

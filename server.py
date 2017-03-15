@@ -24,7 +24,7 @@ from shared import db, date_filter, datetime_filter, date_filter_long, date_filt
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
 from decorators import db_lookup, require_public_view_right, require_private_view_right, require_modify_right, require_admin_right
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta, DecisionCategory
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, DecisionSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, DecisionSearchForm, ProtocolSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable, DecisionCategoriesTable
 from legacy import import_old_todos, import_old_protocols, import_old_todomails
 
@@ -351,12 +351,19 @@ def list_protocols():
         protocoltype_id = int(request.args.get("protocoltype_id"))
     except (ValueError, TypeError):
         pass
+    open = -1
+    try:
+        open = int(request.args.get("open"))
+    except (ValueError, TypeError):
+        pass
     search_term = request.args.get("search")
     protocoltypes = ProtocolType.get_public_protocoltypes(user)
-    search_form = SearchForm(protocoltypes)
+    search_form = ProtocolSearchForm(protocoltypes)
     if protocoltype_id is not None:
         search_form.protocoltype_id.data = protocoltype_id
         protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
+    if open is not None:
+        search_form.open.data = open
     if search_term is not None:
         search_form.search.data = search_term
     protocol_query = Protocol.query
@@ -390,6 +397,12 @@ def list_protocols():
         protocols = [
             protocol for protocol in protocols
             if protocol.protocoltype.id == protocoltype_id
+        ]
+    if open is not None and open != -1:
+        protocol_done = bool(open)
+        protocols = [
+            protocol for protocol in protocols
+            if protocol.is_done() == protocol_done
         ]
     if shall_search:
         protocols = [
