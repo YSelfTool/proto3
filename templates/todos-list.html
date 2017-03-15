@@ -3,7 +3,7 @@
 {% block title %}Todos{% endblock %}
 
 {% macro page_link(page, text) %}
-    <a href="{{url_for(request.endpoint, page=page, protocoltype=protocoltype_id, search=search_term)}}">{{text}}</a>
+    <a href="{{url_for(request.endpoint, page=page, protocoltype=protocoltype_id, search=search_term, open=open)}}">{{text}}</a>
 {% endmacro %}
 
 {% block content %}

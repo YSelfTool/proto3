@@ -24,7 +24,7 @@ from shared import db, date_filter, datetime_filter, date_filter_long, date_filt
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
 from decorators import db_lookup, require_public_view_right, require_private_view_right, require_modify_right, require_admin_right
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta, DecisionCategory
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, DecisionSearchForm, ProtocolSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, DecisionSearchForm, ProtocolSearchForm, TodoSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable, DecisionCategoriesTable
 from legacy import import_old_todos, import_old_protocols, import_old_todomails
 
@@ -447,7 +447,7 @@ def list_protocols():
     end_index = (page + 1) * config.PAGE_LENGTH
     protocols = protocols[begin_index:end_index]
     protocols_table = ProtocolsTable(protocols, search_results=search_results)
-    return render_template("protocols-list.html", protocols=protocols, protocols_table=protocols_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term)
+    return render_template("protocols-list.html", protocols=protocols, protocols_table=protocols_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term, open=open)
 
 @app.route("/protocol/new", methods=["GET", "POST"])
 @login_required
@@ -779,12 +779,19 @@ def list_todos():
         protocoltype_id = int(request.args.get("protocoltype_id"))
     except (ValueError, TypeError):
         pass
+    open = -1
+    try:
+        open = int(request.args.get("open"))
+    except (ValueError, TypeError):
+        pass
     search_term = request.args.get("search")
     protocoltypes = ProtocolType.get_public_protocoltypes(user)
-    search_form = SearchForm(protocoltypes)
+    search_form = TodoSearchForm(protocoltypes)
     if protocoltype_id is not None:
         search_form.protocoltype_id.data = protocoltype_id
         protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
+    if open is not None:
+        search_form.open.data = open
     if search_term is not None:
         search_form.search.data = search_term
     todos = [
@@ -795,6 +802,12 @@ def list_todos():
         todos = [
             todo for todo in todos
             if todo.protocoltype.id == protocoltype_id
+        ]
+    if open is not None and open != -1:
+        todo_done = bool(open)
+        todos = [
+            todo for todo in todos
+            if todo.is_done() == todo_done
         ]
     if search_term is not None and len(search_term.strip()) > 0:
         todos = [
@@ -813,7 +826,7 @@ def list_todos():
     end_index = (page + 1) * config.PAGE_LENGTH
     todos = todos[begin_index:end_index]
     todos_table = TodosTable(todos)
-    return render_template("todos-list.html", todos=todos, todos_table=todos_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term)
+    return render_template("todos-list.html", todos=todos, todos_table=todos_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term, open=open)
 
 @app.route("/todo/new", methods=["GET", "POST"])
 @login_required
@@ -970,7 +983,7 @@ def list_decisions():
     end_index = (page + 1) * config.PAGE_LENGTH
     decisions = decisions[begin_index:end_index]
     decisions_table = DecisionsTable(decisions)
-    return render_template("decisions-list.html", decisions=decisions, decisions_table=decisions_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term)
+    return render_template("decisions-list.html", decisions=decisions, decisions_table=decisions_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term, decisioncategory_id=decisioncategory_id)
 
 @app.route("/document/download/<int:document_id>")
 @db_lookup(Document)

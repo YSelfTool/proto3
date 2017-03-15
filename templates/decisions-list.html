@@ -3,7 +3,7 @@
 {% block title %}Beschlüsse{% endblock %}
 
 {% macro page_link(page, text) %}
-    <a href="{{url_for(request.endpoint, page=page, protocoltype=protocoltype_id, search=search_term)}}">{{text}}</a>
+    <a href="{{url_for(request.endpoint, page=page, protocoltype=protocoltype_id, search=search_term, decisioncategory_id=decisioncategory_id)}}">{{text}}</a>
 {% endmacro %}
 
 {% block content %}
