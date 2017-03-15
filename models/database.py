@@ -226,7 +226,6 @@ class Protocol(DatabaseModel):
         return "Protokoll:{}-{:%Y-%m-%d}".format(self.protocoltype.short_name, self.date)
 
     def get_etherpad_link(self):
-        print(self.pad_identifier)
         if self.pad_identifier is not None:
             return self.pad_identifier
         identifier = self.get_identifier()
