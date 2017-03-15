@@ -18,7 +18,7 @@
         </div>
         <div id="right-column" class="col-lg-6">
             <h3>TOP hinzufügen</h3>
-            {{render_form(form, action_url=url_for("new_top", protocol_id=protocol.id, next=url_for("show_protocol", protocol_id=protocol.id)), action_text="Anlegen")}}
+            {{render_form(form, action_url=url_for("new_top", protocol_id=protocol.id, next=url_for("show_protocol", protocol_id=protocol.id)), action_text="Anlegen", textarea_rows=5)}}
         </div>
     </div>
 </div>
