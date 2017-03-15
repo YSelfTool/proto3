@@ -226,14 +226,13 @@ class Protocol(DatabaseModel):
         return "Protokoll:{}-{:%Y-%m-%d}".format(self.protocoltype.short_name, self.date)
 
     def get_etherpad_link(self):
-        if self.pad_identifier is not None:
-            return self.pad_identifier
-        identifier = self.get_identifier()
-        if self.protocoltype.non_reproducible_pad_links:
-            identifier = "{}-{}".format(identifier, str(uuid4()))
-        self.pad_identifier = identifier
-        db.session.commit()
-        return get_etherpad_url(identifier)
+        if self.pad_identifier is None:
+            identifier = self.get_identifier()
+            if self.protocoltype.non_reproducible_pad_links:
+                identifier = "{}-{}".format(identifier, str(uuid4()))
+            self.pad_identifier = identifier
+            db.session.commit()
+        return get_etherpad_url(self.pad_identifier)
 
     def get_datetime(self):
         return datetime(self.date.year, self.date.month, self.date.day, self.protocoltype.usual_time.hour, self.protocoltype.usual_time.minute)
