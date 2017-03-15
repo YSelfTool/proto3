@@ -18,7 +18,17 @@ def get_protocoltype_choices(protocoltypes, add_all=True):
         in sorted(protocoltypes, key=lambda t: t.short_name)
     ]
     if add_all:
-        choices.insert(0, (-1, "Alle"))
+        choices.insert(0, (-1, "Alle Typen"))
+    return choices
+
+def get_category_choices(categories, add_all=True):
+    choices = [
+        (category.id, category.name)
+        for category
+        in sorted(categories, key=lambda c: c.name)
+    ]
+    if add_all:
+        choices.insert(0, (-1, "Alle Kategorien"))
     return choices
 
 def get_todostate_choices():
@@ -188,6 +198,13 @@ class SearchForm(FlaskForm):
         super().__init__(**kwargs)
         self.protocoltype_id.choices = get_protocoltype_choices(protocoltypes)
 
+class DecisionSearchForm(SearchForm):
+    decisioncategory_id = SelectField("Kategorie", choices=[], coerce=int)
+
+    def __init__(self, protocoltypes, categories, **kwargs):
+        super().__init__(protocoltypes=protocoltypes, **kwargs)
+        self.decisioncategory_id.choices = get_category_choices(categories)
+
 class NewTodoForm(FlaskForm):
     protocoltype_id = SelectField("Typ", choices=[], coerce=int)
     who = StringField("Person", validators=[InputRequired("Bitte gib an, wer das Todo erledigen soll.")])
@@ -221,6 +238,9 @@ class MetaForm(FlaskForm):
 class DefaultMetaForm(FlaskForm):
     key = StringField("Key", validators=[InputRequired("Bitte gib den Protokoll-Syntax-Schlüssel der Metadaten an.")])
     name = StringField("Name", validators=[InputRequired("Bitte gib den Namen der Metadaten an.")])
+
+class DecisionCategoryForm(FlaskForm):
+    name = StringField("Name", validators=[InputRequired("Bitte gib den Namen der Kategorie an.")])
 
 class MergeTodosForm(FlaskForm):
     todo1 = IntegerField("todo 1", validators=[InputRequired()])

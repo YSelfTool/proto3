@@ -8,7 +8,7 @@ from datetime import datetime
 import traceback
 from copy import copy
 
-from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP, MeetingReminder, TodoMail, DecisionDocument, TodoState, OldTodo
+from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP, MeetingReminder, TodoMail, DecisionDocument, TodoState, OldTodo, DecisionCategory
 from models.errors import DateNotMatchingException
 from server import celery, app
 from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter, KNOWN_KEYS
@@ -281,7 +281,32 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
             db.session.add(error)
             db.session.commit()
             return
-        decision = Decision(protocol_id=protocol.id, content=decision_tag.values[0])
+        decision_content = decision_tag.values[0]
+        decision_category_id = None
+        if len(decision_tag.values) > 1:
+            decision_category_name = decision_tag.values[1]
+            decision_category = DecisionCategory.query.filter_by(protocoltype_id=protocol.protocoltype.id, name=decision_category_name).first()
+            if decision_category is None:
+                category_candidates = DecisionCategory.query.filter_by(protocoltype_id=protocol.protocoltype.id).all()
+                category_names = [
+                    "'{}'".format(category.name)
+                    for category in category_candidates
+                ]
+                error = protocol.create_error("Parsing",
+                    "Unknown decision category",
+                    "The decision in line {} has the category {}, "
+                    "but there is no such category. "
+                    "Known categories are {}".format(
+                        decision_tag.linenumber,
+                        decision_category_name,
+                        ", ".join(category_names)))
+                db.session.add(error)
+                db.session.commit()
+                return
+            else:
+                decision_category_id = decision_category.id
+        decision = Decision(protocol_id=protocol.id,
+            content=decision_content, category_id=decision_category_id)
         db.session.add(decision)
         db.session.commit()
         decision_top = decision_tag.fork.get_top()

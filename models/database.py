@@ -72,6 +72,7 @@ class ProtocolType(DatabaseModel):
     reminders = relationship("MeetingReminder", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="MeetingReminder.days_before")
     todos = relationship("Todo", backref=backref("protocoltype"), order_by="Todo.id")
     metas = relationship("DefaultMeta", backref=backref("protocoltype"), cascade="all, delete-orphan")
+    decisioncategories = relationship("DecisionCategory", backref=backref("protocoltype"), cascade="all, delete-orphan")
 
     def get_latest_protocol(self):
         candidates = sorted([protocol for protocol in self.protocols if protocol.is_done()], key=lambda p: p.date, reverse=True)
@@ -540,11 +541,24 @@ class Decision(DatabaseModel):
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     content = db.Column(db.String)
+    category_id = db.Column(db.Integer, db.ForeignKey("decisioncategories.id"), nullable=True)
 
     document = relationship("DecisionDocument", backref=backref("decision"), cascade="all, delete-orphan", uselist=False)
 
     def get_parent(self):
         return self.protocol
+
+class DecisionCategory(DatabaseModel):
+    __tablename__ = "decisioncategories"
+    __model_name__ = "decisioncategory"
+    id = db.Column(db.Integer, primary_key=True)
+    protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
+    name = db.Column(db.String)
+
+    decisions = relationship("Decision", backref=backref("category"), order_by="Decision.id")
+
+    def get_parent(self):
+        return self.protocoltype
 
 class MeetingReminder(DatabaseModel):
     __tablename__ = "meetingreminders"
@@ -621,6 +635,6 @@ class Meta(DatabaseModel):
 
 ALL_MODELS = [
     ProtocolType, Protocol, DefaultTOP, TOP, Document, DecisionDocument,
-    Todo, Decision, MeetingReminder, Error, DefaultMeta, Meta
+    Todo, Decision, MeetingReminder, Error, DefaultMeta, Meta, DecisionCategory
 ]
     

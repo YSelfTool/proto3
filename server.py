@@ -23,9 +23,9 @@ import config
 from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, time_filter_short, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
 from decorators import db_lookup, require_public_view_right, require_private_view_right, require_modify_right, require_admin_right
-from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm
-from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable
+from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta, DecisionCategory
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, DecisionSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm
+from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable, DecisionCategoriesTable
 from legacy import import_old_todos, import_old_protocols, import_old_todomails
 
 app = Flask(__name__)
@@ -242,7 +242,8 @@ def show_type(protocoltype):
     default_tops_table = DefaultTOPsTable(protocoltype.default_tops, protocoltype)
     reminders_table = MeetingRemindersTable(protocoltype.reminders, protocoltype)
     metas_table = DefaultMetasTable(protocoltype.metas, protocoltype)
-    return render_template("type-show.html", protocoltype=protocoltype, protocoltype_table=protocoltype_table, default_tops_table=default_tops_table, metas_table=metas_table, reminders_table=reminders_table, mail_active=config.MAIL_ACTIVE)
+    categories_table = DecisionCategoriesTable(protocoltype.decisioncategories, protocoltype)
+    return render_template("type-show.html", protocoltype=protocoltype, protocoltype_table=protocoltype_table, default_tops_table=default_tops_table, metas_table=metas_table, reminders_table=reminders_table, mail_active=config.MAIL_ACTIVE, categories_table=categories_table)
 
 @app.route("/type/delete/<int:protocoltype_id>")
 @login_required
@@ -900,16 +901,30 @@ def list_decisions():
     user = current_user()
     protocoltype = None
     protocoltype_id = None
+    decisioncategory = None
+    decisioncategory_id = None
     try:
         protocoltype_id = int(request.args.get("protocoltype_id"))
     except (ValueError, TypeError):
         pass
+    try:
+        decisioncategory_id = int(request.args.get("decisioncategory_id"))
+    except (ValueError, TypeError):
+        pass
     search_term = request.args.get("search")
     protocoltypes = ProtocolType.get_public_protocoltypes(user)
-    search_form = SearchForm(protocoltypes)
+    decisioncategories = [
+        category
+        for protocoltype in protocoltypes
+        for category in protocoltype.decisioncategories
+    ]
+    search_form = DecisionSearchForm(protocoltypes, decisioncategories)
     if protocoltype_id is not None:
         search_form.protocoltype_id.data = protocoltype_id
         protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
+    if decisioncategory_id is not None:
+        search_form.decisioncategory_id.data = decisioncategory_id
+        decisioncategory = DecisionCategory.query.filter_by(id=decisioncategory_id).first()
     if search_term is not None:
         search_form.search.data = search_term
     decisions = [
@@ -920,6 +935,12 @@ def list_decisions():
         decisions = [
             decision for decision in decisions 
             if decision.protocol.protocoltype.id == protocoltype_id
+        ]
+    if decisioncategory_id is not None and decisioncategory_id != -1:
+        decisions = [
+            decision for decision in decisions
+            if decision.category is not None
+            and decision.category.id == decisioncategory_id
         ]
     if search_term is not None and len(search_term.strip()) > 0:
         decisions = [
@@ -1126,7 +1147,47 @@ def delete_defaultmeta(defaultmeta):
     type_id = defaultmeta.protocoltype.id
     db.session.delete(meta)
     db.session.commit()
-    flash("Metadatenfeld '{}' gelöscht.".format(name), "alert-error")
+    flash("Metadatenfeld '{}' gelöscht.".format(name), "alert-success")
+    return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=type_id))
+
+@app.route("/decisioncategory/new/<int:protocoltype_id>", methods=["GET", "POST"])
+@login_required
+@db_lookup(ProtocolType)
+@require_modify_right()
+def new_decisioncategory(protocoltype):
+    form = DecisionCategoryForm()
+    if form.validate_on_submit():
+        category = DecisionCategory(protocoltype_id=protocoltype.id)
+        form.populate_obj(category)
+        db.session.add(category)
+        db.session.commit()
+        flash("Beschlusskategorie hinzugefügt.", "alert-success")
+        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
+    return render_template("decisioncategory-new.html", form=form, protocoltype=protocoltype)
+
+@app.route("/decisioncategory/edit/<int:decisioncategory_id>", methods=["GET", "POST"])
+@login_required
+@db_lookup(DecisionCategory)
+@require_modify_right()
+def edit_decisioncategory(decisioncategory):
+    form = DecisionCategoryForm(obj=decisioncategory)
+    if form.validate_on_submit():
+        form.populate_obj(decisioncategory)
+        db.session.commit()
+        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=decisioncategory.protocoltype.id))
+    return render_template("decisioncategory-edit.html", form=form, decisioncategory=decisioncategory)
+
+@app.route("/decisioncategory/delete/<int:decisioncategory_id>")
+@login_required
+@group_required(config.ADMIN_GROUP)
+@db_lookup(DecisionCategory)
+@require_modify_right()
+def delete_decisioncategory(decisioncategory):
+    name = decisioncategory.name
+    type_id = decisioncategory.protocoltype.id
+    db.session.delete(decisioncategory)
+    db.session.commit()
+    flash("Beschlusskategorie {} gelöscht.".format(name), "alert-success")
     return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=type_id))
 
 @app.route("/login", methods=["GET", "POST"])

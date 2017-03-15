@@ -373,21 +373,36 @@ class TodoTable(SingleValueTable):
 class DecisionsTable(Table):
     def __init__(self, decisions):
         super().__init__("Beschlüsse", decisions)
+        self.category_present = len([
+            decision for decision in decisions
+            if decision.category is not None
+        ]) > 0
 
     def headers(self):
-        return ["Sitzung", "Beschluss", ""]
+        content_part = ["Sitzung", "Beschluss"]
+        category_part = ["Kategorie"]
+        if not self.category_present:
+            category_part = []
+        action_part = [""]
+        return content_part + category_part + action_part
 
     def row(self, decision):
         user = current_user()
-        return [
+        content_part = [
             Table.link(url_for("show_protocol", protocol_id=decision.protocol.id), decision.protocol.get_identifier()),
-            decision.content,
+            decision.content
+        ]
+        category_part = [decision.category.name if decision.category is not None else ""]
+        if not self.category_present:
+            category_part = []
+        action_part = [
             Table.link(url_for("print_decision", decisiondocument_id=decision.document.id), "Drucken")
                 if config.PRINTING_ACTIVE
                 and decision.protocol.protocoltype.has_modify_right(user)
                 and decision.document is not None 
                 else ""
         ]
+        return content_part + category_part + action_part
 
 class DocumentsTable(Table):
     def __init__(self, documents):
@@ -452,4 +467,27 @@ class DefaultMetasTable(Table):
         ]
         link_part = [Table.concat(links)]
         return general_part + link_part
+
+class DecisionCategoriesTable(Table):
+    def __init__(self, categories, protocoltype):
+        print(categories)
+        super().__init__(
+            "Beschlusskategorien",
+            categories, 
+            url_for("new_decisioncategory", protocoltype_id=protocoltype.id)
+        )
+
+    def headers(self):
+        return ["Name", ""]
+
+    def row(self, category):
+        user = current_user()
+        general_part = [category.name]
+        action_part = [
+            Table.concat([
+                Table.link(url_for("edit_decisioncategory", decisioncategory_id=category.id), "Ändern"),
+                Table.link(url_for("delete_decisioncategory", decisioncategory_id=category.id), "Löschen", confirm="Bist du dir sicher, dass du die Beschlusskategorie {} löschen willst?".format(category.name))
+            ])
+        ]
+        return general_part + action_part
 

@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_form %}
+{% block title %}Beschlusskategorie hinzufügen{% endblock %}
+
+{% block content %}
+<div class="container">
+    {{render_form(form, action_url=url_for("new_decisioncategory", protocoltype_id=protocoltype.id, next=url_for("show_type", protocoltype_id=protocoltype.id)), action_text="Anlegen")}}
+</div>
+{% endblock %}
