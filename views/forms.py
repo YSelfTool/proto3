@@ -190,6 +190,9 @@ class TopForm(FlaskForm):
     number = IntegerField("Sortierung", validators=[InputRequired("Du musst eine Sortierung in der Reihenfolge angebene.")])
     description = TextAreaField("Beschreibung")
 
+class LocalTopForm(FlaskForm):
+    description = TextAreaField("Beschreibung")
+
 class SearchForm(FlaskForm):
     search = StringField("Suchbegriff")
     protocoltype_id = SelectField("Typ", choices=[], coerce=int)

@@ -32,7 +32,7 @@
 {% if not protocol.has_nonplanned_tops() %}
     {% for default_top in protocol.protocoltype.default_tops %}
         {% if not default_top.is_at_end() %}
-            {{-render_top(default_top)}}
+            {{-render_top(default_top.get_top(protocol), use_description=True)}}
         {% endif %}
     {% endfor %}
 {% endif %}
@@ -42,7 +42,7 @@
 {% if not protocol.has_nonplanned_tops() %}
     {% for default_top in protocol.protocoltype.default_tops %}
         {% if default_top.is_at_end() %}
-{{render_top(default_top)}}
+            {{-render_top(default_top.get_top(protocol), use_description=True)}}
         {% endif %}
     {% endfor %}
 {% endif %}

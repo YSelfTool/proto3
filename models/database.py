@@ -98,7 +98,6 @@ class ProtocolType(DatabaseModel):
         return ((user is not None
             and (self.private_group != "" and self.private_group in user.groups))
             or self.has_admin_right(user))
-            
 
     def has_modify_right(self, user):
         return ((user is not None
@@ -135,6 +134,7 @@ class ProtocolType(DatabaseModel):
     def get_wiki_infobox_title(self):
         return "Vorlage:{}".format(self.get_wiki_infobox())
 
+
 class Protocol(DatabaseModel):
     __tablename__ = "protocols"
     __model_name__ = "protocol"
@@ -155,6 +155,7 @@ class Protocol(DatabaseModel):
     documents = relationship("Document", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Document.is_compiled")
     errors = relationship("Error", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Error.id")
     metas = relationship("Meta", backref=backref("protocol"), cascade="all, delete-orphan")
+    localtops = relationship("LocalTOP", backref=backref("protocol"), cascade="all, delete-orphan")
 
     def get_parent(self):
         return self.protocoltype
@@ -282,6 +283,17 @@ class Protocol(DatabaseModel):
             self.todos.remove(todo)
             db.session.delete(todo)
 
+    def get_tops(self):
+        tops_before, tops_after = [], []
+        if not self.has_nonplanned_tops():
+            for default_top in self.protocoltype.default_tops:
+                top = default_top.get_top(self)
+                if default_top.is_at_end():
+                    tops_after.append(top)
+                else:
+                    tops_before.append(top)
+        return tops_before + self.tops + tops_after
+
 @event.listens_for(Protocol, "before_delete")
 def on_protocol_delete(mapper, connection, protocol):
     protocol.delete_orphan_todos()
@@ -295,11 +307,29 @@ class DefaultTOP(DatabaseModel):
     name = db.Column(db.String)
     number = db.Column(db.Integer)
 
+    localtops = relationship("LocalTOP", backref=backref("defaulttop"), cascade="all, delete-orphan")
+
     def get_parent(self):
         return self.protocoltype
 
     def is_at_end(self):
         return self.number > 0
+
+    def get_localtop(self, protocol):
+        localtop = LocalTOP.query.filter_by(defaulttop_id=self.id,
+            protocol_id=protocol.id).first()
+        if localtop is None:
+            localtop = LocalTOP(protocol_id=protocol.id, defaulttop_id=self.id,
+                description="")
+            db.session.add(localtop)
+            db.session.commit()
+        return localtop
+
+    def get_top(self, protocol):
+        localtop = self.get_localtop(protocol)
+        top = TOP(protocol_id=protocol.id, name=self.name,
+            description=localtop.description)
+        return top
 
 class TOP(DatabaseModel):
     __tablename__ = "tops"
@@ -309,6 +339,17 @@ class TOP(DatabaseModel):
     name = db.Column(db.String)
     number = db.Column(db.Integer)
     planned = db.Column(db.Boolean)
+    description = db.Column(db.String)
+
+    def get_parent(self):
+        return self.protocol
+
+class LocalTOP(DatabaseModel):
+    __tablename__ = "localtops"
+    __model_name__ = "localtop"
+    id = db.Column(db.Integer, primary_key=True)
+    protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
+    defaulttop_id = db.Column(db.Integer, db.ForeignKey("defaulttops.id"))
     description = db.Column(db.String)
 
     def get_parent(self):

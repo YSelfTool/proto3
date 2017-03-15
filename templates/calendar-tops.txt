@@ -1,17 +1,3 @@
-{% if not protocol.has_nonplanned_tops() %}
-    {% for default_top in protocol.protocoltype.default_tops %}
-        {% if not default_top.is_at_end() %}
-{{default_top.name}}
-        {% endif %}
-    {% endfor %}
-{% endif %}
-{% for top in protocol.tops %}
+{% for top in protocol.get_tops() %}
 {{top.name}}
 {% endfor %}
-{% if not protocol.has_nonplanned_tops() %}
-    {% for default_top in protocol.protocoltype.default_tops %}
-        {% if default_top.is_at_end() %}
-{{default_top.name}}
-        {% endif %}
-    {% endfor %}
-{% endif %}

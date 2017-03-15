@@ -23,8 +23,8 @@ import config
 from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, time_filter_short, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg
 from decorators import db_lookup, require_public_view_right, require_private_view_right, require_modify_right, require_admin_right
-from models.database import ProtocolType, Protocol, DefaultTOP, TOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta, DecisionCategory
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, SearchForm, DecisionSearchForm, ProtocolSearchForm, TodoSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm
+from models.database import ProtocolType, Protocol, DefaultTOP, TOP, LocalTOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta, DecisionCategory
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, LocalTopForm, SearchForm, DecisionSearchForm, ProtocolSearchForm, TodoSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable, DecisionCategoriesTable
 from legacy import import_old_todos, import_old_protocols, import_old_todomails
 
@@ -759,6 +759,18 @@ def move_top(top, diff):
     except ValueError:
         flash("Die angegebene Differenz ist keine Zahl.", "alert-error")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=top.protocol.id))
+
+@app.route("/protocol/localtop/edit/<int:localtop_id>", methods=["GET", "POST"])
+@login_required
+@db_lookup(LocalTOP)
+@require_modify_right()
+def edit_localtop(localtop):
+    form = LocalTopForm(obj=localtop)
+    if form.validate_on_submit():
+        form.populate_obj(localtop)
+        db.session.commit()
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=localtop.protocol.id))
+    return render_template("localtop-edit.html", form=form, localtop=localtop)
 
 def _get_page():
     try:
