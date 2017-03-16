@@ -177,8 +177,8 @@ class NewProtocolFileUploadForm(FlaskForm):
 
 class ProtocolForm(FlaskForm):
     date = DateField("Datum (dd.mm.yyyy)", validators=[InputRequired("Bitte gib das Datum des Protkolls an.")], format="%d.%m.%Y")
-    start_time = DateTimeField("Beginn", format="%H:%M", validators=[Optional()])
-    end_time = DateTimeField("Ende", format="%H:%M", validators=[Optional()])
+    start_time = DateTimeField("Beginn (%H:%M)", format="%H:%M", validators=[Optional()])
+    end_time = DateTimeField("Ende (%H:%M)", format="%H:%M", validators=[Optional()])
     location = StringField("Ort")
     author = StringField("Protokoll")
     participants = StringField("Anwesende")
