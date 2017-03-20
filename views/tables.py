@@ -58,16 +58,20 @@ class ProtocolsTable(Table):
         self.search_results = search_results
 
     def headers(self):
+        user = current_user()
         result = ["ID", "Sitzung", "Sitzung", "Datum"]
         state_part = ["Status"]
         search_part = ["Suchergebnis"]
-        login_part = ["Typ", "Löschen"]
+        login_part = ["Typ"]
+        admin_part = ["Löschen"]
         if self.search_results is None:
             result.extend(state_part)
         else:
             result.extend(search_part)
         if check_login():
             result.extend(login_part)
+        if protocol.protocoltype.has_admin_right(user):
+            result.extend(admin_part)
         return result
 
     def classes(self):
