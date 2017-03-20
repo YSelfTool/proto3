@@ -174,7 +174,7 @@ def index():
         ]
         def _todo_sort_key(todo):
             protocol = todo.get_first_protocol()
-            return protocol.date if protocol.date is not None else datetime.now().date()
+            return protocol.date if protocol is not None and protocol.date is not None else datetime.now().date()
         todos = sorted(todos, key=_todo_sort_key, reverse=True)
     todos_table = TodosTable(todos) if todos is not None else None
     return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos)

@@ -319,12 +319,12 @@ class TodosTable(Table):
     def row(self, todo):
         user = current_user()
         protocol = todo.get_first_protocol()
+        mobile_parts = [Table.link(url_for("show_todo", todo_id=todo.id), todo.get_state())]
+        if protocol is not None:
+            mobile_parts.append(Table.link(url_for("show_protocol", protocol_id=protocol.id), todo.protocoltype.short_name))
+        mobile_parts.append(todo.who)
         row = [
-            Markup("<br>").join([
-                Table.link(url_for("show_todo", todo_id=todo.id), todo.get_state()),
-                Table.link(url_for("show_protocol", protocol_id=protocol.id), todo.protocoltype.short_name),
-                todo.who
-            ]),
+            Markup("<br>").join(mobile_parts),
             Table.link(url_for("show_todo", todo_id=todo.id), todo.get_id()),
             todo.get_state(),
             Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier())
