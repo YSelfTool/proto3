@@ -210,10 +210,11 @@ class ProtocolTypeTable(SingleValueTable):
         calendar_part = [self.value.calendar if self.value.calendar is not None else ""]
         if not config.CALENDAR_ACTIVE:
             calendar_part = []
-        network_part = [
-            Table.bool(self.value.restrict_networks),
-            ", ".join(map(str.strip, self.value.allowed_networks.split(",")))
-        ]
+        network_part = [Table.bool(self.value.restrict_networks)]
+        if self.value.allowed_networks is not None:
+            network_part.append(", ".join(map(str.strip, self.value.allowed_networks.split(","))))
+        else:
+            network_part.append("")
         action_part = [Table.link(url_for("delete_type", protocoltype_id=self.value.id), "Löschen", confirm="Bist du dir sicher, dass du den Protokolltype {} löschen möchtest?".format(self.value.name))]
         if not self.value.has_admin_right(user):
             action_part = [""]
