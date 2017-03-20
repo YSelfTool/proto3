@@ -357,7 +357,7 @@ def list_protocols():
     except (ValueError, TypeError):
         pass
     search_term = request.args.get("search")
-    protocoltypes = ProtocolType.get_public_protocoltypes(user)
+    protocoltypes = ProtocolType.get_public_protocoltypes(user, check_networks=False)
     search_form = ProtocolSearchForm(protocoltypes)
     if protocoltype_id is not None:
         search_form.protocoltype_id.data = protocoltype_id
@@ -950,7 +950,7 @@ def list_decisions():
     except (ValueError, TypeError):
         pass
     search_term = request.args.get("search")
-    protocoltypes = ProtocolType.get_public_protocoltypes(user)
+    protocoltypes = ProtocolType.get_public_protocoltypes(user, check_networks=False)
     decisioncategories = [
         category
         for protocoltype in protocoltypes

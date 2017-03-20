@@ -115,10 +115,10 @@ class ProtocolType(DatabaseModel):
         ]
 
     @staticmethod
-    def get_public_protocoltypes(user):
+    def get_public_protocoltypes(user, check_networks=True):
         return [
             protocoltype for protocoltype in ProtocolType.query.all()
-            if protocoltype.has_public_view_right(user)
+            if protocoltype.has_public_view_right(user, check_networks=check_networks)
         ]
 
     @staticmethod
