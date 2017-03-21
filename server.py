@@ -487,7 +487,7 @@ def show_protocol(protocol):
         if (not document.is_private and document.protocol.has_public_view_right(user))
         or (document.is_private and document.protocol.protocoltype.has_private_view_right(user))
     ]
-    documents_table = DocumentsTable(visible_documents)
+    documents_table = DocumentsTable(visible_documents, protocol)
     document_upload_form = DocumentUploadForm()
     source_upload_form = KnownProtocolSourceUploadForm()
     time_diff = protocol.date - datetime.now().date()

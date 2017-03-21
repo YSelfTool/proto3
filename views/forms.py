@@ -153,7 +153,7 @@ class NewProtocolForm(FlaskForm):
 
 class DocumentUploadForm(FlaskForm):
     document = FileField("Datei")
-    private = BooleanField("Intern")
+    is_private = BooleanField("Intern")
 
 class KnownProtocolSourceUploadForm(FlaskForm):
     source = FileField("Quellcode")
