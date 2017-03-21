@@ -174,7 +174,7 @@ def index():
         ]
         def _todo_sort_key(todo):
             protocol = todo.get_first_protocol()
-            return protocol.date if protocol.date is not None else datetime.now().date()
+            return protocol.date if protocol is not None and protocol.date is not None else datetime.now().date()
         todos = sorted(todos, key=_todo_sort_key, reverse=True)
     todos_table = TodosTable(todos) if todos is not None else None
     return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos)
@@ -357,7 +357,7 @@ def list_protocols():
     except (ValueError, TypeError):
         pass
     search_term = request.args.get("search")
-    protocoltypes = ProtocolType.get_public_protocoltypes(user)
+    protocoltypes = ProtocolType.get_public_protocoltypes(user, check_networks=False)
     search_form = ProtocolSearchForm(protocoltypes)
     if protocoltype_id is not None:
         search_form.protocoltype_id.data = protocoltype_id
@@ -489,7 +489,7 @@ def show_protocol(protocol):
         if (not document.is_private and document.protocol.has_public_view_right(user))
         or (document.is_private and document.protocol.protocoltype.has_private_view_right(user))
     ]
-    documents_table = DocumentsTable(visible_documents)
+    documents_table = DocumentsTable(visible_documents, protocol)
     document_upload_form = DocumentUploadForm()
     source_upload_form = KnownProtocolSourceUploadForm()
     time_diff = protocol.date - datetime.now().date()
@@ -963,7 +963,7 @@ def list_decisions():
     except (ValueError, TypeError):
         pass
     search_term = request.args.get("search")
-    protocoltypes = ProtocolType.get_public_protocoltypes(user)
+    protocoltypes = ProtocolType.get_public_protocoltypes(user, check_networks=False)
     decisioncategories = [
         category
         for protocoltype in protocoltypes

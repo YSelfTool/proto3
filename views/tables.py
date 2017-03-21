@@ -58,10 +58,11 @@ class ProtocolsTable(Table):
         self.search_results = search_results
 
     def headers(self):
+        user = current_user()
         result = ["ID", "Sitzung", "Sitzung", "Datum"]
         state_part = ["Status"]
         search_part = ["Suchergebnis"]
-        login_part = ["Typ", "Löschen"]
+        login_part = ["Typ", ""]
         if self.search_results is None:
             result.extend(state_part)
         else:
@@ -97,6 +98,8 @@ class ProtocolsTable(Table):
                 result.append(Table.link(url_for("show_type", protocoltype_id=protocol.protocoltype.id), protocol.protocoltype.short_name))
                 if protocol.protocoltype.has_admin_right(user):
                     result.append(Table.link(url_for("delete_protocol", protocol_id=protocol.id), "Löschen", confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?".format(protocol.get_identifier())))
+                else:
+                    result.append("")
             else:
                 result.extend(["", ""])
         return result
@@ -210,10 +213,11 @@ class ProtocolTypeTable(SingleValueTable):
         calendar_part = [self.value.calendar if self.value.calendar is not None else ""]
         if not config.CALENDAR_ACTIVE:
             calendar_part = []
-        network_part = [
-            Table.bool(self.value.restrict_networks),
-            ", ".join(map(str.strip, self.value.allowed_networks.split(",")))
-        ]
+        network_part = [Table.bool(self.value.restrict_networks)]
+        if self.value.allowed_networks is not None:
+            network_part.append(", ".join(map(str.strip, self.value.allowed_networks.split(","))))
+        else:
+            network_part.append("")
         action_part = [Table.link(url_for("delete_type", protocoltype_id=self.value.id), "Löschen", confirm="Bist du dir sicher, dass du den Protokolltype {} löschen möchtest?".format(self.value.name))]
         if not self.value.has_admin_right(user):
             action_part = [""]
@@ -318,12 +322,12 @@ class TodosTable(Table):
     def row(self, todo):
         user = current_user()
         protocol = todo.get_first_protocol()
+        mobile_parts = [Table.link(url_for("show_todo", todo_id=todo.id), todo.get_state())]
+        if protocol is not None:
+            mobile_parts.append(Table.link(url_for("show_protocol", protocol_id=protocol.id), todo.protocoltype.short_name))
+        mobile_parts.append(todo.who)
         row = [
-            Markup("<br>").join([
-                Table.link(url_for("show_todo", todo_id=todo.id), todo.get_state()),
-                Table.link(url_for("show_protocol", protocol_id=protocol.id), todo.protocoltype.short_name),
-                todo.who
-            ]),
+            Markup("<br>").join(mobile_parts),
             Table.link(url_for("show_todo", todo_id=todo.id), todo.get_id()),
             todo.get_state(),
             Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier())
@@ -405,14 +409,27 @@ class DecisionsTable(Table):
         return content_part + category_part + action_part
 
 class DocumentsTable(Table):
-    def __init__(self, documents):
+    def __init__(self, documents, protocol):
         super().__init__("Anhang", documents)
+        self.protocol = protocol
 
     def headers(self):
-        return ["ID", "Name", ""]
+        user = current_user()
+        general_headers = ["ID", "Name"]
+        visibility_headers = []
+        if self.protocol.has_private_view_right(user):
+            visibility_headers = ["Sichtbarkeit"]
+        action_headers=[""]
+        return general_headers + visibility_headers + action_headers
 
     def classes(self):
-        return [None, None, "hidden-xs"]
+        user = current_user()
+        general_part = [None, None]
+        visibility_part = []
+        if self.protocol.has_private_view_right(user):
+            visibility_part = [None]
+        action_part = ["hidden-xs"]
+        return general_part + visibility_part + action_part
 
     def row(self, document):
         user = current_user()
@@ -421,11 +438,15 @@ class DocumentsTable(Table):
             links.append(Table.link(url_for("print_document", document_id=document.id), "Drucken"))
         if document.protocol.protocoltype.has_admin_right(user):
             links.append(Table.link(url_for("delete_document", document_id=document.id), "Löschen", confirm="Bist du dir sicher, dass du das Dokument {} löschen willst?".format(document.name)))
-        return [
+        general_part = [
             document.id,
             Table.link(url_for("download_document", document_id=document.id), document.name),
-            Table.concat(links)
         ]
+        visibility_part = []
+        if document.protocol.has_private_view_right(user):
+            visibility_part = ["Intern" if document.is_private else "Öffentlich"]
+        action_part = [Table.concat(links)]
+        return general_part + visibility_part + action_part
 
 class TodoMailsTable(Table):
     def __init__(self, todomails):
