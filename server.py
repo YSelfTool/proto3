@@ -351,9 +351,9 @@ def list_protocols():
         protocoltype_id = int(request.args.get("protocoltype_id"))
     except (ValueError, TypeError):
         pass
-    open = -1
+    state_open = -1
     try:
-        open = int(request.args.get("open"))
+        state_open = int(request.args.get("state_open"))
     except (ValueError, TypeError):
         pass
     search_term = request.args.get("search")
@@ -362,8 +362,8 @@ def list_protocols():
     if protocoltype_id is not None:
         search_form.protocoltype_id.data = protocoltype_id
         protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
-    if open is not None:
-        search_form.open.data = open
+    if state_open is not None:
+        search_form.state_open.data = state_open
     if search_term is not None:
         search_form.search.data = search_term
     protocol_query = Protocol.query
@@ -398,8 +398,8 @@ def list_protocols():
             protocol for protocol in protocols
             if protocol.protocoltype.id == protocoltype_id
         ]
-    if open is not None and open != -1:
-        protocol_done = bool(open)
+    if state_open is not None and state_open != -1:
+        protocol_done = bool(state_open)
         protocols = [
             protocol for protocol in protocols
             if protocol.is_done() == protocol_done
@@ -440,14 +440,16 @@ def list_protocols():
             search_results[protocol] = " …<br />\n".join(formatted_lines)
     protocols = sorted(protocols, key=lambda protocol: protocol.date, reverse=True)
     page = _get_page()
-    page_count = int(math.ceil(len(protocols) / config.PAGE_LENGTH))
+    page_length = _get_page_length()
+    page_count = int(math.ceil(len(protocols) / page_length))
     if page >= page_count:
         page = 0
-    begin_index = page * config.PAGE_LENGTH
-    end_index = (page + 1) * config.PAGE_LENGTH
+    begin_index = page * page_length
+    end_index = (page + 1) * page_length
+    max_page_length_exp = math.ceil(math.log10(len(protocols)))
     protocols = protocols[begin_index:end_index]
     protocols_table = ProtocolsTable(protocols, search_results=search_results)
-    return render_template("protocols-list.html", protocols=protocols, protocols_table=protocols_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term, open=open)
+    return render_template("protocols-list.html", protocols=protocols, protocols_table=protocols_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term, state_open=state_open, page_length=page_length, max_page_length_exp=max_page_length_exp)
 
 @app.route("/protocol/new", methods=["GET", "POST"])
 @login_required
@@ -781,6 +783,15 @@ def _get_page():
     except ValueError:
         return 0
 
+def _get_page_length():
+    try:
+        page_length = request.args.get("page_length")
+        if page_length is None:
+            return config.PAGE_LENGTH
+        return int(page_length)
+    except ValueError:
+        return config.PAGE_LENGTH
+
 @app.route("/todos/list")
 @login_required
 def list_todos():
@@ -791,9 +802,9 @@ def list_todos():
         protocoltype_id = int(request.args.get("protocoltype_id"))
     except (ValueError, TypeError):
         pass
-    open = -1
+    state_open = -1
     try:
-        open = int(request.args.get("open"))
+        state_open = int(request.args.get("state_open"))
     except (ValueError, TypeError):
         pass
     search_term = request.args.get("search")
@@ -802,8 +813,8 @@ def list_todos():
     if protocoltype_id is not None:
         search_form.protocoltype_id.data = protocoltype_id
         protocoltype = ProtocolType.query.filter_by(id=protocoltype_id).first()
-    if open is not None:
-        search_form.open.data = open
+    if state_open is not None:
+        search_form.state_open.data = state_open
     if search_term is not None:
         search_form.search.data = search_term
     todos = [
@@ -815,8 +826,8 @@ def list_todos():
             todo for todo in todos
             if todo.protocoltype.id == protocoltype_id
         ]
-    if open is not None and open != -1:
-        todo_done = bool(open)
+    if state_open is not None and state_open != -1:
+        todo_done = bool(state_open)
         todos = [
             todo for todo in todos
             if todo.is_done() == todo_done
@@ -831,14 +842,16 @@ def list_todos():
         return (not todo.is_done(), todo.get_id())
     todos = sorted(todos, key=_sort_key, reverse=True)
     page = _get_page()
-    page_count = int(math.ceil(len(todos) / config.PAGE_LENGTH))
+    page_length = _get_page_length()
+    page_count = int(math.ceil(len(todos) / page_length))
     if page >= page_count:
         page = 0
-    begin_index = page * config.PAGE_LENGTH
-    end_index = (page + 1) * config.PAGE_LENGTH
+    begin_index = page * page_length
+    end_index = (page + 1) * page_length
+    max_page_length_exp = math.ceil(math.log10(len(todos)))
     todos = todos[begin_index:end_index]
     todos_table = TodosTable(todos)
-    return render_template("todos-list.html", todos=todos, todos_table=todos_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term, open=open)
+    return render_template("todos-list.html", todos=todos, todos_table=todos_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term, state_open=state_open, page_length=page_length, max_page_length_exp=max_page_length_exp)
 
 @app.route("/todo/new", methods=["GET", "POST"])
 @login_required
@@ -988,14 +1001,17 @@ def list_decisions():
     decisions = sorted(decisions, key=lambda d: d.protocol.date, reverse=True)
         
     page = _get_page()
-    page_count = int(math.ceil(len(decisions) / config.PAGE_LENGTH))
+    page_length = _get_page_length()
+
+    page_count = int(math.ceil(len(decisions) / page_length))
     if page >= page_count:
         page = 0
-    begin_index = page * config.PAGE_LENGTH
-    end_index = (page + 1) * config.PAGE_LENGTH
+    begin_index = page * page_length
+    end_index = (page + 1) * page_length
+    max_page_length_exp = math.ceil(math.log10(len(decisions)))
     decisions = decisions[begin_index:end_index]
     decisions_table = DecisionsTable(decisions)
-    return render_template("decisions-list.html", decisions=decisions, decisions_table=decisions_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term, decisioncategory_id=decisioncategory_id)
+    return render_template("decisions-list.html", decisions=decisions, decisions_table=decisions_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term, decisioncategory_id=decisioncategory_id, page_length=page_length, max_page_length_exp=max_page_length_exp)
 
 @app.route("/document/download/<int:document_id>")
 @db_lookup(Document)

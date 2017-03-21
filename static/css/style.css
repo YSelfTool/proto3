@@ -37,7 +37,7 @@ input[type="file"] {
     text-align: center;
 }
 
-.centered > a {
+.centered > a, .centered > span {
     margin: 8px;
 }
 

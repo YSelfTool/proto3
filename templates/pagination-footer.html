@@ -1,0 +1,27 @@
+<div class="centered">
+    {% if page > page_diff %}
+        {{page_link("<<", _page=0)}}
+    {% endif %}
+    {% for p in range(max(0, page - page_diff), min(page_count, page + page_diff + 1)) %}
+        {% if p != page %}
+            {{page_link(p + 1, _page=p)}}
+        {% else %}
+            Seite {{p + 1}}
+        {% endif %}
+    {% endfor %}
+    {% if page < page_count - page_diff - 1 %}
+        {{page_link(">>", _page=page_count - 1)}}
+    {% endif %}
+</div>
+<div class="centered">
+    pro Seite:
+    {% for exponent in range(1, max_page_length_exp+1) %}
+        {% set _page_length=10**exponent %}
+        {% if _page_length != page_length %}
+            {{page_link(_page_length, _page_length=_page_length)}}
+        {% else %}
+            <span>{{_page_length}}</span>
+        {% endif %}
+    {% endfor %}
+</div>
+
