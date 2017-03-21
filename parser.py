@@ -357,7 +357,8 @@ class Fork(Element):
                 if show_private:
                     return content_lines
                 else:
-                    return ""
+                    # todo: bessere Formulierung finden
+                    return "An dieser Stelle fand eine interne Diskussion statt."
             else:
                 return "\n".join([name_line, begin_line, content_lines, end_line])
         elif render_type == RenderType.wikitext:
