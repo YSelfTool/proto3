@@ -43,8 +43,8 @@
                     <a class="btn btn-success" href="{{url_for("download_document", document_id=protocol.get_compiled_document().id)}}">Download</a>
                 {% endif %}
                 {% if has_admin_right %}
-		    <a class="btn btn-default" href="{{url_for("recompile_protocol", protocol_id=protocol.id)}}">Neu kompilieren</a>
-		    <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_identifier()}} löschen möchtest?');">Löschen</a>
+            <a class="btn btn-default" href="{{url_for("recompile_protocol", protocol_id=protocol.id)}}">Neu kompilieren</a>
+            <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_identifier()}} löschen möchtest?');">Löschen</a>
                 {% endif %}
             {% endif %}
         </div>
@@ -69,7 +69,7 @@
                             <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
                         {% endif %}
                     {% endfor %}
-		{% endif %}
+        {% endif %}
             {% else %}
                 {% if protocol.date is not none %}<p><strong>Geplant:</strong> {{protocol.date|datify_long}}{% endif %}</p>
             {% endif %}
@@ -91,7 +91,11 @@
                                 </li>
                             {% endfor %}
                         {% else %}
-                            <li>Protokoll und Beschlüsse sind in einem eingeschränkten Netzwerk sichtbar.</li>
+                            {% if protocol.public %}
+								<li>Protokoll und Beschlüsse sind in einem eingeschränkten Netzwerk sichtbar.</li>
+							{% else %}
+								<li>Das Protokoll ist noch nicht veröffentlicht.</li>
+							{% endif %}
                         {% endif %}
                     {% else %}
                         <li>Keine Beschlüsse</li>
