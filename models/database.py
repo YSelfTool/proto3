@@ -203,7 +203,7 @@ class Protocol(DatabaseModel):
         for default_meta in self.protocoltype.metas:
             if default_meta.key in remarks:
                 value = remarks[default_meta.key].value.strip()
-                meta = Meta(protocol_id=self.id, name=default_meta.name, value=value)
+                meta = Meta(protocol_id=self.id, name=default_meta.name, value=value, internal=default_meta.internal)
                 db.session.add(meta)
         db.session.commit()
 
@@ -657,6 +657,7 @@ class DefaultMeta(DatabaseModel):
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     key = db.Column(db.String)
     name = db.Column(db.String)
+    internal = db.Column(db.Boolean)
 
     def get_parent(self):
         return self.protocoltype
@@ -668,6 +669,7 @@ class Meta(DatabaseModel):
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     name = db.Column(db.String)
     value = db.Column(db.String)
+    internal = db.Column(db.Boolean)
 
     def get_parent(self):
         return self.protocol

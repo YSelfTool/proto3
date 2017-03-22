@@ -243,10 +243,12 @@ class TodoMailForm(FlaskForm):
 class MetaForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Bitte gib den Namen der Metadaten an.")])
     value = StringField("Wert")
+    internal = BooleanField("Intern")
 
 class DefaultMetaForm(FlaskForm):
     key = StringField("Key", validators=[InputRequired("Bitte gib den Protokoll-Syntax-Schlüssel der Metadaten an.")])
     name = StringField("Name", validators=[InputRequired("Bitte gib den Namen der Metadaten an.")])
+    internal = BooleanField("Intern")
 
 class DecisionCategoryForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Bitte gib den Namen der Kategorie an.")])

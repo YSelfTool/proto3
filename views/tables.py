@@ -474,13 +474,14 @@ class DefaultMetasTable(Table):
         )
 
     def headers(self):
-        return ["Name", "Key", ""]
+        return ["Name", "Key", "Intern", ""]
 
     def row(self, meta):
         user = current_user()
         general_part = [
             meta.name,
             meta.key,
+            Table.bool(meta.internal)
         ]
         links = [
             Table.link(url_for("edit_defaultmeta", defaultmeta_id=meta.id), "Ändern"),
@@ -491,7 +492,6 @@ class DefaultMetasTable(Table):
 
 class DecisionCategoriesTable(Table):
     def __init__(self, categories, protocoltype):
-        print(categories)
         super().__init__(
             "Beschlusskategorien",
             categories, 

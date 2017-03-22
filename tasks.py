@@ -505,7 +505,7 @@ def send_protocol_async(protocol_id, show_private):
         protocol = Protocol.query.filter_by(id=protocol_id).first()
         to_addr = protocol.protocoltype.private_mail if show_private else protocol.protocoltype.public_mail
         subject = "{}{}-Protokoll vom {}".format("Internes " if show_private else "", protocol.protocoltype.short_name, date_filter(protocol.date))
-        mail_content = render_template("protocol-mail.txt", protocol=protocol)
+        mail_content = render_template("protocol-mail.txt", protocol=protocol, show_private=show_private)
         appendix = [(document.name, document.as_file_like())
             for document in protocol.documents
             if show_private or not document.is_private

@@ -65,7 +65,9 @@
                 {% endif %}
                 {% if has_public_view_right %}
                     {% for meta in protocol.metas %}
-                        <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
+                        {% if not meta.internal or has_private_view_right %}
+                            <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
+                        {% endif %}
                     {% endfor %}
 		{% endif %}
             {% else %}

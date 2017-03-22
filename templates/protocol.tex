@@ -27,7 +27,9 @@
     {\bf Datum:} & \VAR{protocol.date|datify_long|escape_tex}\\
 \ENV{endif}
 \ENV{for meta in protocol.metas}
-    {\bf \VAR{meta.name|escape_tex}:} & \VAR{meta.value|escape_tex}\\
+    \ENV{if not meta.internal or show_private}
+        {\bf \VAR{meta.name|escape_tex}:} & \VAR{meta.value|escape_tex}\\
+    \ENV{endif}
 \ENV{endfor}
 \end{tabular}
 \normalsize

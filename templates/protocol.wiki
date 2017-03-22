@@ -7,7 +7,9 @@
 | zeit = von <var>protocol.start_time|timify</var> bis <var>protocol.end_time|timify</var>
 <env> endif </env>
 <env> for meta in protocol.metas </env>
+<env> if not meta.internal or not protocol.protocoltype.wiki_only_public </env>
 | <var>meta.name|lower</var> = <var>meta.value</var>
+<env> endif </env>
 <env> endfor </env>
 }}
 
