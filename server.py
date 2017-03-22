@@ -402,7 +402,7 @@ def list_protocols():
         protocol_done = bool(state_open)
         protocols = [
             protocol for protocol in protocols
-            if protocol.is_done() == protocol_done
+            if (protocol.is_done() or False) == protocol_done
         ]
     if shall_search:
         protocols = [
@@ -446,7 +446,7 @@ def list_protocols():
         page = 0
     begin_index = page * page_length
     end_index = (page + 1) * page_length
-    max_page_length_exp = math.ceil(math.log10(len(protocols)))
+    max_page_length_exp = math.ceil(math.log10(len(protocols))) if len(protocols) > 0 else 1
     protocols = protocols[begin_index:end_index]
     protocols_table = ProtocolsTable(protocols, search_results=search_results)
     return render_template("protocols-list.html", protocols=protocols, protocols_table=protocols_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term, state_open=state_open, page_length=page_length, max_page_length_exp=max_page_length_exp)
@@ -848,7 +848,7 @@ def list_todos():
         page = 0
     begin_index = page * page_length
     end_index = (page + 1) * page_length
-    max_page_length_exp = math.ceil(math.log10(len(todos)))
+    max_page_length_exp = math.ceil(math.log10(len(todos))) if len(todos) > 0 else 1
     todos = todos[begin_index:end_index]
     todos_table = TodosTable(todos)
     return render_template("todos-list.html", todos=todos, todos_table=todos_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term, state_open=state_open, page_length=page_length, max_page_length_exp=max_page_length_exp)
@@ -1008,7 +1008,7 @@ def list_decisions():
         page = 0
     begin_index = page * page_length
     end_index = (page + 1) * page_length
-    max_page_length_exp = math.ceil(math.log10(len(decisions)))
+    max_page_length_exp = math.ceil(math.log10(len(decisions))) if len(decisions) > 0 else 1
     decisions = decisions[begin_index:end_index]
     decisions_table = DecisionsTable(decisions)
     return render_template("decisions-list.html", decisions=decisions, decisions_table=decisions_table, search_form=search_form, page=page, page_count=page_count, page_diff=config.PAGE_DIFF, protocoltype_id=protocoltype_id, search_term=search_term, decisioncategory_id=decisioncategory_id, page_length=page_length, max_page_length_exp=max_page_length_exp)
