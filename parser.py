@@ -355,9 +355,14 @@ class Fork(Element):
                 return "\n".join([begin_line, content_lines, end_line])
             elif self.test_private(self.name):
                 if show_private:
-                    return content_lines
+                    # font: \fontfamily{lmr}\selectfont
+                    return (r"\textit{Interner Abschnitt:" + "\n"
+                            + r"\begin{itemize}" + "\n"
+                            + content_lines + "\n"
+                            + r"\end{itemize}}")
                 else:
-                    return ""
+                    # todo: bessere Formulierung finden
+                    return r"\textit{[An dieser Stelle wurde intern protokolliert.]}"
             else:
                 return "\n".join([name_line, begin_line, content_lines, end_line])
         elif render_type == RenderType.wikitext:

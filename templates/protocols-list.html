@@ -2,28 +2,14 @@
 {% from "macros.html" import render_table, render_form %}
 {% block title %}Protokolle{% endblock %}
 
-{% macro page_link(page, text) %}
-    <a href="{{url_for(request.endpoint, page=page, protocoltype=protocoltype_id, search=search_term, open=open)}}">{{text}}</a>
+{% macro page_link(text, _page=None, _page_length=None) %}
+    <a href="{{url_for(request.endpoint, page=_page or page, protocoltype=protocoltype_id, search=search_term, state_open=state_open, page_length=_page_length or page_length)}}">{{text}}</a>
 {% endmacro %}
 
 {% block content %}
 <div class="container">
     {{render_form(search_form, class_="form-inline", action_url=url_for("list_protocols"), action_text="Suchen", labels_visible=False, method="GET")}}
     {{render_table(protocols_table)}}
-    <div class="centered">
-        {% if page > page_diff %}
-            {{page_link(0, "<<")}}
-        {% endif %}
-        {% for p in range(max(0, page - page_diff), min(page_count, page + page_diff + 1)) %}
-            {% if p != page %}
-                {{page_link(p, p + 1)}}
-            {% else %}
-                Seite {{p + 1}}
-            {% endif %}
-        {% endfor %}
-        {% if page < page_count - page_diff - 1 %}
-            {{page_link(page_count - 1, ">>")}}
-        {% endif %}
-    </div>
+    {% include "pagination-footer.html" %}
 </div>
 {% endblock %}
