@@ -90,7 +90,12 @@ class ProtocolsTable(Table):
             date_filter(protocol.date),
         ]
         if self.search_results is None:
-            result.append("Fertig" if protocol.is_done() else "Geplant")
+            state = "Geplant"
+            if protocol.is_done():
+                state = "Fertig"
+                if protocol.public:
+                    state = "Veröffentlicht"
+            result.append(state)
         elif protocol in self.search_results:
             result.append(Markup(self.search_results[protocol]))
         if check_login():

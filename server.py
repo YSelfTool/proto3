@@ -156,15 +156,16 @@ def index():
     finished_protocols = sorted(
         [
             protocol for protocol in protocols
-            if protocol.done
-            and (protocol.has_public_view_right(user)
-                or protocol.has_private_view_right(user))
-            and protocol.protocoltype.has_public_view_right(user)
+            if protocol.done and protocol.public
+            and (protocol.has_private_view_right(user)
+                or protocol.protocoltype.has_public_view_right(user, check_networks=False))
         ],
         key=_protocol_sort_key,
         reverse=True
     )
     protocol = finished_protocols[0] if len(finished_protocols) > 0 else None
+    show_private = protocol.has_private_view_right(user)
+    has_public_view_right = protocol.protocoltype.has_public_view_right(user)
     todos = None
     if check_login():
         todos = [
@@ -177,7 +178,7 @@ def index():
             return protocol.date if protocol is not None and protocol.date is not None else datetime.now().date()
         todos = sorted(todos, key=_todo_sort_key, reverse=True)
     todos_table = TodosTable(todos) if todos is not None else None
-    return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos)
+    return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos, show_private=show_private, has_public_view_right=has_public_view_right)
 
 @app.route("/documentation")
 @login_required

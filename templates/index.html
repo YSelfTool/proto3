@@ -41,19 +41,25 @@
                     <p><strong>Zeit:</strong> von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}</p>
                 {% endif %}
                 {% for meta in protocol.metas %}
-                    <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
+                    {% if not meta.internal or show_private %}
+                        <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
+                    {% endif %}
                 {% endfor %}
                 <h3>Tagesordnung{% if has_modify_right and not protocol.has_nonplanned_tops() %} <a href="{{url_for("new_top", protocol_id=protocol.id)}}">Top hinzufügen</a>{% endif %}</h3>
                 {% include "protocol-tops-include.html" %}
 
                 <h3>Beschlüsse</h3>
                 <ul>
-                    {% if protocol.decisions|length > 0 %}
-                        {% for decision in protocol.decisions %}
-                            <li>{{decision.content}}</li>
-                        {% endfor %}
+                    {% if has_public_view_right %}
+                        {% if protocol.decisions|length > 0 %}
+                            {% for decision in protocol.decisions %}
+                                <li>{{decision.content}}</li>
+                            {% endfor %}
+                        {% else %}
+                            <li>Keine Beschlüsse</li>
+                        {% endif %}
                     {% else %}
-                        <li>Keine Beschlüsse</li>
+                        <li>Protokoll und Beschlüsse sind in eine eingeschränkten Netzwerk erreichbar.</li>
                     {% endif %}
                 </ul>
             </div>
