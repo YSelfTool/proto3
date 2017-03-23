@@ -93,7 +93,7 @@ class MailManager:
         server = (smtplib.SMTP_SSL if self.use_tls else smtplib.SMTP)(self.hostname)
         if self.username not in [None, ""] and self.password not in [None, ""]:
             server.login(self.username, self.password)
-        server.sendmail(self.from_addr, to_addr, msg.as_string())
+        server.sendmail(self.from_addr, to_addr.split(","), msg.as_string())
         server.quit()
 
 mail_manager = MailManager(config)
