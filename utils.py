@@ -187,3 +187,11 @@ def check_ip_in_networks(networks_string):
         return False
     except ValueError:
         return False
+
+def fancy_join(values, sep1=" und ", sep2=", "):
+    values = list(values)
+    if len(values) <= 1:
+        return "".join(values)
+    last = values[-1]
+    start = values[:-1]
+    return "{}{}{}".format(sep2.join(start), sep1, last)

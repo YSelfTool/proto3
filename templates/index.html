@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "macros.html" import render_table %}
+{% from "macros.html" import render_table, render_likes %}
 {% block title %}Startseite{% endblock %}
 
 {% block content %}
@@ -15,7 +15,10 @@
         <ul>
             {% if open_protocols|length > 0 %}
                 {% for protocol in open_protocols %}
-                    <li><a href="{{url_for("show_protocol", protocol_id=protocol.id)}}">{{protocol.protocoltype.name}}</a> am {{protocol.date|datify}}</li>
+                    <li>
+                        <a href="{{url_for("show_protocol", protocol_id=protocol.id)}}">{{protocol.protocoltype.name}}</a> am {{protocol.date|datify}}
+                        {{render_likes(protocol.likes, protocol_id=protocol.id)}}
+                    </li>
                 {% endfor %}
             {% else %}
                 <li>Keine anstehenden Sitzungen</li>
@@ -53,7 +56,10 @@
                     {% if has_public_view_right %}
                         {% if protocol.decisions|length > 0 %}
                             {% for decision in protocol.decisions %}
-                                <li>{{decision.content}}</li>
+                                <li>
+                                    {{decision.content}}
+                                    {{render_likes(decision.likes, decision_id=decision.id)}}
+                                </li>
                             {% endfor %}
                         {% else %}
                             <li>Keine Beschlüsse</li>
@@ -71,7 +77,11 @@
         <ul>
             {% if todos|length > 0 %}
                 {% for todo in todos %}
-        <li>{{todo.render_html()|safe}} ({{todo.protocoltype.name}})</li>
+                    <li>
+                        {{todo.render_html()|safe}}
+                        ({{todo.protocoltype.name}})
+                        {{render_likes(todo.likes, todo_id=todo.id)}}
+                    </li>
                 {% endfor %}
             {% else %}
                 <li>Keine Todos</li>

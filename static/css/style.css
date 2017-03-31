@@ -20,7 +20,7 @@ body {
     color: #808000;
 }
 
-h3 > a {
+h2 > a, h3 > a {
     font-size: 18px;
 }
 
@@ -54,4 +54,22 @@ textarea {
   padding: 0;
   outline: none;
   background-color: #d0d0d0;
+}
+
+.likes-div {
+    display: inline-block;
+    font-size: 10pt;
+    background-color: #ddddff;
+    border-radius: 3px;
+    padding: 1px;
+}
+
+.likes-div > p {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+.like-sign {
+    font-size: 16px;
 }

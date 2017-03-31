@@ -1,3 +1,4 @@
+{% from "macros.html" import render_likes %}
 <ul>
     {% if not protocol.has_nonplanned_tops() %}
         {% for default_top in protocol.protocoltype.default_tops %}
@@ -36,6 +37,7 @@
                     {{-top.description-}}
                 </pre>
             {% endif %}
+            {{render_likes(top.likes, top_id=top.id)}}
         </li>
     {% endfor %}
     {% if not protocol.has_nonplanned_tops() %}

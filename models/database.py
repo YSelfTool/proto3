@@ -157,6 +157,8 @@ class Protocol(DatabaseModel):
     metas = relationship("Meta", backref=backref("protocol"), cascade="all, delete-orphan")
     localtops = relationship("LocalTOP", backref=backref("protocol"), cascade="all, delete-orphan")
 
+    likes = relationship("Like", secondary="likeprotocolassociations")
+
     def get_parent(self):
         return self.protocoltype
 
@@ -341,6 +343,8 @@ class TOP(DatabaseModel):
     planned = db.Column(db.Boolean)
     description = db.Column(db.String)
 
+    likes = relationship("Like", secondary="liketopassociations")
+
     def get_parent(self):
         return self.protocol
 
@@ -496,6 +500,7 @@ class Todo(DatabaseModel):
     date = db.Column(db.Date, nullable=True)
 
     protocols = relationship("Protocol", secondary="todoprotocolassociations", backref="todos")
+    likes = relationship("Like", secondary="liketodoassociations")
 
     def get_parent(self):
         return self.protocoltype
@@ -583,6 +588,8 @@ class Decision(DatabaseModel):
     category_id = db.Column(db.Integer, db.ForeignKey("decisioncategories.id"), nullable=True)
 
     document = relationship("DecisionDocument", backref=backref("decision"), cascade="all, delete-orphan", uselist=False)
+
+    likes = relationship("Like", secondary="likedecisionassociations")
 
     def get_parent(self):
         return self.protocol
@@ -674,8 +681,34 @@ class Meta(DatabaseModel):
     def get_parent(self):
         return self.protocol
 
+class Like(DatabaseModel):
+    __tablename__ = "likes"
+    __model_name__ = "like"
+    id = db.Column(db.Integer, primary_key=True)
+    who = db.Column(db.String)
+
+class LikeProtocolAssociation(DatabaseModel):
+    __tablename__ = "likeprotocolassociations"
+    like_id = db.Column(db.Integer, db.ForeignKey("likes.id"), primary_key=True)
+    protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"), primary_key=True)
+
+class LikeTodoAssociation(DatabaseModel):
+    __tablename__ = "liketodoassociations"
+    like_id = db.Column(db.Integer, db.ForeignKey("likes.id"), primary_key=True)
+    todo_id = db.Column(db.Integer, db.ForeignKey("todos.id"), primary_key=True)
+
+class LikeDecisionAssociation(DatabaseModel):
+    __tablename__ = "likedecisionassociations"
+    like_id = db.Column(db.Integer, db.ForeignKey("likes.id"), primary_key=True)
+    decision_id = db.Column(db.Integer, db.ForeignKey("decisions.id"), primary_key=True)
+
+class LikeTOPAssociation(DatabaseModel):
+    __tablename__ = "liketopassociations"
+    like_id = db.Column(db.Integer, db.ForeignKey("likes.id"), primary_key=True)
+    top_id = db.Column(db.Integer, db.ForeignKey("tops.id"), primary_key=True)
+
+
 ALL_MODELS = [
     ProtocolType, Protocol, DefaultTOP, TOP, Document, DecisionDocument,
     Todo, Decision, MeetingReminder, Error, DefaultMeta, Meta, DecisionCategory
 ]
-    

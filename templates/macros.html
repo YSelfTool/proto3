@@ -156,3 +156,33 @@ to not render a label for the CRSFTokenField -->
         </tbody>
     </table>
 {%- endmacro %}
+
+{% macro render_likes(likes) -%}
+    {% set timestamp = now() %}
+    {% if timestamp.month == 4 and timestamp.day == 1 %}
+        {% set user=current_user() %}
+        {% set add_link = user is not none and likes|selectattr("who", "equalto", user.username)|list|length == 0 %}
+        {% set verb = "like" %}
+        {% if likes|length == 1 %}
+            {% set verb = "likes" %}
+        {% endif %}
+        {% if add_link %}
+        <a href="{{url_for("new_like", next=request.url, **kwargs)}}">
+        {% endif %}
+        <div class="likes-div">
+            <p>{{likes|length}} <span class="like-sign">&#x1f44d;</span></p>
+                {% if user is not none or likes|length > 0 %}
+                <p>
+                    {% if likes|length == 0 %}
+                        Be the first one to like this!
+                    {% else %}
+                        {{likes|map(attribute="who")|map("capitalize")|fancy_join(" and ")}} {{verb}} this 
+                    {% endif %}
+                </p>
+            {% endif %}
+        </div>
+        {% if add_link %}
+        </a>
+        {% endif %}
+    {% endif %}
+{%- endmacro %}

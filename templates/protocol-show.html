@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "macros.html" import render_table, render_form %}
+{% from "macros.html" import render_table, render_form, render_likes %}
 {% block title %}Protokoll{% endblock %}
 
 {% set logged_in = check_login() %}
@@ -52,9 +52,15 @@
     <div class="row">
         <div id="left-column" class="col-lg-6">
             {% if protocol.is_done() %}
-                <h2>Protokoll: {{protocol.protocoltype.name}} {% if protocol.date is not none %}vom {{protocol.date|datify}}{% endif %}</h2>
+                <h2>
+                    Protokoll: {{protocol.protocoltype.name}} {% if protocol.date is not none %}vom {{protocol.date|datify}}{% endif %}
+                    {{render_likes(protocol.likes, protocol_id=protocol.id)}}</h2>
+                </h2>
             {% else %}
-                <h2>{{protocol.protocoltype.name}} {% if protocol.date is not none %}am {{protocol.date|datify}}{% endif %}</h2>
+                <h2>
+                    {{protocol.protocoltype.name}} {% if protocol.date is not none %}am {{protocol.date|datify}}{% endif %}
+                    {{render_likes(protocol.likes, protocol_id=protocol.id)}}
+                </h2>
             {% endif %}
             {% if protocol.is_done() %}
                 {% if protocol.date is not none %}
@@ -88,6 +94,7 @@
                                     {% if config.PRINTING_ACTIVE and has_private_view_right and decision.document is not none %}
                                         <a href="{{url_for("print_decision", decisiondocument_id=decision.document.id)}}">Drucken</a>
                                     {% endif %}
+                                    {{render_likes(decision.likes, decision_id=decision.id)}}</h2>
                                 </li>
                             {% endfor %}
                         {% else %}
@@ -109,7 +116,10 @@
                 <ul>
                     {% if protocol.get_originating_todos()|length > 0 %}
                         {% for todo in protocol.get_originating_todos() %}
-                            <li>{{todo.render_html()|safe}}</li>
+                            <li>
+                                {{todo.render_html()|safe}}
+                                {{render_likes(todo.likes, todo_id=todo.id)}}
+                            </li>
                         {% endfor %}
                     {% else %}
                         <li>Keine Todos</li>
