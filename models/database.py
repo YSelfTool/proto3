@@ -219,6 +219,8 @@ class Protocol(DatabaseModel):
         return self.done
 
     def get_identifier(self):
+        if self.pad_identifier is not None:
+            return self.pad_identifier
         if self.date is None:
             return None
         return "{}-{}".format(

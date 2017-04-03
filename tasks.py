@@ -582,5 +582,6 @@ def set_etherpad_content(protocol):
 def set_etherpad_content_async(protocol_id):
     with app.app_context():
         protocol = Protocol.query.filter_by(id=protocol_id).first()
-        set_etherpad_text(protocol.get_identifier(), protocol.get_template())
+        identifier = protocol.get_identifier()
+        return set_etherpad_text(identifier, protocol.get_template())
     

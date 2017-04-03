@@ -120,13 +120,16 @@ def get_etherpad_text(pad):
     return req.text
 
 def set_etherpad_text(pad, text, only_if_default=True):
+    print(pad)
     if only_if_default:
         current_text = get_etherpad_text(pad)
         if current_text != config.EMPTY_ETHERPAD and len(current_text.strip()) > 0:
             return False
     file_like = BytesIO(text.encode("utf-8"))
     files = {"file": file_like}
-    req = requests.post(get_etherpad_import_url(pad), files=files)
+    url = get_etherpad_import_url(pad)
+    print(url)
+    req = requests.post(url, files=files)
     return req.status_code == 200
     
 def split_terms(text, quote_chars="\"'", separators=" \t\n"):
