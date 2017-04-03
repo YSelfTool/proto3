@@ -108,15 +108,17 @@ def get_first_unused_int(numbers):
             return linear
     return highest + 1
 
+def normalize_pad(pad):
+    return pad.replace(" ", "_")
 def get_etherpad_url(pad):
-    return "{}/p/{}".format(config.ETHERPAD_URL, pad)
+    return "{}/p/{}".format(config.ETHERPAD_URL, normalize_pad(pad))
 def get_etherpad_export_url(pad):
-    return "{}/p/{}/export/txt".format(config.ETHERPAD_URL, pad)
+    return "{}/p/{}/export/txt".format(config.ETHERPAD_URL, normalize_pad(pad))
 def get_etherpad_import_url(pad):
-    return "{}/p/{}/import".format(config.ETHERPAD_URL, pad)
+    return "{}/p/{}/import".format(config.ETHERPAD_URL, normalize_pad(pad))
 
 def get_etherpad_text(pad):
-    req = requests.get("{}/p/{}/export/txt".format(config.ETHERPAD_URL, pad))
+    req = requests.get(get_etherpad_export_url(pad))
     return req.text
 
 def set_etherpad_text(pad, text, only_if_default=True):
