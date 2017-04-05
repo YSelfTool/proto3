@@ -1328,7 +1328,7 @@ def check_and_send_reminders():
         current_time = datetime.now()
         current_day = current_time.date()
         print("regular action for reminders")
-        for protocol in Protocol.query.filter(Protocol.done == False).all():
+        for protocol in Protocol.query.filter(Protocol.done != True).all():
             day_difference = (protocol.date - current_day).days
             usual_time = protocol.protocoltype.usual_time
             protocol_time = datetime(1, 1, 1, usual_time.hour, usual_time.minute)
