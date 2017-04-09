@@ -7,7 +7,7 @@ Du hast für "{{protocol.protocoltype.name}}" noch offene Todos:
     {{todo.description}}
 {% endfor %}
 
-Fühle die hiermit daran erinnert!
+Fühle dich hiermit daran erinnert!
 
 Viele Grüße,
 Dein Protokollsystem
