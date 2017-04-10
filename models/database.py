@@ -146,7 +146,7 @@ class Protocol(DatabaseModel):
     date = db.Column(db.Date)
     start_time = db.Column(db.Time)
     end_time = db.Column(db.Time)
-    done = db.Column(db.Boolean)
+    done = db.Column(db.Boolean, nullable=False, default=False)
     public = db.Column(db.Boolean)
     pad_identifier = db.Column(db.String)
 
@@ -166,6 +166,13 @@ class Protocol(DatabaseModel):
         now = datetime.now()
         return Error(protocol_id=self.id, action=action, name=name,
             datetime=now, description=description)
+
+    def create_localtops(self):
+        local_tops = []
+        for default_top in self.protocoltype.default_tops:
+            local_tops.append(LocalTOP(defaulttop_id=defaul_top.id,
+                protocol_id=self.id, description=""))
+        return local_tops
 
     def fill_from_remarks(self, remarks):
         def _date_or_lazy(key, get_date=False, get_time=False):
@@ -320,14 +327,8 @@ class DefaultTOP(DatabaseModel):
         return self.number > 0
 
     def get_localtop(self, protocol):
-        localtop = LocalTOP.query.filter_by(defaulttop_id=self.id,
+        return LocalTOP.query.filter_by(defaulttop_id=self.id,
             protocol_id=protocol.id).first()
-        if localtop is None:
-            localtop = LocalTOP(protocol_id=protocol.id, defaulttop_id=self.id,
-                description="")
-            db.session.add(localtop)
-            db.session.commit()
-        return localtop
 
     def get_top(self, protocol):
         localtop = self.get_localtop(protocol)

@@ -307,6 +307,12 @@ def new_default_top(protocoltype):
         form.populate_obj(defaulttop)
         db.session.add(defaulttop)
         db.session.commit()
+        for protocol in protocoltype.protocols:
+            if not protocol.done:
+                localtop = LocalTOP(protocol_id=protocol.id,
+                    defaulttop_id=defaultop.id, description="")
+                db.session.add(localtop)
+        db.session.commit()
         flash("Der Standard-TOP {} wurde für dem Protokolltyp {} hinzugefügt.".format(defaulttop.name, protocoltype.name), "alert-success")
         return redirect(request.args.get("next") or url_for("index"))
     return render_template("default-top-new.html", form=form, protocoltype=protocoltype)
@@ -471,6 +477,9 @@ def new_protocol():
         form.populate_obj(protocol)
         db.session.add(protocol)
         db.session.commit()
+        for local_top in protocol.create_localtops:
+            db.session.add(local_top)
+        db.session.commit()
         tasks.push_tops_to_calendar(protocol)
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     type_id = request.args.get("protocoltype_id")
@@ -570,6 +579,9 @@ def upload_new_protocol():
         protocol = Protocol(protocoltype_id=protocoltype.id, source=source)
         db.session.add(protocol)
         db.session.commit()
+        for local_top in protocol.create_localtops:
+            db.session.add(local_top)
+        db.session.commit()
         tasks.parse_protocol(protocol)
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     return redirect(request.args.get("fail") or url_for("new_protocol"))
@@ -595,6 +607,9 @@ def upload_new_protocol_by_file():
             return redirect(request.args.get("fail") or url_for("new_protocol"))
         protocol = Protocol(protocoltype_id=protocoltype.id, date=datetime.now().date(), done=True)
         db.session.add(protocol)
+        db.session.commit()
+        for local_top in protocol.create_localtops:
+            db.session.add(local_top)
         db.session.commit()
         document = Document(protocol_id=protocol.id, name=filename,
             filename="", is_compiled=False)
