@@ -90,7 +90,7 @@ def import_legacy():
 def recompile_all():
     for protocol in sorted(Protocol.query.all(), key=lambda p: p.date):
         if protocol.is_done():
-            print(protocol.get_identifier())
+            print(protocol.get_short_identifier())
             tasks.parse_protocol(protocol)
 
 @manager.command
@@ -514,7 +514,7 @@ def show_protocol(protocol):
 @db_lookup(Protocol)
 @require_modify_right()
 def delete_protocol(protocol):
-    name = protocol.get_identifier()
+    name = protocol.get_short_identifier()
     protocol.delete_orphan_todos()
     db.session.delete(protocol)
     db.session.commit()
@@ -638,7 +638,7 @@ def recompile_protocol(protocol):
 @require_modify_right()
 def get_protocol_source(protocol):
     file_like = BytesIO(protocol.source.encode("utf-8"))
-    return send_file(file_like, cache_timeout=1, as_attachment=True, attachment_filename="{}.txt".format(protocol.get_identifier()))
+    return send_file(file_like, cache_timeout=1, as_attachment=True, attachment_filename="{}.txt".format(protocol.get_short_identifier()))
 
 @app.route("/protocol/template/<int:protocol_id>")
 @login_required
@@ -646,7 +646,7 @@ def get_protocol_source(protocol):
 @require_modify_right()
 def get_protocol_template(protocol):
     file_like = BytesIO(protocol.get_template().encode("utf-8"))
-    return send_file(file_like, cache_timeout=1, as_attachment=True, attachment_filename="{}-template.txt".format(protocol.get_identifier()))
+    return send_file(file_like, cache_timeout=1, as_attachment=True, attachment_filename="{}-template.txt".format(protocol.get_short_identifier()))
 
 @app.route("/protocol/etherpush/<int:protocol_id>")
 @login_required

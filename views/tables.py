@@ -102,7 +102,7 @@ class ProtocolsTable(Table):
             if user is not None and protocol.protocoltype.has_private_view_right(user):
                 result.append(Table.link(url_for("show_type", protocoltype_id=protocol.protocoltype.id), protocol.protocoltype.short_name))
                 if protocol.protocoltype.has_admin_right(user):
-                    result.append(Table.link(url_for("delete_protocol", protocol_id=protocol.id), "Löschen", confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?".format(protocol.get_identifier())))
+                    result.append(Table.link(url_for("delete_protocol", protocol_id=protocol.id), "Löschen", confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?".format(protocol.get_short_identifier())))
                 else:
                     result.append("")
             else:
@@ -137,7 +137,7 @@ class ProtocolTypesTable(Table):
         mobile_name = "{} ({})".format(protocoltype.name, protocoltype.short_name)
         mobile_links = []
         if protocol is not None:
-            mobile_links.append(Table.link(protocol_link, protocol.get_identifier()))
+            mobile_links.append(Table.link(protocol_link, protocol.get_short_identifier()))
         if has_modify_right:
             mobile_links.append(Table.link(new_protocol_link, "Neues Protokoll"))
         mobile_part = [
@@ -147,7 +147,7 @@ class ProtocolTypesTable(Table):
         desktop_part = [
             Table.link(protocoltype_link, protocoltype.short_name) if has_private_view_right else protocoltype.short_name,
             protocoltype.name,
-            Table.link(protocol_link, protocol.get_identifier()) if protocol is not None else "Noch kein Protokoll",
+            Table.link(protocol_link, protocol.get_short_identifier()) if protocol is not None else "Noch kein Protokoll",
             Table.link(new_protocol_link, "Neues Protokoll") if has_modify_right else ""
             "" # TODO: add link for modify, delete
         ]
@@ -291,7 +291,7 @@ class ErrorsTable(Table):
 
     def row(self, error):
         return [
-            Table.link(url_for("show_protocol", protocol_id=error.protocol.id), error.protocol.get_identifier()),
+            Table.link(url_for("show_protocol", protocol_id=error.protocol.id), error.protocol.get_short_identifier()),
             error.action,
             Table.link(url_for("show_error", error_id=error.id), error.name),
             datetime_filter(error.datetime),
@@ -308,7 +308,7 @@ class ErrorTable(SingleValueTable):
 
     def row(self):
         return [
-            Table.link(url_for("show_protocol", protocol_id=self.value.protocol.id), self.value.protocol.get_identifier()),
+            Table.link(url_for("show_protocol", protocol_id=self.value.protocol.id), self.value.protocol.get_short_identifier()),
             self.value.action,
             self.value.name,
             datetime_filter(self.value.datetime)
@@ -335,7 +335,7 @@ class TodosTable(Table):
             Markup("<br>").join(mobile_parts),
             Table.link(url_for("show_todo", todo_id=todo.id), todo.get_id()),
             todo.get_state(),
-            Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier())
+            Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_short_identifier())
                 if protocol is not None
                 else Table.link(url_for("list_protocols", protocoltype_id=todo.protocoltype.id), todo.protocoltype.short_name),
             todo.who,
@@ -364,7 +364,7 @@ class TodoTable(SingleValueTable):
             self.value.get_id(),
             self.value.get_state_plain(),
             Table.concat([
-                Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_identifier())
+                Table.link(url_for("show_protocol", protocol_id=protocol.id), protocol.get_short_identifier())
                     for protocol in self.value.protocols
             ]),
             self.value.who,
@@ -398,7 +398,7 @@ class DecisionsTable(Table):
     def row(self, decision):
         user = current_user()
         content_part = [
-            Table.link(url_for("show_protocol", protocol_id=decision.protocol.id), decision.protocol.get_identifier()),
+            Table.link(url_for("show_protocol", protocol_id=decision.protocol.id), decision.protocol.get_short_identifier()),
             decision.content
         ]
         category_part = [decision.category.name if decision.category is not None else ""]

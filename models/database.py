@@ -230,6 +230,9 @@ class Protocol(DatabaseModel):
             return self.pad_identifier
         if self.date is None:
             return None
+        return self.get_short_identifier()
+
+    def get_short_identifier(self):
         return "{}-{}".format(
             self.protocoltype.short_name.lower(),
             self.date.strftime("%y-%m-%d"))
