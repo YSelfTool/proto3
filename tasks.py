@@ -148,6 +148,17 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         db.session.add(error)
         db.session.commit()
         return
+    # tags 
+    tags = tree.get_tags()
+    for tag in tags:
+        if tag.name not in Tag.KNOWN_TAGS:
+            error = protocol.create_error("Parsing", "Invalid tag",
+                "The tag in line {} has the kind '{}', which is "
+                "not defined. This is probably an error mit a missing "
+                "semicolon.".format(tag.linenumber, tag.name))
+            db.session.add(error)
+            db.session.commit()
+            return
     # todos
     old_todo_number_map = {}
     for todo in protocol.todos:
@@ -158,14 +169,14 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
     for todo in old_todos:
         protocol.todos.remove(todo)
     db.session.commit()
-    tags = tree.get_tags()
     todo_tags = [tag for tag in tags if tag.name == "todo"]
     for todo_tag in todo_tags:
         if len(todo_tag.values) < 2:
             error = protocol.create_error("Parsing", "Invalid todo-tag",
                 "The todo tag in line {} needs at least "
                 "information on who and what, "
-                "but has less than that.".format(todo_tag.linenumber))
+                "but has less than that. This is probably "
+                "a missing semicolon.".format(todo_tag.linenumber))
             db.session.add(error)
             db.session.commit()
             return

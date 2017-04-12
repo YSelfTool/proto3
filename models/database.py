@@ -170,7 +170,7 @@ class Protocol(DatabaseModel):
     def create_localtops(self):
         local_tops = []
         for default_top in self.protocoltype.default_tops:
-            local_tops.append(LocalTOP(defaulttop_id=defaul_top.id,
+            local_tops.append(LocalTOP(defaulttop_id=default_top.id,
                 protocol_id=self.id, description=""))
         return local_tops
 

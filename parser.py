@@ -251,7 +251,11 @@ class Tag:
     # v1: matches [text without semicolons]
     #PATTERN = r"\[(?<content>(?:[^;\]]*;)*(?:[^;\]]*))\]"
     # v2: needs at least two parts separated by a semicolon
-    PATTERN = r"\[(?<content>(?:[^;\]]*;)+(?:[^;\]]*))\]"
+    #PATTERN = r"\[(?<content>(?:[^;\]]*;)+(?:[^;\]]*))\]"
+    # v3: also match [] without semicolons inbetween, as there is not other use for that
+    PATTERN = r"\[(?<content>[^\]]*)\]"
+
+    KNOWN_TAGS = ["todo", "url", "beschluss"]
 
 
 class Empty(Element):
@@ -514,7 +518,7 @@ def main(test_file_name=None):
         source = f.read()
     try:
         tree = parse(source)
-        tree.dump()
+        print(tree.dump())
     except ParserException as e:
         print(e)
     else:

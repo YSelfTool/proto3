@@ -477,7 +477,7 @@ def new_protocol():
         form.populate_obj(protocol)
         db.session.add(protocol)
         db.session.commit()
-        for local_top in protocol.create_localtops:
+        for local_top in protocol.create_localtops():
             db.session.add(local_top)
         db.session.commit()
         tasks.push_tops_to_calendar(protocol)
