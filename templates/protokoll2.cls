@@ -25,6 +25,7 @@
 \RequirePackage{enumitem}
 \RequirePackage{color}
 \RequirePackage{xcolor}
+\RequirePackage[breakable]{tcolorbox}
 \RequirePackage{linegoal}
 
 \setlistdepth{\VAR{maxdepth}}

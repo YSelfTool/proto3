@@ -355,13 +355,12 @@ class Fork(Element):
                 return "\n".join([begin_line, content_lines, end_line])
             elif self.test_private(self.name):
                 if show_private:
-                    # font: \fontfamily{lmr}\selectfont
-                    return (r"\colorbox{itemizebackground}{\parbox[t]{\linegoal}{Interner Abschnitt:" + "\n"
+                    return (r"\begin{tcolorbox}[breakable,title=Interner Abschnitt]" + "\n"
                             + r"\begin{itemize}" + "\n"
                             + content_lines + "\n"
-                            + r"\end{itemize}}}")
+                            + r"\end{itemize}" + "\n"
+                            + r"\end{tcolorbox}")
                 else:
-                    # todo: bessere Formulierung finden
                     return r"\textit{[An dieser Stelle wurde intern protokolliert.]}"
             else:
                 return "\n".join([name_line, begin_line, content_lines, end_line])
