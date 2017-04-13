@@ -175,6 +175,12 @@ def index():
             if todo.protocoltype.has_private_view_right(user)
             and not todo.is_done()
         ]
+        user_todos = [
+            todo for todo in todos
+            if user.username.lower() in list(map(str.strip, todo.who.lower().split(",")))
+        ]
+        if len(user_todos) > 0:
+            todos = user_todos
         def _todo_sort_key(todo):
             protocol = todo.get_first_protocol()
             return protocol.date if protocol is not None and protocol.date is not None else datetime.now().date()
