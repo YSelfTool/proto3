@@ -342,7 +342,7 @@ def edit_default_top(protocoltype, defaulttop):
 def delete_default_top(defaulttop):
     db.session.delete(defaulttop)
     db.session.commit()
-    return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
+    return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=defaulttop.protocoltype.id))
 
 @app.route("/type/tops/move/<int:defaulttop_id>/<diff>/")
 @login_required
