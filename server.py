@@ -1149,7 +1149,7 @@ def delete_error(error):
 @app.route("/todomails/list")
 @login_required
 def list_todomails():
-    todomails = sorted(TodoMail.query.all(), key=lambda tm: tm.name)
+    todomails = sorted(TodoMail.query.all(), key=lambda tm: tm.name.lower())
     todomails_table = TodoMailsTable(todomails)
     return render_template("todomails-list.html", todomails=todomails, todomails_table=todomails_table)
 
