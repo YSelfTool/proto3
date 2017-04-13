@@ -244,7 +244,7 @@ class Protocol(DatabaseModel):
         if self.pad_identifier is None:
             identifier = self.get_identifier()
             if self.protocoltype.non_reproducible_pad_links:
-                identifier = "{}-{}".format(identifier, str(uuid4()))
+                identifier = "{}-{}".format(identifier, str(uuid4()).replace("-", ""))[:50]
             self.pad_identifier = identifier
             db.session.commit()
         return get_etherpad_url(self.pad_identifier)
