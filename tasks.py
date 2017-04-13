@@ -123,7 +123,7 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
     if not config.PARSER_LAZY:
         missing_fields = [field for field in required_fields if field not in remarks]
         if len(missing_fields) > 0:
-            error = protocol.create_error("Parsing", "Missing fields", ", ".join(missing_fields))
+            error = protocol.create_error("Parsing", "Du hast vergessen, Metadaten anzugeben.", ", ".join(missing_fields))
             db.session.add(error)
             db.session.commit()
             return

@@ -148,7 +148,7 @@ class Content(Element):
                     content = content[len(match.group()):]
                     break
             if not matched:
-                raise ParserException("Content does not match inner!", linenumber)
+                raise ParserException("Dies ist kein valider Tag! (mögliche Tags sind: {})", linenumber, ", ".join(Tag.KNOWN_TAGS))
         return Content(children, linenumber)
 
     # v1: has problems with missing semicolons
@@ -513,7 +513,7 @@ def parse(source):
         if not found:
             raise ParserException("No matching syntax element found!", linenumber, tree=tree)
     if current is not tree:
-        raise ParserException("Source ended within fork! (started at line {})".format(current.linenumber), linenumber=current.linenumber, tree=tree)
+        raise ParserException("Du hast vergessen, Klammern zu schließen! (die öffnende ist in Zeile {})".format(current.linenumber), linenumber=current.linenumber, tree=tree)
     return tree
 
 def main(test_file_name=None):
