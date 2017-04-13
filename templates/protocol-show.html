@@ -21,9 +21,11 @@
                 {% if protocol.source is not none %}
                     <a class="btn btn-primary" href="{{url_for("get_protocol_source", protocol_id=protocol.id)}}">Quelltext</a>
                 {% endif %} 
-                <a class="btn {% if protocol.is_done() %}btn-success{% else %}btn-default{% endif %}" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Editieren</a>
-                {% if config.ETHERPAD_ACTIVE %}
-                <a class="btn btn-primary" href="{{url_for("etherpush_protocol", protocol_id=protocol.id)}}"{% if large_time_diff %} onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst in {{time_diff.days}} Tagen.');"{% endif %}>Etherpad</a>
+                {% if not protocol.public %}
+                    <a class="btn {% if protocol.is_done() %}btn-success{% else %}btn-default{% endif %}" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Editieren</a>
+                    {% if config.ETHERPAD_ACTIVE %}
+                    <a class="btn btn-primary" href="{{url_for("etherpush_protocol", protocol_id=protocol.id)}}"{% if large_time_diff %} onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst in {{time_diff.days}} Tagen.');"{% endif %}>Etherpad</a>
+                    {% endif %}
                 {% endif %}
                 {% if not protocol.is_done() %}
                     <a class="btn btn-default" href="{{url_for("get_protocol_template", protocol_id=protocol.id)}}">Vorlage</a>
