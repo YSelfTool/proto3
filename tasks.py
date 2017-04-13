@@ -285,6 +285,7 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         protocol.decisions.remove(decision)
     db.session.commit()
     decision_tags = [tag for tag in tags if tag.name == "beschluss"]
+    decisions_to_render = []
     for decision_tag in decision_tags:
         if len(decision_tag.values) == 0:
             error = protocol.create_error("Parsing", "Empty decision found.",
@@ -320,6 +321,9 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
             content=decision_content, category_id=decision_category_id)
         db.session.add(decision)
         db.session.commit()
+        decision_tag.decision = decision
+        decisions_to_render.append((decision, decision_tag))
+    for decision, decision_tag in decisions_to_render:
         decision_top = decision_tag.fork.get_top()
         decision_content = texenv.get_template("decision.tex").render(
             render_type=RenderType.latex, decision=decision,

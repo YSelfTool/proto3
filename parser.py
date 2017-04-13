@@ -213,6 +213,11 @@ class Tag:
                 if not show_private:
                     return ""
                 return self.todo.render_latex(current_protocol=protocol)
+            elif self.name == "beschluss":
+                result = r"\textbf{{Beschluss:}} {}".format(self.decision.content)
+                if self.decision.category is not None:
+                    result = r"{} \textit{{({})}}".format(result, self.decision.category.name)
+                return result
             return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(";".join(self.values)))
         elif render_type == RenderType.plaintext:
             if self.name == "url":
