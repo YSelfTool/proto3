@@ -1,5 +1,6 @@
 import ldap
 import hmac, hashlib
+import ssl
 import ldap3
 from ldap3.utils.dn import parse_dn
 from datetime import datetime
@@ -99,8 +100,14 @@ class LdapManager:
             yield group.cn.value
 
 class ADManager:
-    def __init__(self, host, domain, user_dn, group_dn, port=636, use_ssl=True):
-        self.server = ldap3.Server(host, port=port, use_ssl=use_ssl)
+    def __init__(self, host, domain, user_dn, group_dn,
+        port=636, use_ssl=True, ca_cert=None):
+        tls_config = ldap3.Tls(validate=ssl.CERT_REQUIRED)
+        if ca_cert is not None:
+            tls_config = ldap3.Tls(validate=ssl.CERT_REQUIRED,
+                ca_certs_file=ca_cert)
+        self.server = ldap3.Server(host, port=port, use_ssl=use_ssl,
+            tls=tls_config)
         self.domain = domain
         self.user_dn = user_dn
         self.group_dn = group_dn

@@ -78,7 +78,8 @@ AUTH_BACKENDS = [
         host="ad.example.com",
         domain="EXAMPLE",
         user_dn="cn=users,dc=example,dc=com",
-        group_dn="dc=example,dc=com")
+        group_dn="dc=example,dc=com",
+        ca_cert="/etc/ssl/certs/example-ca.pem")
 ]
 
 # lines of error description
