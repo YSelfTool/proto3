@@ -20,7 +20,7 @@ import math
 import mimetypes
 
 import config
-from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, time_filter_short, ldap_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
+from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, time_filter_short, user_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg, fancy_join
 from decorators import db_lookup, require_public_view_right, require_private_view_right, require_modify_right, require_admin_right
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, LocalTOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta, DecisionCategory, Like
@@ -1301,7 +1301,7 @@ def login():
         return redirect(request.args.get("next") or url_for("index"))
     form = LoginForm()
     if form.validate_on_submit():
-        user = ldap_manager.login(form.username.data, form.password.data)
+        user = user_manager.login(form.username.data, form.password.data)
         if user is not None:
             session["auth"] = security_manager.hash_user(user)
             flash("Login successful, {}!".format(user.username), "alert-success")

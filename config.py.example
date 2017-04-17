@@ -66,7 +66,20 @@ CALENDAR_MAX_REQUESTS = 10
 
 SESSION_PROTECTION = "strong" # do not change
 
+# authentication
 SECURITY_KEY = "some other random string" # change this
+AUTH_MAX_DURATION = 300
+AUTH_BACKENDS = [
+    LdapManager(
+        host="ldap.example.com",
+        user_dn="uid={},ou=users,dc=example,dc=com",
+        group_dn="dc=example,dc=com"),
+    ADManager(
+        host="ad.example.com",
+        domain="EXAMPLE",
+        user_dn="cn=users,dc=example,dc=com",
+        group_dn="dc=example,dc=com")
+]
 
 # lines of error description
 ERROR_CONTEXT_LINES = 3

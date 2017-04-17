@@ -91,11 +91,10 @@ def class_filter(obj):
 def code_filter(text):
     return "<code>{}</code>".format(text)
 
-from auth import LdapManager, SecurityManager, User
-ldap_manager = LdapManager(config.LDAP_PROVIDER_URL, config.LDAP_BASE)
-security_manager = SecurityManager(config.SECURITY_KEY)
-
-from auth import User
+from auth import UserManager, SecurityManager, User
+max_duration = getattr(config, "AUTH_MAX_DURATION")
+user_manager = UserManager(backends=config.AUTH_BACKENDS)
+security_manager = SecurityManager(config.SECURITY_KEY, max_duration)
 
 def check_login():
     return "auth" in session and security_manager.check_user(session["auth"])
