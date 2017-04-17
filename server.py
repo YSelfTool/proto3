@@ -484,7 +484,6 @@ def new_protocol():
             flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
             return redirect(request.args.get("next") or url_for("index"))
         protocol = Protocol(protocoltype_id=protocoltype.id)
-        print(form.start_time.data)
         form.populate_obj(protocol)
         if form.start_time.data is None:
             protocol.start_time = protocoltype.usual_time

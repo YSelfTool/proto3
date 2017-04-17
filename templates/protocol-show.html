@@ -82,7 +82,7 @@
                 {% endif %}
             {% else %}
                 {% if protocol.date is not none %}
-                    <p><strong>Geplant:</strong> {{protocol.date|datify_long}}, {{protocol.start_time|timify}}</p>
+                    <p><strong>Geplant:</strong> {{protocol.date|datify_long}}, {{protocol.get_time()|timify}}</p>
                 {% endif %}
                 {% for meta in protocol.metas %}
                     <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
