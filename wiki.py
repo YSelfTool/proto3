@@ -4,6 +4,7 @@ import json
 import config
 
 HTTP_STATUS_OK = 200
+HTTP_STATUS_AUTHENTICATE = 401
 
 class WikiException(Exception):
     pass
@@ -88,11 +89,12 @@ class WikiClient:
         kwargs["action"] = action
         kwargs["format"] = "json"
         params = _filter_params(kwargs)
-        req = None
-        if method == "get":
-            req = requests.get(self.endpoint, cookies=self.cookies, params=params)
-        elif method == "post":
-            req = requests.post(self.endpoint, cookies=self.cookies, data=data, params=params)
+        def _do_request():
+            if method == "get":
+                return requests.get(self.endpoint, cookies=self.cookies, params=params, auth=requests.auth.HTTPBasicAuth(self.user, self.password))
+            elif method == "post":
+                return requests.post(self.endpoint, cookies=self.cookies, data=data, params=params, auth=requests.auth.HTTPBasicAuth(self.user, self.password))
+        req = _do_request()
         if req.status_code != HTTP_STATUS_OK:
             raise WikiException("HTTP status code {} on action {}.".format(req.status_code, action))
         self.cookies.update(req.cookies)

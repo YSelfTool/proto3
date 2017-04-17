@@ -21,8 +21,10 @@
                 {% if protocol.source is not none %}
                     <a class="btn btn-primary" href="{{url_for("get_protocol_source", protocol_id=protocol.id)}}">Quelltext</a>
                 {% endif %} 
-                {% if not protocol.public %}
+                {% if not protocol.public or has_admin_right %}
                     <a class="btn {% if protocol.is_done() %}btn-success{% else %}btn-default{% endif %}" href="{{url_for("update_protocol", protocol_id=protocol.id)}}">Editieren</a>
+                {% endif %}
+                {% if not protocol.public %}
                     {% if config.ETHERPAD_ACTIVE %}
                     <a class="btn btn-primary" href="{{url_for("etherpush_protocol", protocol_id=protocol.id)}}"{% if large_time_diff %} onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst in {{time_diff.days}} Tagen.');"{% endif %}>Etherpad</a>
                     {% endif %}
