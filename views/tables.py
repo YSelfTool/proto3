@@ -479,14 +479,16 @@ class DefaultMetasTable(Table):
         )
 
     def headers(self):
-        return ["Name", "Key", "Intern", ""]
+        return ["Name", "Key", "Standardwert", "Intern", "Vorher", ""]
 
     def row(self, meta):
         user = current_user()
         general_part = [
             meta.name,
             meta.key,
-            Table.bool(meta.internal)
+            meta.value,
+            Table.bool(meta.internal),
+            Table.bool(meta.prior)
         ]
         links = [
             Table.link(url_for("edit_defaultmeta", defaultmeta_id=meta.id), "Ändern"),

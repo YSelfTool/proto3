@@ -24,7 +24,7 @@ from shared import db, date_filter, datetime_filter, date_filter_long, date_filt
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg, fancy_join
 from decorators import db_lookup, require_public_view_right, require_private_view_right, require_modify_right, require_admin_right
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, LocalTOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta, DecisionCategory, Like
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, ProtocolForm, TopForm, LocalTopForm, SearchForm, DecisionSearchForm, ProtocolSearchForm, TodoSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, generate_protocol_form, TopForm, LocalTopForm, SearchForm, DecisionSearchForm, ProtocolSearchForm, TodoSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable, DecisionCategoriesTable
 from legacy import import_old_todos, import_old_protocols, import_old_todomails
 
@@ -165,9 +165,13 @@ def index():
         key=_protocol_sort_key,
         reverse=True
     )
-    protocol = finished_protocols[0] if len(finished_protocols) > 0 else None
-    show_private = protocol.has_private_view_right(user)
-    has_public_view_right = protocol.protocoltype.has_public_view_right(user)
+    protocol = None
+    show_private = False
+    has_public_view_right = False
+    if len(finished_protocols) > 0:
+        protocol = finished_protocols[0]
+        show_private = protocol.has_private_view_right(user)
+        has_public_view_right = protocol.protocoltype.has_public_view_right(user)
     todos = None
     if check_login():
         todos = [
@@ -480,11 +484,18 @@ def new_protocol():
             flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
             return redirect(request.args.get("next") or url_for("index"))
         protocol = Protocol(protocoltype_id=protocoltype.id)
+        print(form.start_time.data)
         form.populate_obj(protocol)
+        if form.start_time.data is None:
+            protocol.start_time = protocoltype.usual_time
         db.session.add(protocol)
         db.session.commit()
         for local_top in protocol.create_localtops():
             db.session.add(local_top)
+        for default_meta in protocoltype.metas:
+            if default_meta.prior:
+                meta = Meta(protocol_id=protocol.id, name=default_meta.name, internal=default_meta.internal, value=default_meta.value)
+                db.session.add(meta)
         db.session.commit()
         tasks.push_tops_to_calendar(protocol)
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
@@ -672,12 +683,16 @@ def etherpush_protocol(protocol):
 @require_modify_right()
 def update_protocol(protocol):
     upload_form = KnownProtocolSourceUploadForm()
-    edit_form = ProtocolForm(obj=protocol)
+    edit_form = generate_protocol_form(protocol)(obj=protocol)
     if edit_form.validate_on_submit():
         edit_form.populate_obj(protocol)
+        for meta in protocol.metas:
+            meta.value = getattr(edit_form.metas, meta.name).data
         db.session.commit()
         tasks.push_tops_to_calendar(protocol)
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    for meta in protocol.metas:
+        getattr(edit_form.metas, meta.name).data = meta.value
     return render_template("protocol-update.html", upload_form=upload_form, edit_form=edit_form, protocol=protocol)
 
 @app.route("/protocol/publish/<int:protocol_id>")
@@ -1351,7 +1366,7 @@ def check_and_send_reminders():
         print("regular action for reminders")
         for protocol in Protocol.query.filter(Protocol.done != True).all():
             day_difference = (protocol.date - current_day).days
-            usual_time = protocol.protocoltype.usual_time
+            usual_time = protocol.get_time()
             protocol_time = datetime(1, 1, 1, usual_time.hour, usual_time.minute)
             hour_difference = (protocol_time - current_time).seconds // 3600
             print("diff: {} days, {} hours".format(day_difference, hour_difference))

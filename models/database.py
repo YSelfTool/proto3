@@ -249,8 +249,14 @@ class Protocol(DatabaseModel):
             db.session.commit()
         return get_etherpad_url(self.pad_identifier)
 
+    def get_time(self):
+        if self.start_time is not None:
+            return self.start_time
+        return self.protocoltype.usual_time
+
     def get_datetime(self):
-        return datetime(self.date.year, self.date.month, self.date.day, self.protocoltype.usual_time.hour, self.protocoltype.usual_time.minute)
+        time = self.get_time()
+        return datetime(self.date.year, self.date.month, self.date.day, time.usual_time.hour, time.usual_time.minute)
 
     def has_nonplanned_tops(self):
         return len([top for top in self.tops if not top.planned]) > 0
@@ -670,7 +676,9 @@ class DefaultMeta(DatabaseModel):
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     key = db.Column(db.String)
     name = db.Column(db.String)
+    value = db.Column(db.String)
     internal = db.Column(db.Boolean)
+    prior = db.Column(db.Boolean, default=False, nullable=False)
 
     def get_parent(self):
         return self.protocoltype

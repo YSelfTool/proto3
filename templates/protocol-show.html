@@ -79,9 +79,14 @@
                             <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
                         {% endif %}
                     {% endfor %}
-        {% endif %}
+                {% endif %}
             {% else %}
-                {% if protocol.date is not none %}<p><strong>Geplant:</strong> {{protocol.date|datify_long}}{% endif %}</p>
+                {% if protocol.date is not none %}
+                    <p><strong>Geplant:</strong> {{protocol.date|datify_long}}, {{protocol.start_time|timify}}</p>
+                {% endif %}
+                {% for meta in protocol.metas %}
+                    <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
+                {% endfor %}
             {% endif %}
 
             <h3>Tagesordnung{% if has_modify_right and not protocol.has_nonplanned_tops() %} <a href="{{url_for("new_top", protocol_id=protocol.id)}}">Top hinzufügen</a>{% endif %}</h3>

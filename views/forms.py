@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField, FileField, DateTimeField, TextAreaField, Field, widgets
+from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField, FileField, DateTimeField, TextAreaField, Field, widgets, FormField
 from wtforms.validators import InputRequired, Optional
 
 import ipaddress
@@ -146,6 +146,7 @@ class MeetingReminderForm(FlaskForm):
 class NewProtocolForm(FlaskForm):
     protocoltype_id = SelectField("Typ", choices=[], coerce=int)
     date = DateField("Datum (dd.mm.yyyy)", validators=[InputRequired("Du musst ein Datum angeben.")], format="%d.%m.%Y")
+    start_time = DateTimeField("Uhrzeit (HH:MM, optional)", validators=[Optional()], format="%H:%M")
 
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
@@ -175,15 +176,20 @@ class NewProtocolFileUploadForm(FlaskForm):
         super().__init__(**kwargs)
         self.protocoltype_id.choices = get_protocoltype_choices(protocoltypes, add_all=False)
 
-class ProtocolForm(FlaskForm):
-    date = DateField("Datum (dd.mm.yyyy)", validators=[InputRequired("Bitte gib das Datum des Protkolls an.")], format="%d.%m.%Y")
-    start_time = DateTimeField("Beginn (%H:%M)", format="%H:%M", validators=[Optional()])
-    end_time = DateTimeField("Ende (%H:%M)", format="%H:%M", validators=[Optional()])
-    location = StringField("Ort")
-    author = StringField("Protokoll")
-    participants = StringField("Anwesende")
-    done = BooleanField("Fertig")
-    public = BooleanField("Veröffentlicht")
+def generate_protocol_form(protocol):
+    class ProtocolMetasForm(FlaskForm):
+        pass
+    for meta in protocol.metas:
+        setattr(ProtocolMetasForm, meta.name, StringField(meta.name))
+    class ProtocolForm(FlaskForm):
+        date = DateField("Datum (dd.mm.yyyy)", validators=[InputRequired("Bitte gib das Datum des Protkolls an.")], format="%d.%m.%Y")
+        start_time = DateTimeField("Beginn (%H:%M)", format="%H:%M", validators=[Optional()])
+        end_time = DateTimeField("Ende (%H:%M)", format="%H:%M", validators=[Optional()])
+        metas = FormField(ProtocolMetasForm)
+        done = BooleanField("Fertig")
+        public = BooleanField("Veröffentlicht")
+    return ProtocolForm
+    
 
 class TopForm(FlaskForm):
     name = StringField("TOP", validators=[InputRequired("Du musst den Namen des TOPs angeben.")])
@@ -248,7 +254,9 @@ class MetaForm(FlaskForm):
 class DefaultMetaForm(FlaskForm):
     key = StringField("Key", validators=[InputRequired("Bitte gib den Protokoll-Syntax-Schlüssel der Metadaten an.")])
     name = StringField("Name", validators=[InputRequired("Bitte gib den Namen der Metadaten an.")])
+    value = StringField("Standardwert")
     internal = BooleanField("Intern")
+    prior = BooleanField("Planungsrelevant")
 
 class DecisionCategoryForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Bitte gib den Namen der Kategorie an.")])

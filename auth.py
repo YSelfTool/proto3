@@ -131,9 +131,8 @@ class ADManager:
             for group_dn in result.memberOf:
                 group_dn_parts = parse_dn(group_dn)
                 if len(group_dn_parts) >= 1:
-                    for group_dn in group_dn_parts:
-                        key, group, next_char = group_dn
-                        yield group
+                    key, group, next_char = group_dn_parts[0]
+                    yield group
 
     def all_groups(self):
         connection = self.prepare_connection()
