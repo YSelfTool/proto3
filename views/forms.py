@@ -136,6 +136,7 @@ class ProtocolTypeForm(FlaskForm):
 class DefaultTopForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Du musst einen Namen angeben.")])
     number = IntegerField("Nummer", validators=[InputRequired("Du musst eine Nummer angeben.")])
+    description = TextAreaField("Standardinhalt")
 
 class MeetingReminderForm(FlaskForm):
     days_before = IntegerField("Tage vor Sitzung", validators=[InputRequired("Du musst eine Dauer angeben.")])

@@ -171,7 +171,7 @@ class Protocol(DatabaseModel):
         local_tops = []
         for default_top in self.protocoltype.default_tops:
             local_tops.append(LocalTOP(defaulttop_id=default_top.id,
-                protocol_id=self.id, description=""))
+                protocol_id=self.id, description=default_top.description or ""))
         return local_tops
 
     def fill_from_remarks(self, remarks):
@@ -326,6 +326,7 @@ class DefaultTOP(DatabaseModel):
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     name = db.Column(db.String)
     number = db.Column(db.Integer)
+    description = db.Column(db.String)
 
     localtops = relationship("LocalTOP", backref=backref("defaulttop"), cascade="all, delete-orphan")
 
