@@ -439,6 +439,8 @@ class DocumentsTable(Table):
     def row(self, document):
         user = current_user()
         links = []
+        if document.protocol.has_modify_right(user):
+            links.append(Table.link(url_for("edit_document", document_id=document.id), "Bearbeiten"))
         if config.PRINTING_ACTIVE and document.protocol.has_modify_right(user):
             links.append(Table.link(url_for("print_document", document_id=document.id), "Drucken"))
         if document.protocol.protocoltype.has_admin_right(user):

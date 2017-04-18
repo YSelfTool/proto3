@@ -153,6 +153,10 @@ class NewProtocolForm(FlaskForm):
         super().__init__(**kwargs)
         self.protocoltype_id.choices = get_protocoltype_choices(protocoltypes, add_all=False)
 
+class DocumentEditForm(FlaskForm):
+    name = StringField("Dateiname")
+    is_private = BooleanField("Intern")
+
 class DocumentUploadForm(FlaskForm):
     document = FileField("Datei")
     is_private = BooleanField("Intern")

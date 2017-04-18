@@ -24,7 +24,7 @@ from shared import db, date_filter, datetime_filter, date_filter_long, date_filt
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg, fancy_join
 from decorators import db_lookup, require_public_view_right, require_private_view_right, require_modify_right, require_admin_right
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, LocalTOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta, DecisionCategory, Like
-from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, generate_protocol_form, TopForm, LocalTopForm, SearchForm, DecisionSearchForm, ProtocolSearchForm, TodoSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm
+from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, generate_protocol_form, TopForm, LocalTopForm, SearchForm, DecisionSearchForm, ProtocolSearchForm, TodoSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm, DocumentEditForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable, DecisionCategoriesTable
 from legacy import import_old_todos, import_old_protocols, import_old_todomails
 
@@ -1091,6 +1091,18 @@ def upload_document(protocol):
             protocol.done = True
         db.session.commit()
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+
+@app.route("/document/edit/<int:document_id>", methods=["GET", "POST"])
+@login_required
+@db_lookup(Document)
+@require_modify_right()
+def edit_document(document):
+    form = DocumentEditForm(obj=document)
+    if form.validate_on_submit():
+        form.populate_obj(document)
+        db.session.commit()
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.protocol.id))
+    return render_template("document-edit.html", document=document, form=form)
 
 @app.route("/document/delete/<int:document_id>")
 @login_required
