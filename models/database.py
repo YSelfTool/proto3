@@ -6,7 +6,7 @@ from io import StringIO, BytesIO
 from enum import Enum
 from uuid import uuid4
 
-from shared import db, date_filter, date_filter_short, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY
+from shared import db, date_filter, date_filter_short, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY, current_user
 from utils import random_string, url_manager, get_etherpad_url, split_terms, check_ip_in_networks
 from models.errors import DateNotMatchingException
 
@@ -371,6 +371,18 @@ class LocalTOP(DatabaseModel):
 
     def get_parent(self):
         return self.protocol
+
+    def is_expandable(self):
+        user = current_user()
+        return (self.has_private_view_right(user)
+            and self.description is not None
+            and len(self.description) > 0)
+
+    def get_css_classes(self):
+        classes = ["defaulttop"]
+        if self.is_expandable():
+            classes.append("expansion-button")
+        return classes
 
 class Document(DatabaseModel):
     __tablename__ = "documents"

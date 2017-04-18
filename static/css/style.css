@@ -73,3 +73,7 @@ textarea {
 .like-sign {
     font-size: 16px;
 }
+
+li.defaulttop {
+    font-style: italic;
+}

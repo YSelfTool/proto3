@@ -4,7 +4,7 @@
         {% for default_top in protocol.protocoltype.default_tops %}
             {% if not default_top.is_at_end() %}
                 {% set localtop = default_top.get_localtop(protocol) %}
-                <li{% if has_private_view_right and localtop.description is not none and localtop.description|length > 0 %} class="expansion-button" id="localtop-{{localtop.id}}" title="{{localtop.description}}"{% endif %}>
+                <li class="{{localtop.get_css_classes()|join(" ")}}" {% if localtop.is_expandable() %} id="localtop-{{localtop.id}}" title="{{localtop.description}}"{% endif %}>
                     {{default_top.name}}
                     {% if not protocol.is_done() and has_modify_right %}
                         <a href="{{url_for('edit_localtop', localtop_id=localtop.id)}}">Ändern</a>
@@ -44,7 +44,7 @@
         {% for default_top in protocol.protocoltype.default_tops %}
             {% if default_top.is_at_end() %}
                 {% set localtop = default_top.get_localtop(protocol) %}
-                <li{% if has_private_view_right and localtop.description is not none and localtop.description|length > 0 %} class="expansion-button" id="localtop-{{localtop.id}}" title="{{localtop.description}}"{% endif %}>
+                <li class="{{localtop.get_css_classes()|join(" ")}}" {% if localtop.is_expandable() %} id="localtop-{{localtop.id}}" title="{{localtop.description}}"{% endif %}>
                     {{default_top.name}}
                     {% if not protocol.is_done() and has_modify_right %}
                         <a href="{{url_for('edit_localtop', localtop_id=localtop.id)}}">Ändern</a>
