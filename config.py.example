@@ -146,3 +146,17 @@ LATEX_BULLETPOINTS = [
     r"\textasteriskcentered",
     r"\textperiodcentered"
 ]
+
+# optional: path to additional jinja-templates
+#LATEX_LOCAL_TEMPLATES = "local-templates"
+# optional: the template to include at the top of protocol.tex
+#LATEX_LOGO_TEMPLATE = "asta-logo.tex"
+# optional: custom protocol page geometry
+#LATEX_GEOMETRY = "bottom=1.6cm,top=1.6cm,inner=2.5cm,outer=1.0cm,footskip=1.0cm,headsep=0.6cm"
+# optional: custom protocol pagestyle
+#LATEX_PAGESTYLE = "fancy"
+# optional: additional latex packages
+#LATEX_ADDITIONAL_PACKAGES = ["[absolute]{textpos}", "{fancyheadings}"]
+# optional: include header and footer in asta-style, not just a page number on top
+#LATEX_HEADER_FOOTER = True
+

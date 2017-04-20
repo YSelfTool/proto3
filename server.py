@@ -63,6 +63,12 @@ app.jinja_env.filters["fancy_join"] = fancy_join
 app.jinja_env.tests["auth_valid"] = security_manager.check_user
 app.jinja_env.tests["needs_date"] = needs_date_test
 
+additional_templates = getattr(config, "LATEX_LOCAL_TEMPLATES", None)
+if additional_templates is not None and os.path.isdir(additional_templates):
+    if additional_templates not in app.jinja_loader.searchpath:
+        app.jinja_loader.searchpath.append(additional_templates)
+    
+
 import tasks
 
 app.jinja_env.globals.update(check_login=check_login)

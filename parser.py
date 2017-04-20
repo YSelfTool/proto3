@@ -32,6 +32,7 @@ class RenderType(Enum):
     latex = 0
     wikitext = 1
     plaintext = 2
+    html = 3
 
 def _not_implemented(self, render_type):
     return NotImplementedError("The rendertype {} has not been implemented for {}.".format(render_type.name, self.__class__.__name__))
@@ -175,6 +176,8 @@ class Text:
             return self.text
         elif render_type == RenderType.plaintext:
             return self.text
+        elif render_type == RenderType.html:
+            return self.text
         else:
             raise _not_implemented(self, render_type)
 
@@ -235,6 +238,24 @@ class Tag:
                     return ""
                 return self.todo.render_wikitext(current_protocol=protocol)
             return "'''{}:''' {}".format(self.name.capitalize(), ";".join(self.values))
+        elif render_type == RenderType.html:
+            if self.name == "url":
+                return "<a href=\"{0}\">{0}</a>".format(self.values[0])
+            elif self.name == "todo":
+                if not show_private:
+                    return ""
+                if getattr(self, "todo", None) is not None:
+                    return self.todo.render_html(current_protocol=protocol)
+                else:
+                    return "<b>Todo:</b> {}".format(";".join(self.values))
+            elif self.name == "beschluss":
+                if getattr(self, "decision", None) is not None:
+                    parts = ["<b>Beschluss:</b>", self.decision.content]
+                    if self.decision.category is not None:
+                        parts.append("<i>{}</i>".format(self.decision.category.name))
+                    return " ".join(parts)
+                else:
+                    return "<b>Beschluss:</b> {}".format(self.values[0])
         else:
             raise _not_implemented(self, render_type)
 
@@ -295,6 +316,11 @@ class Remark(Element):
             return "{}: {}".format(self.name, self.value)
         elif render_type == RenderType.plaintext:
             return "{}: {}".format(RenderType.plaintex)
+        elif render_type == RenderType.html:
+            return "<p>{}: {}</p>".format(self.name, self.value)
+        else:
+            raise _not_implemented(self, render_type)
+            
 
     def dump(self, level=None):
         if level is None:
@@ -395,6 +421,19 @@ class Fork(Element):
                     continue
                 content_parts.append(part)
             content_lines = "{}\n{}".format(title_line, "\n".join(content_parts))
+            if self.test_private(self.name) and not show_private:
+                return ""
+            else:
+                return content_lines
+        elif render_type == RenderType.html:
+            title_line = "<h{depth}>{content}</h{depth}>".format(depth=level+1, content=name_line)
+            content_parts = []
+            for child in self.children:
+                part = child.render(render_type, show_private, level=level+1, protocol=protocol)
+                if len(part.strip()) == 0:
+                    continue
+                content_parts.append("<p>{}</p>".format(part))
+            content_lines = "{}\n\n{}".format(title_line, "\n".join(content_parts))
             if self.test_private(self.name) and not show_private:
                 return ""
             else:

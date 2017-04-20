@@ -38,6 +38,26 @@ texenv.filters["datify_short"] = date_filter_short
 texenv.filters["datetimify"] = datetime_filter
 texenv.filters["timify"] = time_filter
 texenv.filters["class"] = class_filter
+logo_template = getattr(config, "LATEX_LOGO_TEMPLATE", None)
+if logo_template is not None:
+    texenv.globals["logo_template"] = logo_template
+latex_geometry = getattr(config, "LATEX_GEOMETRY", "vmargin=1.5cm,hmargin={1.5cm,1.2cm},bindingoffset=8mm")
+texenv.globals["latex_geometry"] = latex_geometry
+raw_additional_packages = getattr(config, "LATEX_ADDITIONAL_PACKAGES", None)
+additional_packages = []
+if raw_additional_packages is not None:
+    for package in raw_additional_packages:
+        if "{" not in package:
+            package = "{{{}}}".format(package)
+        additional_packages.append(package)
+print(raw_additional_packages)
+print(additional_packages)
+texenv.globals["additional_packages"] = additional_packages
+latex_pagestyle = getattr(config, "LATEX_PAGESTYLE", None)
+if latex_pagestyle is not None:
+    texenv.globals["latex_pagestyle"] = latex_pagestyle
+latex_header_footer = getattr(config, "LATEX_HEADER_FOOTER", False)
+texenv.globals["latex_header_footer"] = latex_header_footer
 
 mailenv = app.create_jinja_environment()
 mailenv.trim_blocks = True
@@ -403,11 +423,12 @@ def compile_async(content, protocol_id, show_private=False, use_decision=False, 
             current = os.getcwd()
             protocol_source_filename = "protocol.tex"
             protocol_target_filename = "protocol.pdf"
+            protocol_class_filename = "protokoll2.cls"
             log_filename = "protocol.log"
             with open(os.path.join(compile_dir, protocol_source_filename), "w") as source_file:
                 source_file.write(content)
-            protocol2_class_source = texenv.get_template("protokoll2.cls").render(fonts=config.FONTS, maxdepth=maxdepth, bulletpoints=config.LATEX_BULLETPOINTS)
-            with open(os.path.join(compile_dir, "protokoll2.cls"), "w") as protocol2_class_file:
+            protocol2_class_source = texenv.get_template(protocol_class_filename).render(fonts=config.FONTS, maxdepth=maxdepth, bulletpoints=config.LATEX_BULLETPOINTS)
+            with open(os.path.join(compile_dir, protocol_class_filename), "w") as protocol2_class_file:
                 protocol2_class_file.write(protocol2_class_source)
             os.chdir(compile_dir)
             command = [
@@ -460,6 +481,10 @@ def compile_async(content, protocol_id, show_private=False, use_decision=False, 
             if os.path.isfile(total_source_filename):
                 with open(total_source_filename, "r") as source_file:
                     log += "\n\nSource:\n\n" + add_line_numbers(source_file.read())
+            total_class_filename = os.path.join(compile_dir, protocol_class_filename)
+            if os.path.isfile(total_class_filename):
+                with open(total_class_filename, "r") as class_file:
+                    log += "\n\nClass:\n\n" + add_line_numbers(class_file.read())
             error = protocol.create_error("Compiling", "Compiling LaTeX failed", log)
             db.session.add(error)
             db.session.commit()

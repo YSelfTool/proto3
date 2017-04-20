@@ -15,7 +15,7 @@
 
 % so ein paar sachen die wir eh immer brauchen
 \RequirePackage[ngerman]{babel}
-\RequirePackage[vmargin=1.5cm,hmargin={1.5cm,1.2cm},bindingoffset=8mm]{geometry}
+\RequirePackage[\VAR{latex_geometry}]{geometry}
 %\RequirePackage{lineno}
 \RequirePackage{longtable}
 \RequirePackage{framed}
@@ -27,6 +27,9 @@
 \RequirePackage{xcolor}
 \RequirePackage[breakable]{tcolorbox}
 \RequirePackage{linegoal}
+\ENV{for package in additional_packages}
+    \RequirePackage\VAR{package}
+\ENV{endfor}
 
 \setlistdepth{\VAR{maxdepth}}
 \renewlist{itemize}{itemize}{\VAR{maxdepth}}
@@ -88,7 +91,19 @@
 % nicht einrücken und benutzerinnendefinierte kopfzeile
 \setlength{\parindent}{0cm}
 \setlength{\parskip}{1ex}
-\pagestyle{myheadings}
+\pagestyle{\VAR{latex_pagestyle|default("myheadings")}}
+
+\ENV{if latex_header_footer}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0.5pt}
+    \def\footerprotocoltext{\relax}
+    \rfoot[]{\rmfamily\small\footerprotocoltext~~|~~\textbf{\thepage}}
+    \lfoot[\rmfamily\small\textbf{\thepage}~~|~~\footerprotocoltext]{}
+    \cfoot{}
+    \chead{}
+    \lhead[]{}
+    \rhead[]{}
+\ENV{endif}
 
 %\renewcommand*{\rmdefault}{phv}
 %\renewcommand*{\sfdefault}{phv}
@@ -96,9 +111,10 @@
 % Titel
 \newcommand{\Kopf}[1]{\markboth{#1}{#1}}
 \newcommand{\Titel}[2]{
-  \markboth{#2}{#2}
-  \markright{#2}
-  \thispagestyle{plain}
+  \def\footerprotocoltext{#2}
+  %\markboth{#2}{#2}
+  %\markright{#2}
+  %\thispagestyle{plain}
   \begin{center}
     \textbf{#1}
   \end{center}
