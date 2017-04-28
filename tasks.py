@@ -371,6 +371,10 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         privacy_states.append(True)
     protocol.content_private = content_private
     protocol.content_public = content_public
+    protocol.content_html_private = render_template("protocol.html",
+        render_type=RenderType.html, show_private=True, **render_kwargs)
+    protocol.content_html_public = render_template("protocol.html",
+        render_type=RenderType.html, show_private=False, **render_kwargs)
 
     for show_private in privacy_states:
         latex_source = texenv.get_template("protocol.tex").render(render_type=RenderType.latex, show_private=show_private, **render_kwargs)

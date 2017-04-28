@@ -153,5 +153,11 @@
             {% endif %}
         </div>
     </div>
+    {% if content_html %}
+        <div>
+            <h3>Protokollinhalt</h3>
+            {{content_html|safe}}
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

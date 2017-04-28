@@ -429,14 +429,25 @@ class Fork(Element):
             else:
                 return content_lines
         elif render_type == RenderType.html:
-            title_line = "<h{depth}>{content}</h{depth}>".format(depth=level+1, content=name_line)
-            content_parts = []
-            for child in self.children:
-                part = child.render(render_type, show_private, level=level+1, protocol=protocol)
-                if len(part.strip()) == 0:
-                    continue
-                content_parts.append("<p>{}</p>".format(part))
-            content_lines = "{}\n\n{}".format(title_line, "\n".join(content_parts))
+            depth = level + 1 + getattr(config, "HTML_LEVEL_OFFSET", 0)
+            content_lines = ""
+            if depth < 5:
+                title_line = "<h{depth}>{content}</h{depth}>".format(depth=depth, content=name_line)
+                content_parts = []
+                for child in self.children:
+                    part = child.render(render_type, show_private, level=level+1, protocol=protocol)
+                    if len(part.strip()) == 0:
+                        continue
+                    content_parts.append("<p>{}</p>".format(part))
+                content_lines = "{}\n\n{}".format(title_line, "\n".join(content_parts))
+            else:
+                content_parts = []
+                for child in self.children:
+                    part = child.render(render_type, show_private, level=level+1, protocol=protocol)
+                    if len(part.strip()) == 0:
+                        continue
+                    content_parts.append("<li>{}</li>".format(part))
+                content_lines = "{}\n<ul>\n{}\n</ul>".format(name_line, "\n".join(content_parts))
             if self.test_private(self.name) and not show_private:
                 return ""
             else:

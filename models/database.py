@@ -143,6 +143,8 @@ class Protocol(DatabaseModel):
     source = db.Column(db.String)
     content_public = db.Column(db.String)
     content_private = db.Column(db.String)
+    content_html_public = db.Column(db.String)
+    content_html_private = db.Column(db.String)
     date = db.Column(db.Date)
     start_time = db.Column(db.Time)
     end_time = db.Column(db.Time)
@@ -568,7 +570,7 @@ class Todo(DatabaseModel):
             return self.get_first_protocol() == current_protocol
         return len(self.protocols) == 1
 
-    def render_html(self):
+    def render_html(self, current_protocol=None):
         parts = [
             self.get_state(),
             "<strong>{}:</strong>".format(self.who),
