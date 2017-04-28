@@ -1328,7 +1328,7 @@ def new_like():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if "auth" in session:
+    if "auth" in session and current_user() is not None:
         flash("You are already logged in.", "alert-success")
         return redirect(request.args.get("next") or url_for("index"))
     form = LoginForm()

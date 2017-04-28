@@ -161,7 +161,10 @@ class SecurityManager:
         summary, hash = map(lambda s: s.encode("utf-8"), parts)
         maccer = self.maccer.copy()
         maccer.update(summary)
-        session_duration = datetime.now() - User.from_hashstring(string).timestamp
+        user = User.from_hashstring(string)
+        if user is None:
+            return False
+        session_duration = datetime.now() - user.timestamp
         macs_equal = hmac.compare_digest(maccer.hexdigest().encode("utf-8"), hash)
         time_short = int(session_duration.total_seconds()) < self.max_duration 
         return macs_equal and time_short
