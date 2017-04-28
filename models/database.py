@@ -610,14 +610,17 @@ class Decision(DatabaseModel):
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     content = db.Column(db.String)
-    category_id = db.Column(db.Integer, db.ForeignKey("decisioncategories.id"), nullable=True)
 
     document = relationship("DecisionDocument", backref=backref("decision"), cascade="all, delete-orphan", uselist=False)
 
+    categories = relationship("DecisionCategory", secondary="decisioncategoryassociations")
     likes = relationship("Like", secondary="likedecisionassociations")
 
     def get_parent(self):
         return self.protocol
+
+    def get_categories_str(self):
+        return ", ".join(map(lambda c: c.name, self.categories))
 
 class DecisionCategory(DatabaseModel):
     __tablename__ = "decisioncategories"
@@ -626,10 +629,13 @@ class DecisionCategory(DatabaseModel):
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     name = db.Column(db.String)
 
-    decisions = relationship("Decision", backref=backref("category"), order_by="Decision.id")
-
     def get_parent(self):
         return self.protocoltype
+
+class DecisionCategoryAssociation(DatabaseModel):
+    __tablename__ = "decisioncategoryassociations"
+    decision_id = db.Column(db.Integer, db.ForeignKey("decisions.id"), primary_key=True)
+    decisioncategory_id = db.Column(db.Integer, db.ForeignKey("decisioncategories.id"), primary_key=True)
 
 class MeetingReminder(DatabaseModel):
     __tablename__ = "meetingreminders"

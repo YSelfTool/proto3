@@ -50,8 +50,6 @@ if raw_additional_packages is not None:
         if "{" not in package:
             package = "{{{}}}".format(package)
         additional_packages.append(package)
-print(raw_additional_packages)
-print(additional_packages)
 texenv.globals["additional_packages"] = additional_packages
 latex_pagestyle = getattr(config, "LATEX_PAGESTYLE", None)
 if latex_pagestyle is not None:
@@ -314,9 +312,8 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
             db.session.commit()
             return
         decision_content = decision_tag.values[0]
-        decision_category_id = None
-        if len(decision_tag.values) > 1:
-            decision_category_name = decision_tag.values[1]
+        decision_categories = []
+        for decision_category_name in decision_tag.values[1:]:
             decision_category = DecisionCategory.query.filter_by(protocoltype_id=protocol.protocoltype.id, name=decision_category_name).first()
             if decision_category is None:
                 category_candidates = DecisionCategory.query.filter_by(protocoltype_id=protocol.protocoltype.id).all()
@@ -336,11 +333,13 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
                 db.session.commit()
                 return
             else:
-                decision_category_id = decision_category.id
+                decision_categories.append(decision_category)
         decision = Decision(protocol_id=protocol.id,
-            content=decision_content, category_id=decision_category_id)
+            content=decision_content)
         db.session.add(decision)
         db.session.commit()
+        for decision_category in decision_categories:
+            decision.categories.append(decision_category)
         decision_tag.decision = decision
         decisions_to_render.append((decision, decision_tag))
     for decision, decision_tag in decisions_to_render:

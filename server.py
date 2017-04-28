@@ -1034,8 +1034,7 @@ def list_decisions():
     if decisioncategory_id is not None and decisioncategory_id != -1:
         decisions = [
             decision for decision in decisions
-            if decision.category is not None
-            and decision.category.id == decisioncategory_id
+            if decisioncategory_id in map(lambda d: d.id, decision.categories)
         ]
     if search_term is not None and len(search_term.strip()) > 0:
         decisions = [

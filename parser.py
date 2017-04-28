@@ -217,10 +217,12 @@ class Tag:
                     return ""
                 return self.todo.render_latex(current_protocol=protocol)
             elif self.name == "beschluss":
-                result = r"\textbf{{Beschluss:}} {}".format(self.decision.content)
-                if self.decision.category is not None:
-                    result = r"{} \textit{{({})}}".format(result, self.decision.category.name)
-                return result
+                parts = [r"\textbf{{Beschluss:}} {}".format(self.decision.content)]
+                if len(self.decision.categories):
+                    parts.append(
+                        r"\textit{{({})}}".format(self.decision.get_categories_str())
+                    )
+                return " ".join(parts)
             return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(";".join(self.values)))
         elif render_type == RenderType.plaintext:
             if self.name == "url":
@@ -251,8 +253,9 @@ class Tag:
             elif self.name == "beschluss":
                 if getattr(self, "decision", None) is not None:
                     parts = ["<b>Beschluss:</b>", self.decision.content]
-                    if self.decision.category is not None:
-                        parts.append("<i>{}</i>".format(self.decision.category.name))
+                    if len(self.decision.categories) > 0:
+                        parts.append("<i>{}</i>".format(
+                            self.decision.get_categories_str()))
                     return " ".join(parts)
                 else:
                     return "<b>Beschluss:</b> {}".format(self.values[0])

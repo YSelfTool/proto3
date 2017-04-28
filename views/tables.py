@@ -384,7 +384,7 @@ class DecisionsTable(Table):
         super().__init__("Beschlüsse", decisions)
         self.category_present = len([
             decision for decision in decisions
-            if decision.category is not None
+            if len(decision.categories) > 0
         ]) > 0
 
     def headers(self):
@@ -401,7 +401,7 @@ class DecisionsTable(Table):
             Table.link(url_for("show_protocol", protocol_id=decision.protocol.id), decision.protocol.get_short_identifier()),
             decision.content
         ]
-        category_part = [decision.category.name if decision.category is not None else ""]
+        category_part = [decision.get_categories_str()]
         if not self.category_present:
             category_part = []
         action_part = [

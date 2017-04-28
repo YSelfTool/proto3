@@ -41,7 +41,7 @@
 \begin{itemize}
 \ENV{if protocol.decisions|length > 0}
     \ENV{for decision in protocol.decisions}
-        \item \VAR{decision.content|escape_tex}\ENV{if decision.category is not none and show_private} \textit{(\VAR{decision.category.name})}\ENV{endif}
+        \item \VAR{decision.content|escape_tex}\ENV{if decision.categories|length > 0 and show_private} \textit{(\VAR{decision.get_categories_str()})}\ENV{endif}
     \ENV{endfor}
 \ENV{else}
 	\item Keine Beschlüsse
