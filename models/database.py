@@ -258,7 +258,7 @@ class Protocol(DatabaseModel):
 
     def get_datetime(self):
         time = self.get_time()
-        return datetime(self.date.year, self.date.month, self.date.day, time.usual_time.hour, time.usual_time.minute)
+        return datetime(self.date.year, self.date.month, self.date.day, time.hour, time.minute)
 
     def has_nonplanned_tops(self):
         return len([top for top in self.tops if not top.planned]) > 0
