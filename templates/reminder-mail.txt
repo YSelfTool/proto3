@@ -1,4 +1,4 @@
-Die nächste {{protocol.protocoltype.name}} findet am {{protocol.date|datify}} um {{protocol.protocoltype.get_time()|timify}} statt.
+Die nächste {{protocol.protocoltype.name}} findet am {{protocol.date|datify}} um {{protocol.get_time()|timify}} statt.
 {% for meta in protocol.metas %}
 {{meta.name}}: {{meta.value}}
 {% endfor %}
