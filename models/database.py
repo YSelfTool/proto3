@@ -597,7 +597,7 @@ class Todo(DatabaseModel):
     def render_template(self):
         parts = ["todo", self.who, self.description, self.state.get_name()]
         if self.state.needs_date():
-            parts.append(date_filter(self.date))
+            parts.append(date_filter_short(self.date))
         parts.append("id {}".format(self.get_id()))
         return "[{}]".format(";".join(parts))
 
