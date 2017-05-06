@@ -31,6 +31,9 @@ class DatabaseModel(db.Model):
     def has_modify_right(self, user):
         return self.get_parent().has_modify_right(user)
 
+    def has_publish_right(self, user):
+        return self.get_parent().has_publish_right(user)
+
     def has_admin_right(self, user):
         return self.get_parent().has_admin_right(user)
 
@@ -56,6 +59,7 @@ class ProtocolType(DatabaseModel):
     modify_group = db.Column(db.String)
     private_group = db.Column(db.String)
     public_group = db.Column(db.String)
+    publish_group = db.Column(db.String)
     private_mail = db.Column(db.String)
     public_mail = db.Column(db.String)
     non_reproducible_pad_links = db.Column(db.Boolean)
@@ -102,6 +106,11 @@ class ProtocolType(DatabaseModel):
     def has_modify_right(self, user):
         return ((user is not None
             and (self.modify_group != "" and self.modify_group in user.groups))
+            or self.has_admin_right(user))
+
+    def has_publish_right(self, user):
+        return ((user is not None
+            and (self.publish_group != "" and self.publish_group in user.groups))
             or self.has_admin_right(user))
 
     def has_admin_right(self, user):

@@ -73,5 +73,8 @@ def require_private_view_right(require_exist=True):
 def require_modify_right(require_exist=True):
     return require_right("modify", require_exist)
 
+def require_publish_right(require_exist=True):
+    return require_right("publish", require_exist)
+
 def require_admin_right(require_exist=True):
     return require_right("admin", require_exist)

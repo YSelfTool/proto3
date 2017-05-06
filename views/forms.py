@@ -109,6 +109,7 @@ class ProtocolTypeForm(FlaskForm):
     organization = StringField("Organisation", validators=[InputRequired("Du musst eine zugehörige Organisation angeben.")])
     usual_time = DateTimeField("Üblicher Beginn", validators=[InputRequired("Bitte gib die Zeit an, zu der die Sitzung beginnt.")], format="%H:%M")
     is_public = BooleanField("Öffentlich sichtbar")
+    publish_group = SelectField("Verwaltungsgruppe", choices=[])
     modify_group = SelectField("Bearbeitungsgruppe", choices=[])
     private_group = SelectField("Interne Gruppe", choices=[])
     public_group = SelectField("Öffentliche Gruppe", choices=[])
@@ -129,6 +130,7 @@ class ProtocolTypeForm(FlaskForm):
         self.calendar.choices = get_calendar_choices(protocoltype=protocoltype)
         self.printer.choices = get_printer_choices()
         group_choices = get_group_choices()
+        self.publish_group.choices = group_choices
         self.modify_group.choices = group_choices
         self.private_group.choices = group_choices
         self.public_group.choices = group_choices

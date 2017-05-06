@@ -159,7 +159,7 @@ class ProtocolTypeTable(SingleValueTable):
 
     def headers(self):
         general_headers = ["Name", "Abkürzung", "Organisation", "Beginn",
-            "Öffentlich", "Bearbeitungsgruppe", "Interne Gruppe",
+            "Öffentlich", "Verwaltungsgruppe", "Bearbeitungsgruppe", "Interne Gruppe",
             "Öffentliche Gruppe"]
         etherpad_headers = ["Nicht-reproduzierbare Etherpadlinks"]
         if not config.ETHERPAD_ACTIVE:
@@ -190,6 +190,7 @@ class ProtocolTypeTable(SingleValueTable):
             self.value.organization,
             self.value.usual_time.strftime("%H:%M") if self.value.usual_time is not None else "", # todo: remove if, this field is required
             Table.bool(self.value.is_public),
+            self.value.publish_group,
             self.value.modify_group,
             self.value.private_group,
             self.value.public_group,

@@ -22,7 +22,7 @@ import mimetypes
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, time_filter_short, user_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
 from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg, fancy_join
-from decorators import db_lookup, require_public_view_right, require_private_view_right, require_modify_right, require_admin_right
+from decorators import db_lookup, require_public_view_right, require_private_view_right, require_modify_right, require_publish_right, require_admin_right
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, LocalTOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta, DecisionCategory, Like
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, generate_protocol_form, TopForm, LocalTopForm, SearchForm, DecisionSearchForm, ProtocolSearchForm, TodoSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm, DocumentEditForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable, DecisionCategoriesTable
@@ -688,7 +688,7 @@ def etherpush_protocol(protocol):
 @app.route("/protocol/update/<int:protocol_id>", methods=["GET", "POST"])
 @login_required
 @db_lookup(Protocol)
-@require_modify_right()
+@require_publish_right()
 def update_protocol(protocol):
     upload_form = KnownProtocolSourceUploadForm()
     edit_form = generate_protocol_form(protocol)(obj=protocol)
@@ -706,7 +706,7 @@ def update_protocol(protocol):
 @app.route("/protocol/publish/<int:protocol_id>")
 @login_required
 @db_lookup(Protocol)
-@require_modify_right()
+@require_publish_right()
 def publish_protocol(protocol):
     protocol.public = True
     db.session.commit()
@@ -727,7 +727,7 @@ def send_protocol_private(protocol):
 @app.route("/prococol/send/public/<int:protocol_id>")
 @login_required
 @db_lookup(Protocol)
-@require_modify_right()
+@require_publish_right()
 def send_protocol_public(protocol):
     if not config.MAIL_ACTIVE:
         flash("Die Mailfunktion ist nicht aktiviert.", "alert-error")
