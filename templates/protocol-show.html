@@ -36,7 +36,10 @@
                     {% endif %}
                 {% else %}
                     {% if config.MAIL_ACTIVE %}
-                        <a class="btn btn-default" href="{{url_for("send_protocol", protocol_id=protocol.id)}}">Mail versenden</a>
+                        <a class="btn btn-default" href="{{url_for("send_protocol_private", protocol_id=protocol.id)}}">Intern versenden</a>
+                        {% if protocol.public %}
+                            <a class="btn btn-default" href="{{url_for("send_protocol_public", protocol_id=protocol.id)}}">Öffentlich versenden</a>
+                        {% endif %}
                     {% endif %}
                     {% if not protocol.public %}
                         <a class="btn btn-default" href="{{url_for("publish_protocol", protocol_id=protocol.id)}}">Veröffentlichen</a>
@@ -153,7 +156,7 @@
             {% endif %}
         </div>
     </div>
-    {% if content_html %}
+    {% if content_html is not none %}
         <div>
             <h3>Protokollinhalt</h3>
             {{content_html|safe}}

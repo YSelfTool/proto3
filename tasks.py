@@ -184,10 +184,8 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
     protocol.delete_orphan_todos()
     db.session.commit()
     old_todos = list(protocol.todos)
-    for todo in old_todos:
-        protocol.todos.remove(todo)
-    db.session.commit()
     todo_tags = [tag for tag in tags if tag.name == "todo"]
+    raw_todos = []
     for todo_tag in todo_tags:
         if len(todo_tag.values) < 2:
             error = protocol.create_error("Parsing", "Invalid todo-tag",
@@ -239,6 +237,15 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
                                 db.session.add(error)
                                 db.session.commit()
                                 return
+        raw_todos.append((who, what, field_id, field_state, field_date, todo_tag))
+    for (_, _, field_id, _, _, _) in raw_todos:
+        if field_id is not None:
+            old_todos = [todo for todo in old_todos
+                if todo.id != field_id]
+    for todo in old_todos:
+        protocol.todos.remove(todo)
+    db.session.commit()
+    for (who, what, field_id, field_state, field_date, todo_tag) in raw_todos:
         if field_state is None:
             field_state = TodoState.open
         if field_state.needs_date() and field_date is None:
@@ -255,7 +262,6 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         if field_id is not None:
             todo = Todo.query.filter_by(number=field_id).first()
             if todo is None and not config.PARSER_LAZY:
-                # TODO: add non-strict mode (at least for importing old protocols)
                 error = protocol.create_error("Parsing",
                 "Invalid Todo ID",
                 "The todo in line {} has the ID {}, but there is no "
@@ -537,10 +543,12 @@ def send_reminder_async(reminder_id, protocol_id):
             print("sending private reminder mail to {}".format(protocol.protocoltype.private_mail))
             send_mail(protocol, protocol.protocoltype.private_mail, "Tagesordnung der {}".format(protocol.protocoltype.name), reminder_text)
 
-def send_protocol(protocol):
+def send_protocol_private(protocol):
     send_protocol_async.delay(protocol.id, show_private=True)
-    send_protocol_async.delay(protocol.id, show_private=False)
     send_todomails_async.delay(protocol.id)
+
+def send_protocol_public(protocol):
+    send_protocol_async.delay(protocol.id, show_private=False)
 
 @celery.task
 def send_protocol_async(protocol_id, show_private):

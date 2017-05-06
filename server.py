@@ -712,15 +712,27 @@ def publish_protocol(protocol):
     db.session.commit()
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
 
-@app.route("/prococol/send/<int:protocol_id>")
+@app.route("/prococol/send/private/<int:protocol_id>")
 @login_required
 @db_lookup(Protocol)
 @require_modify_right()
-def send_protocol(protocol):
+def send_protocol_private(protocol):
     if not config.MAIL_ACTIVE:
         flash("Die Mailfunktion ist nicht aktiviert.", "alert-error")
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
-    tasks.send_protocol(protocol)
+    tasks.send_protocol_private(protocol)
+    flash("Das Protokoll wurde versandt.", "alert-success")
+    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+
+@app.route("/prococol/send/public/<int:protocol_id>")
+@login_required
+@db_lookup(Protocol)
+@require_modify_right()
+def send_protocol_public(protocol):
+    if not config.MAIL_ACTIVE:
+        flash("Die Mailfunktion ist nicht aktiviert.", "alert-error")
+        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
+    tasks.send_protocol_public(protocol)
     flash("Das Protokoll wurde versandt.", "alert-success")
     return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
 
