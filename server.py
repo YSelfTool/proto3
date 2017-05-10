@@ -212,8 +212,8 @@ def list_types():
     user = current_user()
     types = [
         protocoltype for protocoltype in ProtocolType.query.all()
-        if (protocoltype.public_group in user.groups
-        or protocoltype.private_group in user.groups
+        if (protocoltype.has_private_view_right(user)
+        or protocoltype.has_public_view_right(user)
         or protocoltype.is_public)]
     types = sorted(types, key=lambda t: t.short_name)
     types_table = ProtocolTypesTable(types)
