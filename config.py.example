@@ -25,11 +25,6 @@ URL_PROTO = "https"
 URL_PATH = "/"
 URL_PARAMS = ""
 
-# ldap server (necessary)
-LDAP_PROVIDER_URL = "ldaps://auth.example.com:389"
-LDAP_BASE = "dc=example,dc=example,dc=com"
-LDAP_PROTOCOL_VERSION = 3 # do not change
-
 # CUPS printserver (optional)
 PRINTING_ACTIVE = True
 PRINTING_SERVER = "printsrv.example.com:631"
@@ -81,6 +76,8 @@ AUTH_BACKENDS = [
         group_dn="dc=example,dc=com",
         ca_cert="/etc/ssl/certs/example-ca.pem")
 ]
+
+OBSOLETION_WARNING = """Please migrate your account!"""
 
 # lines of error description
 ERROR_CONTEXT_LINES = 3
