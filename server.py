@@ -326,7 +326,7 @@ def new_default_top(protocoltype):
         for protocol in protocoltype.protocols:
             if not protocol.done:
                 localtop = LocalTOP(protocol_id=protocol.id,
-                    defaulttop_id=defaultop.id, description="")
+                    defaulttop_id=defaulttop.id, description="")
                 db.session.add(localtop)
         db.session.commit()
         flash("Der Standard-TOP {} wurde für dem Protokolltyp {} hinzugefügt.".format(defaulttop.name, protocoltype.name), "alert-success")

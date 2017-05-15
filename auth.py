@@ -65,6 +65,7 @@ class LdapManager:
         connection = ldap3.Connection(self.server)
         obj_def = ldap3.ObjectDef("posixgroup", connection)
         group_reader = ldap3.Reader(connection, obj_def, self.group_dn)
+        username = username.lower()
         for group in group_reader.search():
             members = group.memberUid.value
             if members is not None and username in members:
