@@ -281,10 +281,11 @@ class Protocol(DatabaseModel):
             if not todo.is_done()
         ]
 
-    def has_compiled_document(self):
+    def has_compiled_document(self, private=None):
         candidates = [
             document for document in self.documents
             if document.is_compiled
+                and (private is None or document.is_private == private)
         ]
         return len(candidates) > 0
 
