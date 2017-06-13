@@ -58,8 +58,11 @@ class LdapManager:
         self.obsolete = obsolete
 
     def authenticate(self, username, password):
-        connection = ldap3.Connection(self.server, self.user_dn.format(username), password)
-        return connection.bind()
+        try:
+            connection = ldap3.Connection(self.server, self.user_dn.format(username), password)
+            return connection.bind()
+        except ldap3.core.exceptions.LDAPSocketOpenError:
+            return False
 
     def groups(self, username, password=None):
         connection = ldap3.Connection(self.server)
@@ -100,7 +103,10 @@ class ADManager:
         return ldap3.Connection(self.server)
         
     def authenticate(self, username, password):
-        return self.prepare_connection(username, password).bind()
+        try:
+            return self.prepare_connection(username, password).bind()
+        except ldap3.core.exceptions.LDAPSocketOpenError:
+            return False
 
     def groups(self, username, password):
         connection = self.prepare_connection(username, password)
