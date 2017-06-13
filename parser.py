@@ -4,6 +4,7 @@ from collections import OrderedDict
 from enum import Enum
 
 from shared import escape_tex
+from utils import footnote_hash
 
 import config
 
@@ -223,6 +224,8 @@ class Tag:
                         r"\textit{{({})}}".format(self.decision.get_categories_str())
                     )
                 return " ".join(parts)
+            elif self.name == "footnote":
+                return r"\footnote{{{}}}".format(self.values[0])
             return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(";".join(self.values)))
         elif render_type == RenderType.plaintext:
             if self.name == "url":
@@ -231,6 +234,8 @@ class Tag:
                 if not show_private:
                     return ""
                 return self.values[0]
+            elif self.name == "footnote":
+                return "[^]({})".format(self.values[0])
             return "{}: {}".format(self.name.capitalize(), ";".join(self.values))
         elif render_type == RenderType.wikitext:
             if self.name == "url":
@@ -239,6 +244,8 @@ class Tag:
                 if not show_private:
                     return ""
                 return self.todo.render_wikitext(current_protocol=protocol)
+            elif self.name == "footnote":
+                return "<ref>{}</ref>".format(self.values[0])
             return "'''{}:''' {}".format(self.name.capitalize(), ";".join(self.values))
         elif render_type == RenderType.html:
             if self.name == "url":
@@ -259,6 +266,9 @@ class Tag:
                     return " ".join(parts)
                 else:
                     return "<b>Beschluss:</b> {}".format(self.values[0])
+            elif self.name == "footnote":
+                return '<sup id="#fnref{0}"><a href="#fn{0}">Fn</a></sup>'.format(
+                    footnote_hash(self.values[0]))
         else:
             raise _not_implemented(self, render_type)
 
@@ -284,7 +294,7 @@ class Tag:
     # v3: also match [] without semicolons inbetween, as there is not other use for that
     PATTERN = r"\[(?<content>[^\]]*)\]"
 
-    KNOWN_TAGS = ["todo", "url", "beschluss"]
+    KNOWN_TAGS = ["todo", "url", "beschluss", "footnote"]
 
 
 class Empty(Element):
@@ -494,6 +504,16 @@ class Fork(Element):
             return max(child_depths) + 1
         else:
             return 1
+
+    def get_visible_elements(self, show_private, elements=None):
+        if elements is None:
+            elements = set()
+        if show_private or not self.test_private(self.name):
+            for child in self.children:
+                elements.add(child)
+                if isinstance(child, Fork):
+                    child.get_visible_elements(show_private, elements)
+        return elements
 
     @staticmethod
     def create_root():

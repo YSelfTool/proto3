@@ -200,3 +200,6 @@ def fancy_join(values, sep1=" und ", sep2=", "):
     last = values[-1]
     start = values[:-1]
     return "{}{}{}".format(sep2.join(start), sep1, last)
+
+def footnote_hash(text, length=5):
+    return str(sum(ord(c) * i for i, c in enumerate(text)) % 10**length)

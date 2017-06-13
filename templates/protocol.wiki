@@ -28,4 +28,8 @@
     <env> endif </env>
 <env> endfor </env>
 
+<env> if footnotes|length > 0 </env>
+    <references />
+<env> endif </env>
+
 [[Kategorie:<var>protocol.protocoltype.wiki_category</var>]]

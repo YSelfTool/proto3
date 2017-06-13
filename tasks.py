@@ -12,7 +12,7 @@ from models.database import Document, Protocol, Error, Todo, Decision, TOP, Defa
 from models.errors import DateNotMatchingException
 from server import celery, app
 from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter, KNOWN_KEYS
-from utils import mail_manager, url_manager, encode_kwargs, decode_kwargs, add_line_numbers, set_etherpad_text, get_etherpad_text
+from utils import mail_manager, url_manager, encode_kwargs, decode_kwargs, add_line_numbers, set_etherpad_text, get_etherpad_text, footnote_hash
 from parser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork, RenderType
 from wiki import WikiClient, WikiException
 from calendarpush import Client as CalendarClient, CalendarException
@@ -168,6 +168,8 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         return
     # tags 
     tags = tree.get_tags()
+    elements = tree.get_visible_elements(show_private=True)
+    public_elements = tree.get_visible_elements(show_private=False)
     for tag in tags:
         if tag.name not in Tag.KNOWN_TAGS:
             error = protocol.create_error("Parsing", "Invalid tag",
@@ -304,11 +306,20 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         db.session.commit()
         todo_tag.todo = todo
     # Decisions
+    decision_tags = [tag for tag in tags if tag.name == "beschluss"]
+    for decision_tag in decision_tags:
+        if decision_tag not in public_elements:
+            error = protocol.create_error("Parsing", "Decision in private context.",
+                "The decision in line {} is in a private context, but decisions are "
+                "and have to be public. Please move it to a public spot.".format(
+                decision_tag.linenumber))
+            db.session.add(error)
+            db.session.commit()
+            return
     old_decisions = list(protocol.decisions)
     for decision in old_decisions:
         protocol.decisions.remove(decision)
     db.session.commit()
-    decision_tags = [tag for tag in tags if tag.name == "beschluss"]
     decisions_to_render = []
     for decision_tag in decision_tags:
         if len(decision_tag.values) == 0:
@@ -352,9 +363,15 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         decision_top = decision_tag.fork.get_top()
         decision_content = texenv.get_template("decision.tex").render(
             render_type=RenderType.latex, decision=decision,
-            protocol=protocol, top=decision_top, show_private=False)
+            protocol=protocol, top=decision_top, show_private=True)
         maxdepth = decision_top.get_maxdepth()
         compile_decision(decision_content, decision, maxdepth=maxdepth)
+
+    # Footnotes
+    footnote_tags = [tag for tag in tags if tag.name == "footnote"]
+    public_footnote_tags = [tag for tag in footnote_tags if tag in public_elements]
+
+    # TOPs
     old_tops = list(protocol.tops)
     for top in old_tops:
         protocol.tops.remove(top)
@@ -365,31 +382,47 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         db.session.add(top)
     db.session.commit()
 
-    render_kwargs = {
+    # render
+    private_render_kwargs = {
         "protocol": protocol,
-        "tree": tree
+        "tree": tree,
+        "footnotes": footnote_tags,
     }
+    public_render_kwargs = copy(private_render_kwargs)
+    public_render_kwargs["footnotes"] = public_footnote_tags
+    render_kwargs = {True: private_render_kwargs, False: public_render_kwargs}
+    
     maxdepth = tree.get_maxdepth()
     privacy_states = [False]
-    content_private = render_template("protocol.txt", render_type=RenderType.plaintext, show_private=True, **render_kwargs)
-    content_public = render_template("protocol.txt", render_type=RenderType.plaintext, show_private=False, **render_kwargs)
+    content_private = render_template("protocol.txt", render_type=RenderType.plaintext, show_private=True, **private_render_kwargs)
+    content_public = render_template("protocol.txt", render_type=RenderType.plaintext, show_private=False, **public_render_kwargs)
     if content_private != content_public:
         privacy_states.append(True)
     protocol.content_private = content_private
     protocol.content_public = content_public
     protocol.content_html_private = render_template("protocol.html",
-        render_type=RenderType.html, show_private=True, **render_kwargs)
+        render_type=RenderType.html, show_private=True, **private_render_kwargs)
     protocol.content_html_public = render_template("protocol.html",
-        render_type=RenderType.html, show_private=False, **render_kwargs)
+        render_type=RenderType.html, show_private=False, **public_render_kwargs)
 
     for show_private in privacy_states:
-        latex_source = texenv.get_template("protocol.tex").render(render_type=RenderType.latex, show_private=show_private, **render_kwargs)
+        latex_source = texenv.get_template("protocol.tex").render(
+            render_type=RenderType.latex,
+            show_private=show_private,
+            **render_kwargs[show_private])
         compile(latex_source, protocol, show_private=show_private, maxdepth=maxdepth)
 
     if protocol.protocoltype.use_wiki:
-        wiki_source = wikienv.get_template("protocol.wiki").render(render_type=RenderType.wikitext, show_private=not protocol.protocoltype.wiki_only_public, **render_kwargs).replace("\n\n\n", "\n\n")
-        wiki_infobox_source = wikienv.get_template("infobox.wiki").render(protocoltype=protocol.protocoltype)
-        push_to_wiki(protocol, wiki_source, wiki_infobox_source, "Automatisch generiert vom Protokollsystem 3.0")
+        show_private = not protocol.protocoltype.wiki_only_public
+        wiki_source = wikienv.get_template("protocol.wiki").render(
+            render_type=RenderType.wikitext,
+            show_private=show_private,
+            **render_kwargs[show_private]
+        ).replace("\n\n\n", "\n\n")
+        wiki_infobox_source = wikienv.get_template("infobox.wiki").render(
+            protocoltype=protocol.protocoltype)
+        push_to_wiki(protocol, wiki_source, wiki_infobox_source,
+            "Automatisch generiert vom Protokollsystem 3.0")
     protocol.done = True
     db.session.commit()
 
