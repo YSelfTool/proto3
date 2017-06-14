@@ -4,3 +4,10 @@
 
 {% endif %}
 {% endfor %}
+
+{% if footnotes|length > 0 %}
+    <hr />
+    {% for footnote in footnotes %}
+        <p><sup id="fn{{footnote.values[0]|footnote_hash}}">{{loop.index}}. {{footnote.values[0]}} <a href="#fnref{{footnote.values[0]|footnote_hash}}">↩</a></sup></p>
+    {% endfor %}
+{% endif %}
