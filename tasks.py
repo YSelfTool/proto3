@@ -303,6 +303,8 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         todo.protocols.append(protocol)
         todo.state = field_state
         todo.date = field_date
+        todo.who = who
+        todo.description = what
         db.session.commit()
         todo_tag.todo = todo
     # Decisions
