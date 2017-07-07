@@ -27,6 +27,7 @@
 \RequirePackage{xcolor}
 \RequirePackage[breakable]{tcolorbox}
 \RequirePackage{linegoal}
+\RequirePackage[hyphens]{url}
 \ENV{for package in additional_packages}
     \RequirePackage\VAR{package}
 \ENV{endfor}
