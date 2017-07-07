@@ -1351,6 +1351,7 @@ def login():
         user = user_manager.login(form.username.data, form.password.data)
         if user is not None:
             session["auth"] = security_manager.hash_user(user)
+            session.permanent = form.permanent.data
             flash("Login successful, {}!".format(user.username), "alert-success")
             return redirect(request.args.get("next") or url_for("index"))
         else:

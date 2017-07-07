@@ -102,6 +102,7 @@ class IPNetworkField(Field):
 class LoginForm(FlaskForm):
     username = StringField("Benutzer", validators=[InputRequired("Bitte gib deinen Benutzernamen ein.")])
     password = PasswordField("Passwort", validators=[InputRequired("Bitte gib dein Passwort ein.")])
+    permanent = BooleanField("Eingeloggt bleiben?")
 
 class ProtocolTypeForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired("Du musst einen Namen angeben.")])
