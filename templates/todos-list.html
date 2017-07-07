@@ -3,7 +3,13 @@
 {% block title %}Todos{% endblock %}
 
 {% macro page_link(text, _page=None, _page_length=None) %}
-    <a href="{{url_for(request.endpoint, page=_page or page, protocoltype=protocoltype_id, search=search_term, state_open=state_open, page_length=_page_length or page_length)}}">{{text}}</a>
+	{% if _page is none %}
+		{% set _page = page %}
+	{% endif %}
+	{% if _page_length is none %}
+		{% set _page_length = page_length %}
+	{% endif %}
+    <a href="{{url_for(request.endpoint, page=_page, protocoltype_id=protocoltype_id, search=search_term, state_open=state_open, page_length=_page_length)}}">{{text}}</a>
 {% endmacro %}
 
 {% block content %}
