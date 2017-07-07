@@ -47,6 +47,7 @@ pre.error-description {
 
 .expansion-text {
     display: none;
+    font-style: normal;
 }
 
 textarea {
