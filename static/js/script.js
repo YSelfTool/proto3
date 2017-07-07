@@ -9,6 +9,9 @@ function toggle_expansion() {
 var max_height = 400;
 function resize_textarea(textarea) {
     function _inner_resize_textarea() {
+        var current_height = textarea.style.height;
+        var current_width = textarea.style.width;
+        var use_current_height = (current_height != "") && Boolean(textarea.custom_height);
         textarea.style.height = "auto";
         var new_height = textarea.scrollHeight;
         var overflow = "hidden";
@@ -16,8 +19,20 @@ function resize_textarea(textarea) {
             new_height = max_height;
             overflow = "visible";
         }
-        textarea.style.height = new_height + "px";
-        textarea.style.overflow = overflow;
+        var keep_height = false;
+        if (use_current_height) {
+            current_height = parseInt(current_height);
+            if (current_height > new_height && current_height != textarea.custom_height) {
+                keep_height = true;
+            }
+        }
+        if (!keep_height) {
+            textarea.style.height = new_height + "px";
+            textarea.custom_height = new_height;
+            textarea.style.overflow = overflow;
+        } else {
+            textarea.style.height = current_height + "px";
+        }
     }
     return _inner_resize_textarea
 }
@@ -30,7 +45,6 @@ function resize_textarea_delayed(textarea) {
 
 function tab_on_key_down(textarea) {
     function _inner_tab_on_key_down(e) {
-        console.log(e);
         if (e.keyCode == 9) {
             var start = textarea.selectionStart;
             var end = textarea.selectionEnd;
