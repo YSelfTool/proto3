@@ -157,3 +157,12 @@ LATEX_BULLETPOINTS = [
 # optional: include header and footer in asta-style, not just a page number on top
 #LATEX_HEADER_FOOTER = True
 
+HTML_LEVEL_OFFSET = 3
+
+def dummy_todomail_provider():
+    return {"example": ("Name", "mail@example.com")}
+
+# list of functions that return dicts mapping todomail-keys to a tuple containing name and mail address
+ADDITIONAL_TODOMAIL_PROVIDERS = [
+    dummy_todomail_provider
+]

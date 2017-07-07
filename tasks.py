@@ -611,8 +611,20 @@ def send_todomails_async(protocol_id):
             for user in users
         }
         subject = "Du hast noch was zu tun!"
+        todomail_providers = getattr(config, "ADDITIONAL_TODOMAIL_PROVIDERS", None)
+        additional_todomails = {}
+        if todomail_providers:
+            for provider in todomail_providers:
+                todomail_dict = provider()
+                for key in todomail_dict:
+                    if key not in additional_todomails:
+                        name, mail = todomail_dict[key]
+                        additional_todomails[key] = TodoMail(name, mail)
         for user in users:
             todomail = TodoMail.query.filter(TodoMail.name.ilike(user)).first()
+            if todomail is None:
+                if user in additional_todomails:
+                    todomail = additional_todomails[user]
             if todomail is None:
                 error = protocol.create_error("Sending Todomail", "Sending Todomail failed.", "User {} has no Todo-Mail-Assignment.".format(user))
                 db.session.add(error)
