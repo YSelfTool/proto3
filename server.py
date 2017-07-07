@@ -1348,7 +1348,7 @@ def login():
         return redirect(request.args.get("next") or url_for("index"))
     form = LoginForm()
     if form.validate_on_submit():
-        user = user_manager.login(form.username.data, form.password.data)
+        user = user_manager.login(form.username.data, form.password.data, permanent=form.permanent.data)
         if user is not None:
             session["auth"] = security_manager.hash_user(user)
             session.permanent = form.permanent.data

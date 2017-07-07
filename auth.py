@@ -6,7 +6,7 @@ from ldap3.utils.dn import parse_dn
 from datetime import datetime
 
 class User:
-    def __init__(self, username, groups, timestamp=None, obsolete=False):
+    def __init__(self, username, groups, timestamp=None, obsolete=False, permanent=False):
         self.username = username
         self.groups = groups
         if timestamp is not None:
@@ -14,20 +14,22 @@ class User:
         else:
             self.timestamp = datetime.now()
         self.obsolete = obsolete
+        self.permanent = permanent
 
     def summarize(self):
-        return "{}:{}:{}:{}".format(self.username, ",".join(self.groups), str(self.timestamp.timestamp()), self.obsolete)
+        return "{}:{}:{}:{}:{}".format(self.username, ",".join(self.groups), str(self.timestamp.timestamp()), self.obsolete, self.permanent)
 
     @staticmethod
     def from_summary(summary):
-        parts = summary.split(":", 3)
-        if len(parts) != 4:
+        parts = summary.split(":", 4)
+        if len(parts) != 5:
             return None
-        name, group_str, timestamp_str, obsolete_str = parts
+        name, group_str, timestamp_str, obsolete_str, permanent_str = parts
         timestamp = datetime.fromtimestamp(float(timestamp_str))
         obsolete = obsolete_str == "True"
         groups = group_str.split(",")
-        return User(name, groups, timestamp, obsolete)
+        permanent = permanent_str == "True"
+        return User(name, groups, timestamp, obsolete, permanent)
 
     @staticmethod
     def from_hashstring(secure_string):
@@ -38,11 +40,11 @@ class UserManager:
     def __init__(self, backends):
         self.backends = backends
 
-    def login(self, username, password):
+    def login(self, username, password, permanent=False):
         for backend in self.backends:
             if backend.authenticate(username, password):
                 groups = backend.groups(username, password)
-                return User(username, groups, obsolete=backend.obsolete)
+                return User(username, groups, obsolete=backend.obsolete, permanent=permanent)
         return None
 
     def all_groups(self):
@@ -154,5 +156,5 @@ class SecurityManager:
         session_duration = datetime.now() - user.timestamp
         macs_equal = hmac.compare_digest(maccer.hexdigest().encode("utf-8"), hash)
         time_short = int(session_duration.total_seconds()) < self.max_duration 
-        return macs_equal and time_short
+        return macs_equal and (time_short or user.permanent)
 
