@@ -124,7 +124,7 @@
         </div>
         <div id="right-column" class="col-lg-6">
             {% if protocol.is_done() and has_public_view_right and logged_in %}
-                <h3>Todos dieser Sitzung <a href="{{url_for("list_todos")}}">Aktuelle Todos</a> <a href="{{url_for("new_todo", protocol_id=protocol.id)}}">Neu</a></h3>
+                <h3>Todos dieser Sitzung <a href="{{url_for("list_todos", protocoltype_id=protocol.protocoltype.id, state_open=0)}}">Aktuelle Todos</a> <a href="{{url_for("new_todo", protocol_id=protocol.id)}}">Neu</a></h3>
                 <ul>
                     {% if protocol.get_originating_todos()|length > 0 %}
                         {% for todo in protocol.get_originating_todos() %}
