@@ -511,7 +511,9 @@ class Fork(Element):
         if show_private or not self.test_private(self.name):
             for child in self.children:
                 elements.add(child)
-                if isinstance(child, Fork):
+                if isinstance(child, Content):
+                    elements.update(child.children)
+                elif isinstance(child, Fork):
                     child.get_visible_elements(show_private, elements)
         return elements
 
