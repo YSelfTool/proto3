@@ -382,7 +382,7 @@ class Fork(Element):
         return stripped_name in config.PRIVATE_KEYWORDS
 
     def render(self, render_type, show_private, level, protocol=None):
-        name_line = escape_tex(self.name if self.name is not None else "")
+        name_line = self.name if self.name is not None else ""
         if level == 0 and self.name == "Todos" and not show_private:
             return ""
         if render_type == RenderType.latex:
@@ -411,7 +411,7 @@ class Fork(Element):
                 else:
                     return r"\textit{[An dieser Stelle wurde intern protokolliert.]}"
             else:
-                return "\n".join([name_line, begin_line, content_lines, end_line])
+                return "\n".join([escape_tex(name_line), begin_line, content_lines, end_line])
         elif render_type == RenderType.wikitext:
             title_line = "{0} {1} {0}".format("=" * (level + 2), name_line)
             content_parts = []
