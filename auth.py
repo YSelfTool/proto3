@@ -1,4 +1,3 @@
-import ldap
 import hmac, hashlib
 import ssl
 import ldap3
