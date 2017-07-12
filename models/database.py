@@ -679,7 +679,7 @@ class Error(DatabaseModel):
         lines = self.description.splitlines()
         if len(lines) <= 4:
             return "\n".join(lines)
-        return "\n".join([*lines[:2], "…", *lines[-2:]])
+        return "\n".join(["\n".join(lines[:2]), "…", "\n".join(lines[-2:])])
 
 class TodoMail(DatabaseModel):
     __tablename__ = "todomails"
