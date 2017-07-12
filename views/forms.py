@@ -6,7 +6,6 @@ import ipaddress
 
 from models.database import TodoState
 from validators import CheckTodoDateByState
-from calendarpush import Client as CalendarClient
 from shared import current_user
 
 import config
@@ -38,6 +37,7 @@ def get_todostate_choices():
     ]
 
 def get_calendar_choices(protocoltype=None):
+    from calendarpush import Client as CalendarClient
     calendars = CalendarClient().get_calendars()
     choices = []
     if calendars is not None:
