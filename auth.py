@@ -115,12 +115,17 @@ class ADManager:
         obj_def = ldap3.ObjectDef("user", connection)
         name_filter = "cn:={}".format(username)
         user_reader = ldap3.Reader(connection, obj_def, self.user_dn, name_filter)
+        group_def = ldap3.ObjectDef("group", connection)
+        def _yield_recursive_groups(group_dn):
+            group_reader = ldap3.Reader(connection, group_def, group_dn, None)
+            for entry in group_reader.search():
+                yield entry.name.value
+                for child in entry.memberOf:
+                    yield from _yield_recursive_groups(child)
         for result in user_reader.search():
             for group_dn in result.memberOf:
-                group_dn_parts = parse_dn(group_dn)
-                if len(group_dn_parts) >= 1:
-                    key, group, next_char = group_dn_parts[0]
-                    yield group
+                yield from _yield_recursive_groups(group_dn)
+
 
     def all_groups(self):
         connection = self.prepare_connection()
