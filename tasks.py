@@ -13,7 +13,7 @@ from models.errors import DateNotMatchingException
 from server import celery, app
 from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter, KNOWN_KEYS
 from utils import mail_manager, url_manager, encode_kwargs, decode_kwargs, add_line_numbers, set_etherpad_text, get_etherpad_text, footnote_hash
-from parser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork, RenderType
+from protoparser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork, RenderType
 from wiki import WikiClient, WikiException
 from calendarpush import Client as CalendarClient, CalendarException
 from legacy import lookup_todo_id, import_old_todos
