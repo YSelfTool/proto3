@@ -13,6 +13,7 @@ MAIL_HOST = "mail.example.com:465"
 MAIL_USER = "user" # set to "" for unauthenticated sending
 MAIL_PASSWORD = "password" # set to "" for unauthenticated sending
 MAIL_USE_TLS = True # should match the port in MAIL_HOST (if present there)
+MAIL_USE_STARTTLS = False # Usually, it's either this or SMTPS
 
 # (local) message queue (necessary)
 CELERY_BROKER_URL = "redis://localhost:6379/0"

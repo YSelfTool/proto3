@@ -73,6 +73,7 @@ class MailManager:
         self.username = getattr(config, "MAIL_USER", "")
         self.password = getattr(config, "MAIL_PASSWORD", "")
         self.use_tls = getattr(config, "MAIL_USE_TLS", True)
+        self.use_starttls = getattr(config, "MAIL_USE_STARTTLS", False)
 
     def send(self, to_addr, subject, content, appendix=None):
         if (not self.active
@@ -91,6 +92,8 @@ class MailManager:
                 part["Content-Disposition"] = 'attachment; filename="{}"'.format(name)
                 msg.attach(part)
         server = (smtplib.SMTP_SSL if self.use_tls else smtplib.SMTP)(self.hostname)
+        if self.use_starttls:
+            server.starttls()
         if self.username not in [None, ""] and self.password not in [None, ""]:
             server.login(self.username, self.password)
         server.sendmail(self.from_addr, to_addr.split(","), msg.as_string())
