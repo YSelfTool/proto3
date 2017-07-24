@@ -301,10 +301,16 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
                     db.session.add(todo)
                     db.session.commit()
         todo.protocols.append(protocol)
-        todo.state = field_state
-        todo.date = field_date
-        todo.who = who
-        todo.description = what
+        is_newest_protocol = True
+        for other_protocol in todo.protocols:
+            if other_protocol.date > protocol.date:
+                is_newest_protocol = False
+                break
+        if is_newest_protocol:
+            todo.state = field_state
+            todo.date = field_date
+            todo.who = who
+            todo.description = what
         db.session.commit()
         todo_tag.todo = todo
     # Decisions
