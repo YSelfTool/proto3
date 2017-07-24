@@ -110,7 +110,7 @@ def merge_todos():
             todo1, todo2 = todo, todo_by_id[todo_id]
             print(todo1)
             print(todo2)
-            if todo2.id > todo1.id:
+            if todo2.state.value > todo1.state.value:
                 todo2, todo1 = todo1, todo2
             for protocol in todo2.protocols:
                 if protocol not in todo1.protocols:
