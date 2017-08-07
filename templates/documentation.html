@@ -128,22 +128,21 @@
         Ein TOP ist eine besondere Liste (s.u.) und kann somit wie diese verwendet werden.
 <pre>
 {TOP Tagesordnungspunkt
-    Inhalt;
+    Inhalt:
 }
 </pre>
         <h4 id="liste">Liste</h4>
         Die Liste ist das einzige strukturierende Element.
         Listen können beliebig geschachtelt werden.
-        Die Elemente der Liste werden durch Semikolons oder Zeilenenden getrennt.
+        Die Elemente der Liste werden durch das Zeilenende getrennt.
 <pre>
 {TOP Tagesordnungspunkt
     Zeile mit Text drin
     Hier eine geschachtelte Liste: {
         Details zu diesem Punkt.
         Mehr Details zu diesen Punkt.
-    };
-    Und ein anderer Punkt, der mit einem Semikolon endet.;
-};
+    }
+}
 </pre>
 
         Text, der vor der öffnenden Klammer <code>{</code> steht, wird als Name der Liste angesehen, nur TOPs können Text hinter der öffnenden Klammer haben.
@@ -157,12 +156,12 @@
         In der öffentlichen Version steht stattdessen nur ein Hinweis auf diese interne Stelle.
 <pre>
 {TOP Tagesordnungspunkt
-    Dieser Punkt ist öffentlich.;
+    Dieser Punkt ist öffentlich.
     {{config.PRIVATE_KEYWORDS[0]}}: {
-        Dieser Punkt ist intern.;
-        Dieser auch.;
-    };
-    Dieser ist wieder öffentlich.;
+        Dieser Punkt ist intern.
+        Dieser auch.
+    }
+    Dieser ist wieder öffentlich.
 }
 </pre>
         
