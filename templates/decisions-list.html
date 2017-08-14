@@ -9,7 +9,7 @@
 	{% if _page_length is none %}
 		{% set _page_length = page_length %}
 	{% endif %}
-    <a href="{{url_for(request.endpoint, page=_page, protocoltype=protocoltype_id, search=search_term, decisioncategory_id=decisioncategory_id, page_length=_page_length)}}">{{text}}</a>
+    <a href="{{url_for(request.endpoint, page=_page, protocoltype_id=protocoltype_id, search=search_term, decisioncategory_id=decisioncategory_id, page_length=_page_length)}}">{{text}}</a>
 {% endmacro %}
 
 {% block content %}
