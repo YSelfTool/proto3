@@ -1,0 +1,14 @@
+[Unit]
+Description=Protokollsystem-Celery
+After=network.target
+
+[Service]
+User=protokolle
+Group=protokolle
+WorkingDirectory=/var/www/protokollsystem
+Environment=VIRTUAL_ENV="/var/www/protokollsystem"
+ExecStart=/var/www/protokollsystem/program/bin/celery -A server.celery worker --loglevel=DEBUG --concurrency=4
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

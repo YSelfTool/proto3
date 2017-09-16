@@ -1,0 +1,15 @@
+[Unit]
+Description=Protokollsystem
+After=network.target
+Wants=protokollsystem-celery.service
+
+[Service]
+Environment=LDAPTLS_CACERT=/etc/ssl/certs/ldap_chain.pem
+ExecStart=/usr/bin/uwsgi --ini /etc/uwsgi/apps-available/protokollsystem.ini
+Restart=always
+KillSignal=SIGTERM
+Type=notify
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

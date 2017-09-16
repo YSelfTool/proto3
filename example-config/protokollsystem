@@ -1,0 +1,20 @@
+server {
+	listen 62000;
+	server_name protokolle.example.com;
+	root /var/www/protokolle;
+	index index.html index.py;
+
+	location / {
+		include uwsgi_params;
+		client_max_body_size 5M;
+		proxy_set_header        X-Real-IP       $realip_remote_addr;
+		proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+		uwsgi_param  REMOTE_ADDR        $realip_remote_addr;
+		uwsgi_pass unix:///run/uwsgi/app/protokollsystem.sock;
+	}
+	location /static {
+		alias /var/www/protokolle/static;
+		try_files $uri $uri/ =404;
+	}
+}
+

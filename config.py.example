@@ -4,7 +4,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False # do not change
 
 SECRET_KEY = "something random" # change this
 
-DEBUG = False
+DEBUG = False # do not change
 
 # mailserver (optional)
 MAIL_ACTIVE = True
@@ -13,10 +13,10 @@ MAIL_HOST = "mail.example.com:465"
 MAIL_USER = "user" # set to "" for unauthenticated sending
 MAIL_PASSWORD = "password" # set to "" for unauthenticated sending
 MAIL_USE_TLS = True # should match the port in MAIL_HOST (if present there)
-MAIL_USE_STARTTLS = False # Usually, it's either this or SMTPS
+MAIL_USE_STARTTLS = False # Usually, it's either this or SMTPS, not both
 
 # (local) message queue (necessary)
-CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_BROKER_URL = "redis://localhost:6379/0" # change this if you do not use redis or it is running somewhere else
 CELERY_TASK_SERIALIZER = "pickle" # do not change
 CELERY_ACCEPT_CONTENT = ["pickle"] # do not change
 
@@ -31,7 +31,7 @@ PRINTING_PRINTERS = [
 
 # etherpad (optional)
 ETHERPAD_ACTIVE = True
-ETHERPAD_URL = "https://example.com/etherpad"
+ETHERPAD_URL = "https://example.com/etherpad" # without /p/…
 EMPTY_ETHERPAD = """Welcome to Etherpad!
 
 This pad text is synchronized as you type, so that everyone viewing this page sees the same text. This allows you to collaborate seamlessly on documents!
@@ -52,7 +52,7 @@ WIKI_DOMAIN = "domain" # set to None if not necessary
 CALENDAR_ACTIVE = True
 CALENDAR_URL = "https://user:password@calendar.example.com/dav/"
 CALENDAR_DEFAULT_DURATION = 3 # default meeting length in hours
-CALENDAR_MAX_REQUESTS = 10
+CALENDAR_MAX_REQUESTS = 10 # number of retries before giving up (some caldav servers like to randomly reply with errors)
 
 SESSION_PROTECTION = "strong" # do not change
 
@@ -72,7 +72,7 @@ AUTH_BACKENDS = [
         ca_cert="/etc/ssl/certs/example-ca.pem")
 ]
 
-OBSOLETION_WARNING = """Please migrate your account!"""
+OBSOLETION_WARNING = """Please migrate your account!""" # not important
 
 # lines of error description
 ERROR_CONTEXT_LINES = 3
@@ -86,6 +86,7 @@ MAX_INDEX_DAYS = 14
 
 # mail to contact in case of complex errors
 ADMIN_MAIL = "admin@example.com"
+# users with this group may see and do everything
 ADMIN_GROUP = "admin"
 
 # accept protocols even with some errors
@@ -93,45 +94,55 @@ ADMIN_GROUP = "admin"
 # not recommended for regular operation
 PARSER_LAZY = False
 
-# minimum similarity (0-100) todos need to have to be considered equal
+# minimum similarity (0-100) todos need to have to be considered equal while importing
 FUZZY_MIN_SCORE = 90
 
 # choose something nice from fc-list
 # Nimbus Sans looks very much like Computer Modern
 FONTS = {
     "main": {
-        "regular": "Nimbus Sans",
-        "bold": "NimbusSans",
-        "italic": "NimbusSans",
-        "bolditalic": "NimbusSans"
+        "extension": ".otf",
+        "path": "/usr/share/fonts/OTF/",
+        "regular": "NimbusSans-Regular",
+        "bold": "NimbusSans-Bold",
+        "italic": "NimbusSans-Oblique",
+        "bolditalic": "NimbusSans-BoldOblique"
     },
     "roman": {
-        "regular": "Nimbus Roman",
-        "bold": "Nimbus Roman",
-        "italic": "Nimbus Roman",
-        "bolditalic": "Nimbus Roman"
+        "extension": ".otf",
+        "path": "/usr/share/fonts/OTF/",
+        "regular": "NimbusRoman-Regular",
+        "bold": "NimbusRoman-Bold",
+        "italic": "NimbusRoman-Italic",
+        "bolditalic": "NimbusRoman-BoldItalic"
     },
     "sans": {
-        "regular": "Nimbus Sans",
-        "bold": "NimbusSans",
-        "italic": "NimbusSans",
-        "bolditalic": "NimbusSans"
+        "extension": ".otf",
+        "path": "/usr/share/fonts/OTF/",
+        "regular": "NimbusSans-Regular",
+        "bold": "NimbusSans-Bold",
+        "italic": "NimbusSans-Oblique",
+        "bolditalic": "NimbusSans-BoldOblique"
     },
     "mono": {
-        "regular": "Nimbus Mono PS",
-        "bold": "Nimbus Mono PS",
-        "italic": "Nimbus Mono PS",
-        "bolditalic": "Nimbus Mono PS"
+        "extension": ".otf",
+        "path": "/usr/share/fonts/OTF/",
+        "regular": "NimbusMonoPS-Regular",
+        "bold": "NimbusMonoPS-Bold",
+        "italic": "NimbusMonoPS-Italic",
+        "bolditalic": "NimbusMonoPS-BoldItalic"
     }
 }
 
-# local filesystem path to save documents
+# local filesystem path to save compiled and uploaded protocols (and attachments)
 DOCUMENTS_PATH = "documents"
 
 # keywords indicating private protocol parts
 PRIVATE_KEYWORDS = ["private", "internal", "privat", "intern"]
 
 # list of bulletpoints to use in latex
+# these are latex-defaults, add more if you like more
+# they are cycled as often as necessary to allow (theoretically) infinite nesting depth
 LATEX_BULLETPOINTS = [
     r"\textbullet",
     r"\normalfont \bfseries \textendash",
@@ -157,6 +168,8 @@ HTML_LEVEL_OFFSET = 3
 def dummy_todomail_provider():
     return {"example": ("Name", "mail@example.com")}
 
+# if you want to generate this mapping automatically
+# manually creating todomails through the web interface will still be possible for every authenticated user
 # list of functions that return dicts mapping todomail-keys to a tuple containing name and mail address
 ADDITIONAL_TODOMAIL_PROVIDERS = [
     dummy_todomail_provider
