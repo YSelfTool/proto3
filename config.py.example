@@ -20,12 +20,6 @@ CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_TASK_SERIALIZER = "pickle" # do not change
 CELERY_ACCEPT_CONTENT = ["pickle"] # do not change
 
-# this websites address
-URL_ROOT = "protokolle.example.com"
-URL_PROTO = "https"
-URL_PATH = "/"
-URL_PARAMS = ""
-
 # CUPS printserver (optional)
 PRINTING_ACTIVE = True
 PRINTING_SERVER = "printsrv.example.com:631"

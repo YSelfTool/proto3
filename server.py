@@ -21,7 +21,7 @@ import mimetypes
 
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, time_filter_short, user_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
-from utils import is_past, mail_manager, url_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg, fancy_join, footnote_hash
+from utils import is_past, mail_manager, get_first_unused_int, set_etherpad_text, get_etherpad_text, split_terms, optional_int_arg, fancy_join, footnote_hash
 from decorators import db_lookup, require_public_view_right, require_private_view_right, require_modify_right, require_publish_right, require_admin_right
 from models.database import ProtocolType, Protocol, DefaultTOP, TOP, LocalTOP, Document, Todo, Decision, MeetingReminder, Error, TodoMail, DecisionDocument, TodoState, Meta, DefaultMeta, DecisionCategory, Like
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, generate_protocol_form, TopForm, LocalTopForm, SearchForm, DecisionSearchForm, ProtocolSearchForm, TodoSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm, DocumentEditForm
@@ -54,7 +54,7 @@ app.jinja_env.filters["timify"] = time_filter
 app.jinja_env.filters["timify_short"] = time_filter_short
 app.jinja_env.filters["datify_short"] = date_filter_short
 app.jinja_env.filters["datify_long"] = date_filter_long
-app.jinja_env.filters["url_complete"] = url_manager.complete
+#app.jinja_env.filters["url_complete"] = url_manager.complete
 app.jinja_env.filters["class"] = class_filter
 app.jinja_env.filters["todo_get_name"] = todostate_name_filter
 app.jinja_env.filters["code"] = code_filter

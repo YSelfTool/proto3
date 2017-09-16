@@ -12,7 +12,7 @@ from models.database import Document, Protocol, Error, Todo, Decision, TOP, Defa
 from models.errors import DateNotMatchingException
 from server import celery, app
 from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter, KNOWN_KEYS
-from utils import mail_manager, url_manager, encode_kwargs, decode_kwargs, add_line_numbers, set_etherpad_text, get_etherpad_text, footnote_hash
+from utils import mail_manager, encode_kwargs, decode_kwargs, add_line_numbers, set_etherpad_text, get_etherpad_text, footnote_hash
 from protoparser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork, RenderType
 from wiki import WikiClient, WikiException
 from calendarpush import Client as CalendarClient, CalendarException
@@ -31,7 +31,7 @@ texenv.filters["escape_tex"] = escape_tex
 texenv.filters["unhyphen"] = unhyphen
 texenv.trim_blocks = True
 texenv.lstrip_blocks = True
-texenv.filters["url_complete"] = url_manager.complete
+#texenv.filters["url_complete"] = url_manager.complete
 texenv.filters["datify"] = date_filter
 texenv.filters["datify_long"] = date_filter_long
 texenv.filters["datify_short"] = date_filter_short
@@ -60,7 +60,7 @@ texenv.globals["latex_header_footer"] = latex_header_footer
 mailenv = app.create_jinja_environment()
 mailenv.trim_blocks = True
 mailenv.lstrip_blocks = True
-mailenv.filters["url_complete"] = url_manager.complete
+#mailenv.filters["url_complete"] = url_manager.complete
 mailenv.filters["datify"] = date_filter
 mailenv.filters["datetimify"] = datetime_filter
 

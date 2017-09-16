@@ -7,7 +7,7 @@ from enum import Enum
 from uuid import uuid4
 
 from shared import db, date_filter, date_filter_short, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY, current_user
-from utils import random_string, url_manager, get_etherpad_url, split_terms, check_ip_in_networks
+from utils import random_string, get_etherpad_url, split_terms, check_ip_in_networks
 from models.errors import DateNotMatchingException
 
 import os

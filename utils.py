@@ -63,7 +63,7 @@ class UrlManager:
         params = match.group("params") or self.params
         return self.base.format(proto, root, path, "?" + params if len(params) > 0 else "")
 
-url_manager = UrlManager(config)
+#url_manager = UrlManager(config)
 
 class MailManager:
     def __init__(self, config):
