@@ -579,10 +579,14 @@ def send_reminder_async(reminder_id, protocol_id):
         reminder_text = render_template("reminder-mail.txt", reminder=reminder, protocol=protocol)
         if reminder.send_public:
             print("sending public reminder mail to {}".format(protocol.protocoltype.public_mail))
-            send_mail(protocol, protocol.protocoltype.public_mail, "Tagesordnung der {}".format(protocol.protocoltype.name), reminder_text)
+            send_mail(protocol, protocol.protocoltype.public_mail,
+                "Tagesordnung der {}".format(protocol.protocoltype.name),
+                reminder_text, reply_to=protocol.protocoltype.public_mail)
         if reminder.send_private:
             print("sending private reminder mail to {}".format(protocol.protocoltype.private_mail))
-            send_mail(protocol, protocol.protocoltype.private_mail, "Tagesordnung der {}".format(protocol.protocoltype.name), reminder_text)
+            send_mail(protocol, protocol.protocoltype.private_mail,
+                "Tagesordnung der {}".format(protocol.protocoltype.name),
+                reminder_text, reply_to=protocol.protocoltype.private_mail)
 
 def send_protocol_private(protocol):
     send_protocol_async.delay(protocol.id, show_private=True)
@@ -640,18 +644,19 @@ def send_todomails_async(protocol_id):
                 continue
             to_addr = todomail.get_formatted_mail()
             mail_content = render_template("todo-mail.txt", protocol=protocol, todomail=todomail, todos=grouped_todos[user])
-            send_mail(protocol, to_addr, subject, mail_content)
+            send_mail(protocol, to_addr, subject, mail_content,
+                reply_to=protocol.protocoltype.private_mail)
 
-def send_mail(protocol, to_addr, subject, content, appendix=None):
+def send_mail(protocol, to_addr, subject, content, appendix=None, reply_to=None):
     if to_addr is not None and len(to_addr.strip()) > 0:
-        send_mail_async.delay(protocol.id, to_addr, subject, content, appendix)
+        send_mail_async.delay(protocol.id, to_addr, subject, content, appendix, reply_to)
 
 @celery.task
-def send_mail_async(protocol_id, to_addr, subject, content, appendix):
+def send_mail_async(protocol_id, to_addr, subject, content, appendix, reply_to):
     with app.app_context():
         protocol = Protocol.query.filter_by(id=protocol_id).first()
         try:
-            mail_manager.send(to_addr, subject, content, appendix)
+            mail_manager.send(to_addr, subject, content, appendix, reply_to)
         except Exception as exc:
             error = protocol.create_error("Sending Mail", "Sending mail failed", str(exc))
             db.session.add(error)

@@ -75,7 +75,7 @@ class MailManager:
         self.use_tls = getattr(config, "MAIL_USE_TLS", True)
         self.use_starttls = getattr(config, "MAIL_USE_STARTTLS", False)
 
-    def send(self, to_addr, subject, content, appendix=None):
+    def send(self, to_addr, subject, content, appendix=None, reply_to=None):
         if (not self.active
             or not self.hostname
             or not self.from_addr):
@@ -85,6 +85,8 @@ class MailManager:
         msg["To"] = to_addr
         msg["Subject"] = subject
         msg["Message-ID"] = "<{}@{}>".format(uuid4(), getfqdn())
+        if reply_to is not None:
+            msg["Reply-To"] = reply_to
         msg.attach(MIMEText(content, _charset="utf-8"))
         if appendix is not None:
             for name, file_like in appendix:
