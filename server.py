@@ -532,7 +532,9 @@ def show_protocol(protocol):
     content_html = (protocol.content_html_private
         if protocol.has_private_view_right(user)
         else protocol.content_html_public)
-    return render_template("protocol-show.html", protocol=protocol, errors_table=errors_table, documents_table=documents_table, document_upload_form=document_upload_form, source_upload_form=source_upload_form, time_diff=time_diff, large_time_diff=large_time_diff, content_html=Markup(content_html))
+    if content_html is not None:
+        content_html = Markup(content_html)
+    return render_template("protocol-show.html", protocol=protocol, errors_table=errors_table, documents_table=documents_table, document_upload_form=document_upload_form, source_upload_form=source_upload_form, time_diff=time_diff, large_time_diff=large_time_diff, content_html=content_html)
 
 @app.route("/protocol/delete/<int:protocol_id>")
 @login_required
