@@ -24,9 +24,13 @@
         <ul>
             <li>Die ersten und letztes TOPs sind Standard-TOPs, die jede Sitzung hat. Die kannst du nur über beim Protokolltyp ändern, nicht beim Protokoll selbst.</li>
             <li>Die mittleren TOPs gehören nur zu dieser Sitzung. Du kannst welche hinzufügen oder sie umsortieren.</li>
+            <li>Möchtest du zu einem TOP vorprotokollieren, so klicke auf ändern und füge unter "Beschreibung" deinen Inhalt ein (hier gilt die gleiche Syntax, wie im normalen Protokoll).</li>
+            <li>Jedes selbstständige Thema oder jeder Antrag sollte in einen eigenen TOP geschrieben werden. Sammel-TOPs, oder TOPs mit allen finanzwirksamen Anträgen sorgen für wenig Übersichtlichkeit.</li>
+            <li>Wir wünschen uns, dass TOPs so früh wie möglich auf die Tagesordnung geschrieben werden und unter "Beschreibung" kurz erläutert weird, worum es gehen soll. Sollte es in dem TOP darum gehen, dass Geld beantragt wird, sollte der TOP im Namen durch ein "(€)" gekennzeichnet werden."</li>
             <li>Solltest du die TOPs nicht bearbeiten können, handelt es sich um ein Protokoll, das du lesen, aber nicht bearbeiten kannst. Mehr dazu bei <a href="#rechte">Rechteverwaltung</a>.</li>
         </ul>
         <h4 id="wie">Wie schreibe ich eine Protokoll?</h4>
+        Die folgenden Schritte werden erst ein paar Minuten vor der Sitzung ausgeführt. Vorher werden Inhalte und TOPs wie oben beschrieben vorprotokolliert.
         <ol>
             <li>Protokoll auswählen (s.o.)</li>
             <li>mit „In Etherpad“ die Vorlage in das Etherpad schreiben.</li>
@@ -101,7 +105,7 @@
         <ul>
             <li>Authentifizierte Benutzer, wenn sie die „Bearbeitungsgruppe“ des Protokolltyps haben.</li>
         </ul>
-        Die Einstellungen des Protokolltyps bearbeiten dürfen:
+        Die Einstellungen des Protokolltyps bearbeiten und das Protokoll veröffentlichen dürfen:
         <ul>
             <li>Authentifizierte Benutzer, wenn sie die „Verwaltungsgruppe“ des Protokolltyps haben.</li>
         </ul>
@@ -128,22 +132,21 @@
         Ein TOP ist eine besondere Liste (s.u.) und kann somit wie diese verwendet werden.
 <pre>
 {TOP Tagesordnungspunkt
-    Inhalt;
+    Inhalt:
 }
 </pre>
         <h4 id="liste">Liste</h4>
         Die Liste ist das einzige strukturierende Element.
         Listen können beliebig geschachtelt werden.
-        Die Elemente der Liste werden durch Semikolons oder Zeilenenden getrennt.
+        Die Elemente der Liste werden durch das Zeilenende getrennt.
 <pre>
 {TOP Tagesordnungspunkt
     Zeile mit Text drin
     Hier eine geschachtelte Liste: {
         Details zu diesem Punkt.
         Mehr Details zu diesen Punkt.
-    };
-    Und ein anderer Punkt, der mit einem Semikolon endet.;
-};
+    }
+}
 </pre>
 
         Text, der vor der öffnenden Klammer <code>{</code> steht, wird als Name der Liste angesehen, nur TOPs können Text hinter der öffnenden Klammer haben.
@@ -155,14 +158,17 @@
         ist, ist diese Liste intern.
         Daher wird sie nur in der internen Version des Protokolls angezeigt.
         In der öffentlichen Version steht stattdessen nur ein Hinweis auf diese interne Stelle.
+        Es bietet sich beim Protokollieren an, wenn nach dem internen Bereich kurz dessen Inhalt zusammengefasst wird (natürlich nur sofern dies geht ohne die Interna zu verraten), oder begründet wird, warum dies intern ist.
 <pre>
 {TOP Tagesordnungspunkt
-    Dieser Punkt ist öffentlich.;
+    Dieser Punkt ist öffentlich.
     {{config.PRIVATE_KEYWORDS[0]}}: {
-        Dieser Punkt ist intern.;
-        Dieser auch.;
-    };
-    Dieser ist wieder öffentlich.;
+        Dieser Punkt ist intern.
+        Dieser auch, wir diskutieren Kritik an einem namentlich genannten Professor und seiner Vorlesung.
+        Hier entwickeln wir eine Strategie.
+    }
+    Dieser ist wieder öffentlich.
+    Es wurde die Krtik an einer Vorlesung kritsiert.
 }
 </pre>
         
@@ -179,6 +185,8 @@
         Beschluss-Tags dürfen nicht in internen Abschnitten stehen.
         Falls für den Protokolltyp <b>Beschlusskategorien</b> definiert sind, können Beschlüsse mit <code>[…;finanzwirksam;…]</code> diesen zugeordnet werden.
         Beschlüsse können nach Beschlusskategorien gefiltert werden.
+        Es empfiehlt sich Beschlüsse klar, einfach, eindeutig und auch kontextlos verständlich zu formulieren.
+        Sind die Beschlüsse im Rahmen einer Abstimmung ergangen, so empfiehlt es sich das Abstimmungsergebnis am Ende des Beschlusses in der Form (JA/NEIN/ENTHALTUNG) anzugeben.         <code>[beschluss;Wir beschaffen für bis zu 100,00 € einen Stuhl.(9/1/3);finanzwirksam;Inventar]</code>
         <h5>Todo-Tag</h5>
         In den Protokollen können <a href="#todos">Todos</a> verwaltet werden.
         Ein neuer Todo wird mit <code>[todo;Name;Aufgabe]</code> angelegt.
