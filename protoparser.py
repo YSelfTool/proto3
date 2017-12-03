@@ -269,6 +269,7 @@ class Tag:
             elif self.name == "footnote":
                 return '<sup id="#fnref{0}"><a href="#fn{0}">Fn</a></sup>'.format(
                     footnote_hash(self.values[0]))
+            return "[{}: {}]".format(self.name, ";".join(self.values))
         else:
             raise _not_implemented(self, render_type)
 
@@ -294,7 +295,7 @@ class Tag:
     # v3: also match [] without semicolons inbetween, as there is not other use for that
     PATTERN = r"\[(?<content>[^\]]*)\]"
 
-    KNOWN_TAGS = ["todo", "url", "beschluss", "footnote"]
+    KNOWN_TAGS = ["todo", "url", "beschluss", "footnote", "sitzung"]
 
 
 class Empty(Element):

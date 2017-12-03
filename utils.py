@@ -208,3 +208,18 @@ def fancy_join(values, sep1=" und ", sep2=", "):
 
 def footnote_hash(text, length=5):
     return str(sum(ord(c) * i for i, c in enumerate(text)) % 10**length)
+
+def parse_datetime_from_string(text):
+    text = text.strip()
+    for format in ("%d.%m.%Y", "%d.%m.%y", "%Y-%m-%d",
+        "%d. %B %Y", "%d. %b %Y", "%d. %B %y", "%d. %b %y"):
+        try:
+            return datetime.strptime(text, format)
+        except ValueError:
+            pass
+    for format in ("%d.%m.", "%d. %m.", "%d.%m", "%d.%m"):
+        try:
+            return datetime.strptime(text, format).replace(year=datetime.now().year)
+        except ValueError as exc:
+            print(exc)
+    raise ValueError("Date '{}' does not match any known format!".format(text))

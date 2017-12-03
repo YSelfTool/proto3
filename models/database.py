@@ -326,6 +326,28 @@ class Protocol(DatabaseModel):
                     tops_before.append(top)
         return tops_before + self.tops + tops_after
 
+    @staticmethod
+    def create_new_protocol(protocoltype, date, start_time=None):
+        if start_time is None:
+            start_time = protocoltype.usual_time
+        protocol = Protocol(protocoltype_id=protocoltype.id,
+            date=date, start_time=start_time)
+        db.session.add(protocol)
+        db.session.commit()
+        for local_top in protocol.create_localtops():
+            db.session.add(local_top)
+        for default_meta in protocoltype.metas:
+            if default_meta.prior:
+                meta = Meta(protocol_id=protocol.id, name=default_meta.name,
+                    internal=default_meta.internal, value=default_meta.value)
+                db.session.add(meta)
+        db.session.commit()
+        import tasks
+        tasks.push_tops_to_calendar(protocol)
+        return protocol
+
+        
+
 @event.listens_for(Protocol, "before_delete")
 def on_protocol_delete(mapper, connection, protocol):
     protocol.delete_orphan_todos()

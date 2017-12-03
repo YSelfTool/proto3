@@ -12,7 +12,7 @@ from models.database import Document, Protocol, Error, Todo, Decision, TOP, Defa
 from models.errors import DateNotMatchingException
 from server import celery, app
 from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter, KNOWN_KEYS
-from utils import mail_manager, encode_kwargs, decode_kwargs, add_line_numbers, set_etherpad_text, get_etherpad_text, footnote_hash
+from utils import mail_manager, encode_kwargs, decode_kwargs, add_line_numbers, set_etherpad_text, get_etherpad_text, footnote_hash, parse_datetime_from_string
 from protoparser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork, RenderType
 from wiki import WikiClient, WikiException
 from calendarpush import Client as CalendarClient, CalendarException
@@ -378,6 +378,49 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
     # Footnotes
     footnote_tags = [tag for tag in tags if tag.name == "footnote"]
     public_footnote_tags = [tag for tag in footnote_tags if tag in public_elements]
+
+    # new Protocols
+    protocol_tags = [tag for tag in tags if tag.name == "sitzung"]
+    for protocol_tag in protocol_tags:
+        if len(protocol_tag.values) not in {1, 2}:
+            error = protocol.create_error("Parsing",
+                "Falsche Verwendung von [sitzung;…].",
+                "Der Tag \"sitzung\" benötigt immer ein Datum "
+                "und optional eine Uhrzeit, also ein bis zwei Argumente. "
+                "Stattdessen wurden {} übergeben, nämlich {}".format(
+                len(protocol_tag.values),
+                protocol_tag.values))
+            db.session.add(error)
+            db.ession.commit()
+            return
+        else:
+            try:
+                protocol_date = parse_datetime_from_string(
+                    protocol_tag.values[0])
+            except ValueError as exc:
+                error = protocol.create_error("Parsing", "Invalides Datum",
+                    "'{}' ist kein valides Datum.".format(
+                        protocol_tag.values[0]))
+                db.session.add(error)
+                db.session.commit()
+                return
+            if len(protocol_tag.values) > 1:
+                try:
+                    protocol_time = datetime.strptime(protocol_tag.values[1], "%H:%M")
+                except ValueError:
+                    error = protocol.create_error("Parsing", "Invalide Uhrzeit",
+                        "'{}' ist keine valide Uhrzeit.".format(
+                            protocol_tag.values[1]))
+                    db.session.add(error)
+                    db.session.commit()
+                    return
+    for protocol_tag in protocol_tags:
+        new_protocol_date = parse_datetime_from_string(protocol_tag.values[0])
+        new_protocol_time = None
+        if len(protocol_tag.values) > 1:
+            new_protocol_time = datetime.strptime(protocol_tag.values[1], "%H:%M")
+        Protocol.create_new_protocol(protocol.protocoltype,
+            new_protocol_date, new_protocol_time)
 
     # TOPs
     old_tops = list(protocol.tops)

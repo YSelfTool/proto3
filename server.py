@@ -490,20 +490,8 @@ def new_protocol():
         if protocoltype is None or not protocoltype.has_modify_right(user):
             flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
             return redirect(request.args.get("next") or url_for("index"))
-        protocol = Protocol(protocoltype_id=protocoltype.id)
-        form.populate_obj(protocol)
-        if form.start_time.data is None:
-            protocol.start_time = protocoltype.usual_time
-        db.session.add(protocol)
-        db.session.commit()
-        for local_top in protocol.create_localtops():
-            db.session.add(local_top)
-        for default_meta in protocoltype.metas:
-            if default_meta.prior:
-                meta = Meta(protocol_id=protocol.id, name=default_meta.name, internal=default_meta.internal, value=default_meta.value)
-                db.session.add(meta)
-        db.session.commit()
-        tasks.push_tops_to_calendar(protocol)
+        protocol = Protocol.create_new_protocol(protocoltype,
+            form.date.data, form.start_time.data)
         return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
     type_id = request.args.get("protocoltype_id")
     if type_id is not None:
@@ -516,7 +504,7 @@ def new_protocol():
 def show_protocol(protocol):
     user = current_user()
     errors_table = ErrorsTable(protocol.errors)
-    if not protocol.protocoltype.has_public_view_right(user, check_networks=False): # yes, feature
+    if not protocol.protocoltype.has_public_view_right(user, check_networks=False):
         flash("Die fehlen die nötigen Zugriffsrechte.", "alert-error")
         return redirect(request.args.get("next") or url_for("login", next=request.url))
     visible_documents = [
