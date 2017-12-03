@@ -207,6 +207,11 @@
                 <li><code>{{name}}{% if state.needs_date() %};dd.mm.yyyy{% endif %}</code>: {{state.get_name()}}</li>
             {% endfor %}
         </ul>
+        <h5>Fußnoten-Tag</h5>
+        Fußnoten können im Protokoll mit <code>[footnote;Inhalt]</code> geschrieben werden.
+        <h5>Sitzungs-Tag</h5>
+        Aus dem Protokoll können neue Sitzungen desselben Typs mit dem Tag <code>[sitzung;Datum]</code>, z.B. <code>[sitzung;24.12.2017]</code> angelegt werden.
+        Optional kann zusätzlich eine Uhrzeit angegeben werden: <code>[sitzung;Datum;Uhrzeit]</code> (z.B. <code>[sitzung;01.01.2018;9:00]</code>).
 
 {% endif %}
     </div>
