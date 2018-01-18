@@ -1,0 +1,15 @@
+== Beschlüsse ==
+<env> if protocol.decisions|length > 0 </env>
+    <env> for decision in protocol.decisions </env>
+* <var>decision.content</var>
+    <env> endfor </env>
+<env> else </env>
+* keine Beschlüsse
+<env> endif </env>
+
+<env> for top in tree.children </env>
+    <env> if top|class == "Fork" </env>
+<var>top.render(render_type=render_type, level=0, show_private=show_private, protocol=protocol)</var>
+    <env> endif </env>
+<env> endfor </env>
+

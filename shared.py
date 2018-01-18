@@ -3,6 +3,7 @@ from flask import session, redirect, url_for, request
 
 import re
 from functools import wraps
+from enum import Enum
 
 import config
 
@@ -128,3 +129,7 @@ DATE_KEY = "Datum"
 START_TIME_KEY = "Beginn"
 END_TIME_KEY = "Ende"
 KNOWN_KEYS = [DATE_KEY, START_TIME_KEY, END_TIME_KEY]
+
+class WikiType(Enum):
+    MEDIAWIKI = 0
+    DOKUWIKI = 1

@@ -42,6 +42,7 @@ Get involved with Etherpad at http://etherpad.org
 
 # wiki (optional)
 WIKI_ACTIVE = True
+WIKI_TYPE = "MEDIAWIKI"
 WIKI_API_URL = "https://wiki.example.com/wiki/api.php"
 WIKI_ANONYMOUS = False
 WIKI_USER = "user"

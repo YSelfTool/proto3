@@ -7,11 +7,12 @@ import tempfile
 from datetime import datetime
 import traceback
 from copy import copy
+import xmlrpc.client
 
 from models.database import Document, Protocol, Error, Todo, Decision, TOP, DefaultTOP, MeetingReminder, TodoMail, DecisionDocument, TodoState, OldTodo, DecisionCategory
 from models.errors import DateNotMatchingException
 from server import celery, app
-from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter, KNOWN_KEYS
+from shared import db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, class_filter, KNOWN_KEYS, WikiType
 from utils import mail_manager, encode_kwargs, decode_kwargs, add_line_numbers, set_etherpad_text, get_etherpad_text, footnote_hash, parse_datetime_from_string
 from protoparser import parse, ParserException, Element, Content, Text, Tag, Remark, Fork, RenderType
 from wiki import WikiClient, WikiException
@@ -464,16 +465,29 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         compile(latex_source, protocol, show_private=show_private, maxdepth=maxdepth)
 
     if protocol.protocoltype.use_wiki:
+        wiki_type = WikiType[getattr(config, "WIKI_TYPE", "MEDIAWIKI")]
+        wiki_template = {
+            WikiType.MEDIAWIKI: "protocol.wiki",
+            WikiType.DOKUWIKI: "protocol.dokuwiki",
+        }
+        wiki_render_type = {
+            WikiType.MEDIAWIKI: RenderType.wikitext,
+            WikiType.DOKUWIKI: RenderType.dokuwiki,
+        }
         show_private = not protocol.protocoltype.wiki_only_public
-        wiki_source = wikienv.get_template("protocol.wiki").render(
-            render_type=RenderType.wikitext,
+        wiki_source = wikienv.get_template(wiki_template[wiki_type]).render(
+            render_type=wiki_render_type[wiki_type],
             show_private=show_private,
             **render_kwargs[show_private]
         ).replace("\n\n\n", "\n\n")
-        wiki_infobox_source = wikienv.get_template("infobox.wiki").render(
-            protocoltype=protocol.protocoltype)
-        push_to_wiki(protocol, wiki_source, wiki_infobox_source,
-            "Automatisch generiert vom Protokollsystem 3.0")
+        if wiki_type == WikiType.MEDIAWIKI:
+            wiki_infobox_source = wikienv.get_template("infobox.wiki").render(
+                protocoltype=protocol.protocoltype)
+            push_to_wiki(protocol, wiki_source, wiki_infobox_source,
+                "Automatisch generiert vom Protokollsystem 3.0")
+        elif wiki_type == WikiType.DOKUWIKI:
+            push_to_dokuwiki(protocol, wiki_source,
+                "Automatisch generiert vom Protokollsystem 3.0")
     protocol.done = True
     db.session.commit()
 
@@ -488,13 +502,29 @@ def push_to_wiki_async(protocol_id, content, infobox_content, summary):
             wiki_client.edit_page(
                 title=protocol.protocoltype.get_wiki_infobox_title(),
                 content=infobox_content,
-                summary="Automatisch generiert vom Protokollsystem 3.")
+                summary=summary)
             wiki_client.edit_page(
                 title=protocol.get_wiki_title(),
                 content=content,
-                summary="Automatisch generiert vom Protokollsystem 3.")
+                summary=summary)
         except WikiException as exc:
             error = protocol.create_error("Pushing to Wiki", "Pushing to Wiki failed.", str(exc))
+            db.session.add(error)
+            db.session.commit()
+
+def push_to_dokuwiki(protocol, content, summary):
+    push_to_dokuwiki_async.delay(protocol.id, content, summary)
+
+@celery_task
+def push_to_dokuwiki_async(protocol_id, content, summary):
+    protocol = Protocol.query.filter_by(id=protocol_id).first()
+    with xmlrpc.client.ServerProxy(config.WIKI_API_URL) as proxy:
+        if not proxy.wiki.putPage(protocol.get_wiki_title(),
+            content, {"sum": "Automatisch generiert vom Protokollsystem 3."}):
+            error = protocol.create_error("Pushing to Wiki",
+                "Pushing to Wiki failed." "")
+            db.session.add(error)
+            db.session.commit()
 
 def compile(content, protocol, show_private, maxdepth):
    compile_async.delay(content, protocol.id, show_private=show_private, maxdepth=maxdepth)
@@ -594,6 +624,8 @@ def print_file_async(filename, protocol_id):
         protocol = Protocol.query.filter_by(id=protocol_id).first()
         if protocol.protocoltype.printer is None:
             error = protocol.create_error("Printing", "No printer configured.", "You don't have any printer configured for the protocoltype {}. Please do so before printing a protocol.".format(protocol.protocoltype.name))
+            db.session.add(error)
+            db.session.commit()
         try:
             command = [
                 "/usr/bin/lpr",
