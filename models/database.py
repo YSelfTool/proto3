@@ -618,8 +618,11 @@ class Todo(DatabaseModel):
             escape_tex(self.get_state_tex())
         )
 
-    def render_wikitext(self, current_protocol=None):
-        return "'''{}:''' {}: {} - {}".format(
+    def render_wikitext(self, current_protocol=None, use_dokuwiki=False):
+        bold = "'''"
+        if use_dokuwiki:
+            bold = "**"
+        return "{0}{1}:{0} {2}: {3} - {4}".format(bold,
             "Neuer Todo" if self.is_new(current_protocol) else "Todo",
             self.who,
             self.description,

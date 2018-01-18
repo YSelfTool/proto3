@@ -34,6 +34,7 @@ class RenderType(Enum):
     wikitext = 1
     plaintext = 2
     html = 3
+    dokuwiki = 4
 
 def _not_implemented(self, render_type):
     return NotImplementedError("The rendertype {} has not been implemented for {}.".format(render_type.name, self.__class__.__name__))
@@ -179,6 +180,8 @@ class Text:
             return self.text
         elif render_type == RenderType.html:
             return self.text
+        elif render_type == RenderType.dokuwiki:
+            return self.text
         else:
             raise _not_implemented(self, render_type)
 
@@ -270,6 +273,20 @@ class Tag:
                 return '<sup id="#fnref{0}"><a href="#fn{0}">Fn</a></sup>'.format(
                     footnote_hash(self.values[0]))
             return "[{}: {}]".format(self.name, ";".join(self.values))
+        elif render_type == RenderType.dokuwiki:
+            if self.name == "url":
+                return self.values[0]
+            elif self.name == "todo":
+                if not show_private:
+                    return ""
+                return self.todo.render_wikitext(current_protocol=protocol,
+                    use_dokuwiki=True)
+            elif self.name == "beschluss":
+                return "**{}:** {}".format(self.name.capitalize(), ";".join(self.values))
+            elif self.name == "footnote":
+                return "(({}))".format(self.values[0])
+            else:
+                return "**{}:** {}".format(self.name.capitalize(), ";".join(self.values))
         else:
             raise _not_implemented(self, render_type)
 
@@ -332,6 +349,8 @@ class Remark(Element):
             return "{}: {}".format(RenderType.plaintex)
         elif render_type == RenderType.html:
             return "<p>{}: {}</p>".format(self.name, self.value)
+        elif render_type == RenderType.dokuwiki:
+            return r"{}: {}\\".format(self.name, self.value)
         else:
             raise _not_implemented(self, render_type)
             
@@ -413,7 +432,7 @@ class Fork(Element):
                     return r"\textit{[An dieser Stelle wurde intern protokolliert.]}"
             else:
                 return "\n".join([escape_tex(name_line), begin_line, content_lines, end_line])
-        elif render_type == RenderType.wikitext:
+        elif render_type == RenderType.wikitext or render_type == RenderType.dokuwiki:
             title_line = "{0} {1} {0}".format("=" * (level + 2), name_line)
             content_parts = []
             for child in self.children:
