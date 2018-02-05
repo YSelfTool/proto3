@@ -1381,24 +1381,25 @@ except ImportError as exc:
         atexit.register(scheduler.shutdown)
 
 def check_and_send_reminders():
-    print("check and send reminders")
     if not config.MAIL_ACTIVE:
         return
     with app.app_context():
         current_time = datetime.now()
         current_day = current_time.date()
-        print("regular action for reminders")
         for protocol in Protocol.query.filter(Protocol.done != True).all():
             day_difference = (protocol.date - current_day).days
             usual_time = protocol.get_time()
             protocol_time = datetime(1, 1, 1, usual_time.hour, usual_time.minute)
             hour_difference = (protocol_time - current_time).seconds // 3600
-            print("diff: {} days, {} hours".format(day_difference, hour_difference))
             for reminder in protocol.protocoltype.reminders:
-                print(reminder)
                 if day_difference == reminder.days_before and hour_difference == 0:
-                    print("reminder matching, sending")
                     tasks.send_reminder(reminder, protocol)
+            if (day_difference < 0
+                and -day_difference > config.MAX_PAST_INDEX_DAYS_BEFORE_REMINDER
+                and hour_difference == 0): # once per day
+                tasks.remind_finishing(protocol, -day_difference,
+                    config.MAX_PAST_INDEX_DAYS_BEFORE_REMINDER)
+
 
 if __name__ == "__main__":
     manager.run()

@@ -663,6 +663,20 @@ def send_reminder_async(reminder_id, protocol_id):
                 "Tagesordnung der {}".format(protocol.protocoltype.name),
                 reminder_text, reply_to=protocol.protocoltype.private_mail)
 
+def remind_finishing(protocol, delay_days, min_delay_days):
+    remind_finishing.delay(protocol.id, delay_days, min_delay_days)
+
+@celery.task
+def remind_finishing(protocol_id, delay_days, min_delay_days):
+    with app.app_context():
+        protocol = Protocol.query.filter_by(id=protocol_id).first()
+        mail_text = render_template("remind-finishing-mail.txt",
+            protocol=protocol, delay_days=delay_days,
+            min_delay_days=min_delay_days)
+        send_mail(protocol, protocol.protocoltype.private_mail,
+            "Unfertiges Protokoll der {}".format(protocol.protocoltype.name),
+            mail_text, reply_to=protocol.protocoltype.private_mail)
+
 def send_protocol_private(protocol):
     send_protocol_async.delay(protocol.id, show_private=True)
     send_todomails_async.delay(protocol.id)
