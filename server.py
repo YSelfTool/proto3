@@ -159,6 +159,7 @@ def index():
             protocol for protocol in protocols
             if not protocol.done
             and (protocol.date - current_day).days < config.MAX_INDEX_DAYS
+            and (current_day - protocol.date).days < config.MAX_PAST_INDEX_DAYS
         ],
         key=_protocol_sort_key
     )

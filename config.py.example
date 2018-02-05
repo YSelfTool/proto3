@@ -84,6 +84,8 @@ PAGE_DIFF = 3
 
 # upcoming meetings within this number of days from today are shown on the index page
 MAX_INDEX_DAYS = 14
+MAX_PAST_INDEX_DAYS = 2
+MAX_PAST_INDEX_DAYS_BEFORE_REMINDER = 14
 
 # mail to contact in case of complex errors
 ADMIN_MAIL = "admin@example.com"
