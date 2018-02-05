@@ -515,7 +515,7 @@ def push_to_wiki_async(protocol_id, content, infobox_content, summary):
 def push_to_dokuwiki(protocol, content, summary):
     push_to_dokuwiki_async.delay(protocol.id, content, summary)
 
-@celery_task
+@celery.task
 def push_to_dokuwiki_async(protocol_id, content, summary):
     protocol = Protocol.query.filter_by(id=protocol_id).first()
     with xmlrpc.client.ServerProxy(config.WIKI_API_URL) as proxy:
