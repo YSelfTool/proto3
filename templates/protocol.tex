@@ -18,7 +18,7 @@
 
 \begin{document}
 %\thispagestyle{plain}   %ggf kommentarzeichen entfernen
-\ENV{if logo_template is defined}
+\ENV{if logo_template is defined and logo_template|length > 0}
     \ENV{include logo_template}
 \ENV{endif}
 \Titel{
