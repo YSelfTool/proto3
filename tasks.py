@@ -53,7 +53,7 @@ if raw_additional_packages is not None:
         additional_packages.append(package)
 texenv.globals["additional_packages"] = additional_packages
 latex_pagestyle = getattr(config, "LATEX_PAGESTYLE", None)
-if latex_pagestyle is not None:
+if latex_pagestyle is not None and latex_pagestyle:
     texenv.globals["latex_pagestyle"] = latex_pagestyle
 latex_header_footer = getattr(config, "LATEX_HEADER_FOOTER", False)
 texenv.globals["latex_header_footer"] = latex_header_footer
