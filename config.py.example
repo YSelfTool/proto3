@@ -148,6 +148,7 @@ FONTS = {
 }
 
 # local filesystem path to save compiled and uploaded protocols (and attachments)
+# create this path!
 DOCUMENTS_PATH = "documents"
 
 # keywords indicating private protocol parts
