@@ -506,7 +506,9 @@ def show_protocol(protocol):
     user = current_user()
     errors_table = ErrorsTable(protocol.errors)
     if not protocol.protocoltype.has_public_view_right(user, check_networks=False):
-        flash("Die fehlen die nötigen Zugriffsrechte.", "alert-error")
+        flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
+        if check_login():
+            return redirect(url_for("index"))
         return redirect(request.args.get("next") or url_for("login", next=request.url))
     visible_documents = [
         document for document in protocol.documents
@@ -1336,7 +1338,7 @@ def new_like():
 def login():
     if "auth" in session and current_user() is not None:
         flash("You are already logged in.", "alert-success")
-        return redirect(request.args.get("next") or url_for("index"))
+        return redirect(url_for("index"))
     form = LoginForm()
     if form.validate_on_submit():
         user = user_manager.login(form.username.data, form.password.data, permanent=form.permanent.data)
