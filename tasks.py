@@ -637,9 +637,9 @@ def print_file_async(filename, protocol_id):
             for option in config.PRINTING_PRINTERS[protocol.protocoltype.printer]:
                 command.extend(["-o", '"{}"'.format(option) if " " in option else option])
             command.append(filename)
-            subprocess.check_call(command, universal_newlines=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        except subprocess.SubprocessError:
-            error = protocol.create_error("Printing", "Printing {} failed.".format(protocol.get_identifier()), "")
+            subprocess.check_output(command, universal_newlines=True, stderr=subprocess.STDOUT)
+        except subprocess.SubprocessError as exception:
+            error = protocol.create_error("Printing", "Printing {} failed.".format(protocol.get_identifier()), exception.stdout)
             db.session.add(error)
             db.session.commit()
 
