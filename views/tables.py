@@ -26,6 +26,18 @@ class Table:
         return Markup("<a href=\"{}\"{}>{}</a>".format(target, confirmation, text))
 
     @staticmethod
+    def button(target, icon, style, confirm=None):
+        confirmation = ""
+        if confirm:
+            confirmation = " onclick=\"return confirm('{}');\"".format(confirm)
+        return Markup(
+                '''<div class="btn-group btn-group-xs">
+                    <a href="{target}" class="btn btn-{style}" {confirmation}>
+                        <span class="glyphicon glyphicon-{icon}"></span>
+                    </a>
+                </div>'''.format(target=target, style=style, confirmation=confirmation, icon=icon))
+    
+    @staticmethod
     def mail(target):
         return Markup("<a href=\"mailto:{}\">{}</a>".format(target, target))
 
