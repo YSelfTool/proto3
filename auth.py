@@ -43,7 +43,7 @@ class UserManager:
     def login(self, username, password, permanent=False):
         for backend in self.backends:
             if backend.authenticate(username, password):
-                groups = backend.groups(username, password)
+                groups = sorted(list(set(backend.groups(username, password))))
                 return User(username, groups, obsolete=backend.obsolete, permanent=permanent)
         return None
 
