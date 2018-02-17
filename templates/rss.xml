@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+{% for channel in channels %}
+  <channel>
+    <title>{{channel.title}}</title>
+    <link>{{channel.link}}</link>
+    <description>{{channel.description}}</description>
+    {% for item in channel.items %}
+      <item>
+        <title>{{item.title}}</title>
+        <link>{{item.link}}</link>
+        <description>{{item.description}}</description>
+      </item>
+    {% endfor %}
+  </channel>
+{% endfor %}
+</rss>
