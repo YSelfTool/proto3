@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, SelectField, FileField, DateTimeField, TextAreaField, Field, widgets, FormField
+from wtforms import StringField, PasswordField, BooleanField, HiddenField, IntegerField, SelectField, FileField, DateTimeField, TextAreaField, Field, widgets, FormField
+from wtforms.fields.html5 import DateField
 from wtforms.validators import InputRequired, Optional
 
 import ipaddress
@@ -153,7 +154,7 @@ class MeetingReminderForm(FlaskForm):
 
 class NewProtocolForm(FlaskForm):
     protocoltype_id = SelectField("Typ", choices=[], coerce=int)
-    date = DateField("Datum (dd.mm.yyyy)", validators=[InputRequired("Du musst ein Datum angeben.")], format="%d.%m.%Y")
+    date = DateField("Datum", validators=[InputRequired("Du musst ein Datum angeben.")])
     start_time = DateTimeField("Uhrzeit (HH:MM, optional)", validators=[Optional()], format="%H:%M")
 
     def __init__(self, protocoltypes, **kwargs):
@@ -194,7 +195,7 @@ def generate_protocol_form(protocol):
     for meta in protocol.metas:
         setattr(ProtocolMetasForm, meta.name, StringField(meta.name))
     class ProtocolForm(FlaskForm):
-        date = DateField("Datum (dd.mm.yyyy)", validators=[InputRequired("Bitte gib das Datum des Protkolls an.")], format="%d.%m.%Y")
+        date = DateField("Datum", validators=[InputRequired("Bitte gib das Datum des Protkolls an.")])
         start_time = DateTimeField("Beginn (%H:%M)", format="%H:%M", validators=[Optional()])
         end_time = DateTimeField("Ende (%H:%M)", format="%H:%M", validators=[Optional()])
         metas = FormField(ProtocolMetasForm)
@@ -237,7 +238,7 @@ class NewTodoForm(FlaskForm):
     who = StringField("Person", validators=[InputRequired("Bitte gib an, wer das Todo erledigen soll.")])
     description = StringField("Aufgabe", validators=[InputRequired("Bitte gib an, was erledigt werden soll.")])
     state = SelectField("Status", choices=[], coerce=coerce_todostate, validators=[CheckTodoDateByState()])
-    date = DateField("Datum (dd.mm.yyyy)", format="%d.%m.%Y", validators=[Optional()])
+    date = DateField("Datum)", validators=[Optional()])
     
     def __init__(self, protocoltypes, **kwargs):
         super().__init__(**kwargs)
@@ -248,7 +249,7 @@ class TodoForm(FlaskForm):
     who = StringField("Person")
     description = StringField("Aufgabe", validators=[InputRequired("Bitte gib an, was erledigt werden soll.")])
     state = SelectField("Status", choices=[], coerce=coerce_todostate, validators=[CheckTodoDateByState()])
-    date = DateField("Datum (dd.mm.yyyy)", format="%d.%m.%Y", validators=[Optional()])
+    date = DateField("Datum", validators=[Optional()])
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
