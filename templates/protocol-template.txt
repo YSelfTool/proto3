@@ -1,8 +1,13 @@
 #Datum;{{protocol.date|datify_short}}
 #Beginn;{{protocol.protocoltype.usual_time|timify_short}}
 #Ende;
+{% for meta in protocol.metas %}
+#{{meta.name}};{{meta.value}}
+{% endfor %}
 {% for defaultmeta in protocol.protocoltype.metas %}
+    {% if not defaultmeta.prior %}
 #{{defaultmeta.key}};{{defaultmeta.value}}
+    {% endif %}
 {% endfor %}
 
 {% macro render_top(top, use_description=False) %}

@@ -701,6 +701,8 @@ class Error(DatabaseModel):
         return self.protocol
 
     def get_short_description(self):
+        if not self.description:
+            return ""
         lines = self.description.splitlines()
         if len(lines) <= 4:
             return "\n".join(lines)

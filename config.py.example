@@ -26,10 +26,10 @@ CELERY_ACCEPT_CONTENT = ["pickle"] # do not change
 PRINTING_ACTIVE = True
 PRINTING_SERVER = "printsrv.example.com:631"
 PRINTING_USER = "protocols"
-PRINTING_PRINTERS = [
+PRINTING_PRINTERS = {
     "example_printer": ["Duplex=DuplexNoTumble", "option2=value"],
     "other_printer": ["list", "of", "options"]
-]
+}
 
 # etherpad (optional)
 ETHERPAD_ACTIVE = True
@@ -62,6 +62,7 @@ SESSION_PROTECTION = "strong" # do not change
 # authentication
 SECURITY_KEY = "some other random string" # change this
 AUTH_MAX_DURATION = 300
+from auth import LdapManager, ADManager, StaticUserManager
 AUTH_BACKENDS = [
     LdapManager(
         host="ldap.example.com",
@@ -72,7 +73,13 @@ AUTH_BACKENDS = [
         domain="EXAMPLE",
         user_dn="cn=users,dc=example,dc=com",
         group_dn="dc=example,dc=com",
-        ca_cert="/etc/ssl/certs/example-ca.pem")
+        ca_cert="/etc/ssl/certs/example-ca.pem"),
+    StaticUserManager(
+        users=(
+            ("username", "password", ("group1", "group2")),
+            ("testuser", "abc123", ("group1")),
+        )
+    )
 ]
 
 OBSOLETION_WARNING = """Please migrate your account!""" # not important
