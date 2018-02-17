@@ -433,7 +433,10 @@ class Fork(Element):
             else:
                 return "\n".join([escape_tex(name_line), begin_line, content_lines, end_line])
         elif render_type == RenderType.wikitext or render_type == RenderType.dokuwiki:
-            title_line = "{0} {1} {0}".format("=" * (level + 2), name_line)
+            equal_signs = level + 2
+            if render_type == RenderType.dokuwiki:
+                equal_signs = 6 - level
+            title_line = "{0} {1} {0}".format("=" * equal_signs, name_line)
             content_parts = []
             for child in self.children:
                 part = child.render(render_type, show_private, level=level+1, protocol=protocol)
