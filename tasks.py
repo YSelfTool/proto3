@@ -517,14 +517,22 @@ def push_to_dokuwiki(protocol, content, summary):
 
 @celery.task
 def push_to_dokuwiki_async(protocol_id, content, summary):
-    protocol = Protocol.query.filter_by(id=protocol_id).first()
-    with xmlrpc.client.ServerProxy(config.WIKI_API_URL) as proxy:
-        if not proxy.wiki.putPage(protocol.get_wiki_title(),
-            content, {"sum": "Automatisch generiert vom Protokollsystem 3."}):
-            error = protocol.create_error("Pushing to Wiki",
-                "Pushing to Wiki failed." "")
-            db.session.add(error)
-            db.session.commit()
+    with app.app_context():
+        protocol = Protocol.query.filter_by(id=protocol_id).first()
+        with xmlrpc.client.ServerProxy(config.WIKI_API_URL) as proxy:
+            try:
+                if not proxy.wiki.putPage(protocol.get_wiki_title(),
+                    content, {"sum": "Automatisch generiert vom Protokollsystem 3."}):
+                    error = protocol.create_error("Pushing to Wiki",
+                        "Pushing to Wiki failed." "")
+                    db.session.add(error)
+                    db.session.commit()
+            except xmlrpc.client.Error as exception:
+                error = protocol.create_error("Pushing to Wiki",
+                    "XML RPC Exception",
+                    str(exception))
+                db.session.add(error)
+                db.session.commit()
 
 def compile(content, protocol, show_private, maxdepth):
    compile_async.delay(content, protocol.id, show_private=show_private, maxdepth=maxdepth)
@@ -595,19 +603,20 @@ def compile_async(content, protocol_id, show_private=False, use_decision=False, 
         except subprocess.SubprocessError:
             log = ""
             total_log_filename = os.path.join(compile_dir, log_filename)
-            if os.path.isfile(total_log_filename):
-                with open(total_log_filename, "r") as log_file:
-                    log = "Log:\n\n" + add_line_numbers(log_file.read())
-            else:
-                log = "Logfile not found."
             total_source_filename = os.path.join(compile_dir, protocol_source_filename)
+            log = ""
             if os.path.isfile(total_source_filename):
                 with open(total_source_filename, "r") as source_file:
-                    log += "\n\nSource:\n\n" + add_line_numbers(source_file.read())
+                    log += "Source:\n\n" + add_line_numbers(source_file.read())
             total_class_filename = os.path.join(compile_dir, protocol_class_filename)
             if os.path.isfile(total_class_filename):
                 with open(total_class_filename, "r") as class_file:
                     log += "\n\nClass:\n\n" + add_line_numbers(class_file.read())
+            if os.path.isfile(total_log_filename):
+                with open(total_log_filename, "r") as log_file:
+                    log += "\n\nLog:\n\n" + add_line_numbers(log_file.read())
+            else:
+                log += "\n\nLogfile not found."
             error = protocol.create_error("Compiling", "Compiling LaTeX failed", log)
             db.session.add(error)
             db.session.commit()
