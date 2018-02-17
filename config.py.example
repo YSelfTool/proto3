@@ -26,10 +26,10 @@ CELERY_ACCEPT_CONTENT = ["pickle"] # do not change
 PRINTING_ACTIVE = True
 PRINTING_SERVER = "printsrv.example.com:631"
 PRINTING_USER = "protocols"
-PRINTING_PRINTERS = [
+PRINTING_PRINTERS = {
     "example_printer": ["Duplex=DuplexNoTumble", "option2=value"],
     "other_printer": ["list", "of", "options"]
-]
+}
 
 # etherpad (optional)
 ETHERPAD_ACTIVE = True
