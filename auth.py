@@ -135,6 +135,30 @@ class ADManager:
         for result in reader.search():
             yield result.name.value
 
+
+class StaticUserManager:
+    def __init__(self, users):
+        self.passwords = {
+            username: password
+            for (username, password, groups) in users
+        }
+        self.groups = {
+            username: groups
+            for (username, password, groups) in users
+        }
+
+    def authenticate(self, username, password):
+        return (username in self.passwords
+            and self.passwords[username] == password)
+
+    def groups(self, username, password=None):
+        if username in self.groups:
+            yield from self.groups[username]
+
+    def all_groups(self):
+        return list(set(group for group in groups.values()))
+
+
 class SecurityManager:
     def __init__(self, key, max_duration=300):
         self.maccer = hmac.new(key.encode("utf-8"), digestmod=hashlib.sha512)
