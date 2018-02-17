@@ -143,7 +143,7 @@ class StaticUserManager:
             username: password
             for (username, password, groups) in users
         }
-        self.groups = {
+        self.group_map = {
             username: groups
             for (username, password, groups) in users
         }
@@ -154,8 +154,8 @@ class StaticUserManager:
             and self.passwords[username] == password)
 
     def groups(self, username, password=None):
-        if username in self.groups:
-            yield from self.groups[username]
+        if username in self.group_map:
+            yield from self.group_map[username]
 
     def all_groups(self):
         yield from list(set(group for group in groups.values()))
