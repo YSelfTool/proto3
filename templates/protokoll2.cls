@@ -1,7 +1,7 @@
 % protokoll.cls -- version 0.1 -- last changed: see mtime of the file ;)
 %
 %
-% Author: Sebastian G�nther <samson@asta.rwth-aachen.de>
+% Author: Sebastian Günther <samson@asta.rwth-aachen.de>
 
 % zuerst mal LaTeX's formalzeug
 \NeedsTeXFormat{LaTeX2e}
@@ -126,7 +126,7 @@
 \renewcommand{\thesubsection}{TOP~\arabic{section}~(\alph{subsection})}
 \newcommand{\TOP}[1]{\section{#1}}
 \newcommand{\unterTOP}[1]{\subsection{#1}}
-% F�rs Inhaltsverzeichnisanpassen
+% Fürs Inhaltsverzeichnisanpassen
 \renewcommand{\l@section}{\@dottedtocline{1}{1.5em}{4em}}
 \renewcommand{\l@subsection}{\@dottedtocline{2}{5.5em}{5.2em}}
 \renewcommand{\contentsname}{Tagesordnung}
@@ -166,7 +166,7 @@
 }%
 {\end{list}}
 
-% Abk�rzungen
+% Abkürzungen
 \newenvironment{Abk}{%
   \begin{list}{}{%
 	Abkürzungen:
@@ -183,7 +183,7 @@
 }%
 {\end{list}}
 
-% Unterschriften f�r eine und zwei Personen
+% Unterschriften für eine und zwei Personen
 \newcommand{\Unterschrift}[2]{
   \vspace*{1.4cm}
   \begin{center}
