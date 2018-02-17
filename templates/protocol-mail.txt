@@ -10,7 +10,7 @@ Zeit: von {{protocol.start_time|timify}} bis {{protocol.end_time|timify}}
 {% endif %}
 {% endfor %}
 
-Die Tagesordnung ist:
+Die Tagesordnung war:
 {% for top in protocol.get_tops() %}
 * {{top.name}}
 {% endfor %}
@@ -22,4 +22,10 @@ Beschlüsse:
     {% endfor %}
 {% else %}
 * Keine Beschlüsse
+{% endif %}
+
+{% if next_protocol is not none %}
+Die nächste Sitzung findet am {{next_protocol.date|datify}} statt.
+{% else %}
+Es wurde noch keine nächste Sitzung angelegt!
 {% endif %}

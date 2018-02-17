@@ -688,9 +688,10 @@ def send_protocol_public(protocol):
 def send_protocol_async(protocol_id, show_private):
     with app.app_context():
         protocol = Protocol.query.filter_by(id=protocol_id).first()
+        next_protocol = Protocol.query.filter_by(protocoltype_id=protocol.protocoltype.id).filter_by(done=False).filter(Protocol.date > datetime.now()).order_by(Protocol.date).first()
         to_addr = protocol.protocoltype.private_mail if show_private else protocol.protocoltype.public_mail
         subject = "{}{}-Protokoll vom {}".format("Internes " if show_private else "", protocol.protocoltype.short_name, date_filter(protocol.date))
-        mail_content = render_template("protocol-mail.txt", protocol=protocol, show_private=show_private)
+        mail_content = render_template("protocol-mail.txt", protocol=protocol, show_private=show_private, next_protocol=next_protocol)
         appendix = [(document.name, document.as_file_like())
             for document in protocol.documents
             if show_private or not document.is_private
