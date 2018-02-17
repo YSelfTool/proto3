@@ -214,6 +214,11 @@
         Optional kann zusätzlich eine Uhrzeit angegeben werden: <code>[sitzung;Datum;Uhrzeit]</code> (z.B. <code>[sitzung;01.01.2018;9:00]</code>).
 
 {% endif %}
+        {% if git_revision %}
+        <h3 id="version">Version</h4>
+        Dieses Protokollsystem nutzt die Software <a href="{{git_revision.url}}">„Protokollsystem 3“</a> in der Version vom <a href="{{git_revision.url}}/commit/{{git_revision.hash}}">{{git_revision.date|datify}}</a>.
+        Alle Änderungen, die seitdem hinzugekommen sind, kannst du <a href="{{git_revision.url}}/compare/{{git_revision.hash}}...master">hier</a> sehen.
+        {% endif %}
     </div>
 </div>
 {% endblock %}
