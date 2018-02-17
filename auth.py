@@ -3,6 +3,7 @@ import ssl
 import ldap3
 from ldap3.utils.dn import parse_dn
 from datetime import datetime
+import grp, pwd, pam
 
 class User:
     def __init__(self, username, groups, timestamp=None, obsolete=False, permanent=False):
@@ -137,7 +138,7 @@ class ADManager:
 
 
 class StaticUserManager:
-    def __init__(self, users):
+    def __init__(self, users, obsolete=False):
         self.passwords = {
             username: password
             for (username, password, groups) in users
@@ -146,6 +147,7 @@ class StaticUserManager:
             username: groups
             for (username, password, groups) in users
         }
+        self.obsolete = obsolete
 
     def authenticate(self, username, password):
         return (username in self.passwords
@@ -156,8 +158,27 @@ class StaticUserManager:
             yield from self.groups[username]
 
     def all_groups(self):
-        return list(set(group for group in groups.values()))
+        yield from list(set(group for group in groups.values()))
 
+
+class PAMManager:
+    def __init__(self, obsolete=False):
+        self.pam = pam.pam()
+        self.obsolete = obsolete
+
+    def authenticate(self, username, password):
+        return self.pam.authenticate(username, password)
+
+    def groups(self, username, password=None):
+        print(username)
+        yield grp.getgrgid(pwd.getpwnam(username).pw_gid).gr_name
+        for group in grp.getgrall():
+            if username in group.gr_mem:
+                yield group.gr_name
+
+    def all_groups(self):
+        for group in grp.getgrall():
+            yield group.gr_name
 
 class SecurityManager:
     def __init__(self, key, max_duration=300):
