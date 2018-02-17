@@ -101,7 +101,8 @@ class IPNetworkField(Field):
 
 class FocusedStringField(StringField):
     def __call__(self, **kwargs):
-        return super().__call__(**kwargs, autofocus=True)
+        kwargs['autofocus'] = True
+        return super().__call__(**kwargs)
 
 class LoginForm(FlaskForm):
     username = FocusedStringField("Benutzer", validators=[InputRequired("Bitte gib deinen Benutzernamen ein.")])
