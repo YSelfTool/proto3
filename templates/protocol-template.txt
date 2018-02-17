@@ -2,7 +2,7 @@
 #Beginn;{{protocol.protocoltype.usual_time|timify_short}}
 #Ende;
 {% for defaultmeta in protocol.protocoltype.metas %}
-#{{defaultmeta.key}};
+#{{defaultmeta.key}};{{defaultmeta.value}}
 {% endfor %}
 
 {% macro render_top(top, use_description=False) %}
