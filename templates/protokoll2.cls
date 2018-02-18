@@ -250,3 +250,6 @@
 
 \newcommand{\PE}[2]{\textbf{Persönliche Erklärung von #1:}\\\emph{\glqq{}#2\grqq{}}\\}
 
+% Styling der Todo und Beschlusstags im Protokoll
+\newcommand{\Todo}[4]{\textbf{{#1}}: #2: #3 -- #4}
+\newcommand{\Beschluss}[2][\empty]{\textbf{Beschluss:} #2 \def\temp{#1}\ifx\temp\empty\else\textit{(#1)}\fi}

@@ -221,12 +221,10 @@ class Tag:
                     return ""
                 return self.todo.render_latex(current_protocol=protocol)
             elif self.name == "beschluss":
-                parts = [r"\textbf{{Beschluss:}} {}".format(self.decision.content)]
                 if len(self.decision.categories):
-                    parts.append(
-                        r"\textit{{({})}}".format(self.decision.get_categories_str())
-                    )
-                return " ".join(parts)
+                    return r"\Beschluss[{}]{{{}}}".format(self.decision.get_categories_str(),self.decision.content)
+                else:
+                    return r"\Beschluss{{{}}}".format(self.decision.content)
             elif self.name == "footnote":
                 return r"\footnote{{{}}}".format(self.values[0])
             return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(";".join(self.values)))
