@@ -2,7 +2,7 @@
 
 ## Setup
 
-* Install python3 and virtualenv
+* Install python3, virtualenv, redis and a database program (postgres, mysql, sqlite does not work with alembic migrations)
 * Create a virtualenv and install the requirements
 
 ```sh
@@ -22,7 +22,7 @@ cp config.py.example config.py
   - Don't forget to enter your database connection
   - And your authentication backend
   - And deactivate everything you do not use
-
+* create the path where PDFs will be stored (`DOCUMENTS_PATH` in config.py)
 * Fill your database
 
 ```sh

@@ -77,9 +77,10 @@ AUTH_BACKENDS = [
     StaticUserManager(
         users=(
             ("username", "password", ("group1", "group2")),
-            ("testuser", "abc123", ("group1")),
+            ("testuser", "abc123", ("group1",)),
         )
-    )
+    ),
+    PAMManager(),
 ]
 
 OBSOLETION_WARNING = """Please migrate your account!""" # not important
@@ -147,6 +148,7 @@ FONTS = {
 }
 
 # local filesystem path to save compiled and uploaded protocols (and attachments)
+# create this path!
 DOCUMENTS_PATH = "documents"
 
 # keywords indicating private protocol parts

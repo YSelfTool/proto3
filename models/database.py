@@ -611,7 +611,7 @@ class Todo(DatabaseModel):
         return " ".join(parts)
 
     def render_latex(self, current_protocol=None):
-        return r"\textbf{{{}}}: {}: {} -- {}".format(
+        return r"\Todo{{{}}}{{{}}}{{{}}}{{{}}}".format(
             "Neuer Todo" if self.is_new(current_protocol) else "Todo",
             escape_tex(self.who),
             escape_tex(self.description),

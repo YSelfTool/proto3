@@ -1,10 +1,10 @@
-== Beschlüsse ==
+====== Beschlüsse ======
 <env> if protocol.decisions|length > 0 </env>
     <env> for decision in protocol.decisions </env>
-* <var>decision.content</var>
+  * <var>decision.content</var>
     <env> endfor </env>
 <env> else </env>
-* keine Beschlüsse
+  * keine Beschlüsse
 <env> endif </env>
 
 <env> for top in tree.children </env>

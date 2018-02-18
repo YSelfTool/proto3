@@ -18,6 +18,7 @@ import os
 from datetime import datetime
 import math
 import mimetypes
+import subprocess
 
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, time_filter_short, user_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
@@ -79,6 +80,18 @@ app.jinja_env.globals.update(min=min)
 app.jinja_env.globals.update(max=max)
 app.jinja_env.globals.update(dir=dir)
 app.jinja_env.globals.update(now=datetime.now)
+
+def get_git_revision():
+    gitlab_url = "https://git.fsmpi.rwth-aachen.de/protokollsystem/proto3"
+    commit_hash = subprocess.check_output(["git", "log", "-g", "-1", "--pretty=%H"]).decode("UTF-8").strip()
+    timestamp = int(subprocess.check_output(["git", "log", "-g", "-1", "--pretty=%at"]).strip())
+    commit_date = datetime.fromtimestamp(timestamp)
+    return {"url": gitlab_url, "hash": commit_hash, "date": commit_date}
+
+try:
+    app.jinja_env.globals["git_revision"] = get_git_revision()
+except:
+    pass
 
 # blueprints here
 

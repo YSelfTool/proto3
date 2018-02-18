@@ -99,8 +99,13 @@ class IPNetworkField(Field):
                 raise ValueError(self.gettext("Not a valid IP Network: {}".format(str(exc))))
             self.data = ",".join(map(str, result_parts))
 
+class FocusedStringField(StringField):
+    def __call__(self, **kwargs):
+        kwargs['autofocus'] = True
+        return super().__call__(**kwargs)
+
 class LoginForm(FlaskForm):
-    username = StringField("Benutzer", validators=[InputRequired("Bitte gib deinen Benutzernamen ein.")])
+    username = FocusedStringField("Benutzer", validators=[InputRequired("Bitte gib deinen Benutzernamen ein.")])
     password = PasswordField("Passwort", validators=[InputRequired("Bitte gib dein Passwort ein.")])
     permanent = BooleanField("Eingeloggt bleiben?")
 

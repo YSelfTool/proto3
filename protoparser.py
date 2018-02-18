@@ -221,12 +221,10 @@ class Tag:
                     return ""
                 return self.todo.render_latex(current_protocol=protocol)
             elif self.name == "beschluss":
-                parts = [r"\textbf{{Beschluss:}} {}".format(self.decision.content)]
                 if len(self.decision.categories):
-                    parts.append(
-                        r"\textit{{({})}}".format(self.decision.get_categories_str())
-                    )
-                return " ".join(parts)
+                    return r"\Beschluss[{}]{{{}}}".format(self.decision.get_categories_str(),self.decision.content)
+                else:
+                    return r"\Beschluss{{{}}}".format(self.decision.content)
             elif self.name == "footnote":
                 return r"\footnote{{{}}}".format(self.values[0])
             return r"\textbf{{{}:}} {}".format(escape_tex(self.name.capitalize()), escape_tex(";".join(self.values)))
@@ -433,7 +431,10 @@ class Fork(Element):
             else:
                 return "\n".join([escape_tex(name_line), begin_line, content_lines, end_line])
         elif render_type == RenderType.wikitext or render_type == RenderType.dokuwiki:
-            title_line = "{0} {1} {0}".format("=" * (level + 2), name_line)
+            equal_signs = level + 2
+            if render_type == RenderType.dokuwiki:
+                equal_signs = 6 - level
+            title_line = "{0} {1} {0}".format("=" * equal_signs, name_line)
             content_parts = []
             for child in self.children:
                 part = child.render(render_type, show_private, level=level+1, protocol=protocol)
