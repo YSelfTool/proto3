@@ -110,10 +110,14 @@ class ProtocolsTable(Table):
         elif protocol in self.search_results:
             result.append(Markup(self.search_results[protocol]))
         
+        login_part1=""
         login_part2=""
+        if state !=  "pencil":
+           login_part1 = '<a href=url_for("download_document", document_id=protocol.get_compiled_document().id)" class="btn">  <span class="glyphicon glyphicon-download"></span>  </a>'
+        if protocol.protocoltype.has_admin_right(user):
             login_part2 = '<a href=url_for("delete_protocol", protocol_id=protocol.id)" class="btn btn-danger" confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?">  <span class="glyphicon glyphicon-trash"></span>  </a>'
 
-        result.append(Markup('<div class="btn-group btn-group-xs"> {} </div>'.format(login_part2)))
+        result.append(Markup('<div class="btn-group btn-group-xs"> {} </div>'.format(login_part1.join(login_part2))))
 
 
 
