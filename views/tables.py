@@ -71,10 +71,10 @@ class ProtocolsTable(Table):
 
     def headers(self):
         user = current_user()
-        result = ["ID", "Sitzung", "Sitzung", "Datum"]
+        result = ["Sitzung", "Sitzung", "Datum"]
         state_part = ["Status"]
         search_part = ["Suchergebnis"]
-        login_part = ["Typ", ""]
+        login_part = [""]
         if self.search_results is None:
             result.extend(state_part)
         else:
@@ -85,9 +85,9 @@ class ProtocolsTable(Table):
 
     def classes(self):
         state_or_search_class = "hidden-xs" if self.search_results is None else None
-        result = ["hidden-xs", "hidden-sm hidden-md hidden-lg", "hidden-xs", "hidden-xs", None]
+        result = ["hidden-sm hidden-md hidden-lg", "hidden-xs", "hidden-xs", None]
         #result.append(state_or_search_class)
-        login_part = ["hidden-xs", "hidden-xs"]
+        login_part = ["hidden-xs"]
         if check_login():
             result.extend(login_part)
         return result
@@ -96,29 +96,28 @@ class ProtocolsTable(Table):
         user = current_user()
         protocol_link = url_for("show_protocol", protocol_id=protocol.id)
         result = [
-            Table.link(protocol_link, str(protocol.id)),
             Markup("<br>").join([Table.link(protocol_link, protocol.protocoltype.name), date_filter(protocol.date)]),
             Table.link(protocol_link, protocol.protocoltype.name),
             date_filter(protocol.date),
         ]
         if self.search_results is None:
-            state = "Geplant"
+            state = "pencil" #"Geplant"
             if protocol.is_done():
-                state = "Fertig"
+                state = "unchecked" #"Fertig"
                 if protocol.public:
-                    state = "Veröffentlicht"
-            result.append(state)
+                    state = "check" #"Veröffentlicht"
+            result.append(Markup('<span class="glyphicon glyphicon-{state}">'.format(state=state)))
         elif protocol in self.search_results:
             result.append(Markup(self.search_results[protocol]))
-        if check_login():
-            if user is not None and protocol.protocoltype.has_private_view_right(user):
-                result.append(Table.link(url_for("show_type", protocoltype_id=protocol.protocoltype.id), protocol.protocoltype.short_name))
-                if protocol.protocoltype.has_admin_right(user):
-                    result.append(Table.link(url_for("delete_protocol", protocol_id=protocol.id), "Löschen", confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?".format(protocol.get_short_identifier())))
-                else:
-                    result.append("")
-            else:
-                result.extend(["", ""])
+        
+        login_part2=""
+            login_part2 = '<a href=url_for("delete_protocol", protocol_id=protocol.id)" class="btn btn-danger" confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?">  <span class="glyphicon glyphicon-trash"></span>  </a>'
+
+        result.append(Markup('<div class="btn-group btn-group-xs"> {} </div>'.format(login_part2)))
+
+
+
+
         return result
 
 class ProtocolTypesTable(Table):

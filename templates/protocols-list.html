@@ -12,10 +12,16 @@
     <a href="{{url_for(request.endpoint, page=_page, protocoltype_id=protocoltype_id, search=search_term, state_open=state_open, page_length=_page_length)}}">{{text}}</a>
 {% endmacro %}
 
+
+
 {% block content %}
 <div class="container">
     {{render_form(search_form, class_="form-inline", action_url=url_for("list_protocols"), action_text="Suchen", labels_visible=False, method="GET")}}
     {{render_table(protocols_table)}}
+<div align="center"> <span class="glyphicon glyphicon-pencil"></span> Geplant, 
+    <span class="glyphicon glyphicon-unchecked"></span> Fertig,
+    <span class="glyphicon glyphicon-check"></span> Veröffentlicht
+</div>
     {% include "pagination-footer.html" %}
 </div>
 {% endblock %}
