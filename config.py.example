@@ -6,6 +6,9 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False # do not change
 
 SECRET_KEY = "something random" # change this
 
+SERVER_NAME = "protokolle.example.com"
+PREFERRED_URL_SCHEME = "https" # change to http for development
+
 DEBUG = False # do not change
 
 # mailserver (optional)

@@ -248,8 +248,13 @@ class Protocol(DatabaseModel):
             self.protocoltype.short_name.lower(),
             self.date.strftime("%y-%m-%d"))
 
+    def get_title(self):
+        return "Protokoll: {}, {:%d.%m.%Y}".format(
+            self.protocoltype.short_name, self.date)
+
     def get_wiki_title(self):
-        return "Protokoll:{}-{:%Y-%m-%d}".format(self.protocoltype.short_name, self.date)
+        return "Protokoll:{}-{:%Y-%m-%d}".format(
+            self.protocoltype.short_name, self.date)
 
     def get_etherpad_link(self):
         if self.pad_identifier is None:

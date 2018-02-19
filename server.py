@@ -13,12 +13,14 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 import atexit
+import feedgen.feed
 from io import StringIO, BytesIO
 import os
-from datetime import datetime
+from datetime import datetime, time
 import math
 import mimetypes
 import subprocess
+from dateutil import tz
 
 import config
 from shared import db, date_filter, datetime_filter, date_filter_long, date_filter_short, time_filter, time_filter_short, user_manager, security_manager, current_user, check_login, login_required, group_required, class_filter, needs_date_test, todostate_name_filter, code_filter, indent_tab_filter
@@ -1320,6 +1322,52 @@ def delete_decisioncategory(decisioncategory):
     db.session.commit()
     flash("Beschlusskategorie {} gelöscht.".format(name), "alert-success")
     return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=type_id))
+
+def create_protocols_feed(protocoltype):
+    if not protocoltype.has_public_anonymous_view_right():
+        abort(403)
+    protocols = [protocol
+        for protocol in protocoltype.protocols
+        if protocol.done
+    ]
+    feed = feedgen.feed.FeedGenerator()
+    feed.description(protocoltype.name)
+    feed.generator("Protokollsystem 3",
+        uri="https://git.fsmpi.rwth-aachen.de/protokollsystem/proto3")
+    feed.id(url_for("show_type", protocoltype_id=protocoltype.id, _external=True))
+    feed.link(href=url_for("list_protocols", protocoltype_id=protocoltype.id,
+        state_open=False, _external=True), rel="alternate")
+    feed.title(protocoltype.short_name)
+    for protocol in protocols:
+        entry = feed.add_entry()
+        entry.id(url_for("show_protocol",
+            protocol_id=protocol.id, _external=True))
+        entry.link(href=url_for("show_protocol", protocol_id=protocol.id,
+            _external=True), rel="alternate")
+        document = protocol.get_compiled_document(private=False)
+        if document is not None:
+            entry.link(href=url_for("download_document",
+                document_id=document.id, _external=True), rel="enclosure",
+                title="Protokoll", type="application/pdf")
+        entry.title(protocol.get_title())
+        entry.summary(",\n".join(top.name for top in protocol.get_tops()))
+        entry.content(protocol.content_public)
+        aware_date = datetime.combine(protocol.date, protocoltype.usual_time).replace(
+            tzinfo=tz.tzlocal())
+        entry.published(aware_date)
+    return feed
+
+@app.route("/feed/protocols/rss/<int:protocoltype_id>")
+@db_lookup(ProtocolType)
+def feed_protocols_rss(protocoltype):
+    return Response(create_protocols_feed(protocoltype).rss_str(),
+        mimetype="application/rss+xml")
+
+@app.route("/feed/protocols/atom/<int:protocoltype_id>")
+@db_lookup(ProtocolType)
+def feed_protocols_atom(protocoltype):
+    return Response(create_protocols_feed(protocoltype).atom_str(),
+        mimetype="application/atom+xml")
 
 @app.route("/like/new")
 @login_required
