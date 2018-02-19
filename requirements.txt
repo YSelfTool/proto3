@@ -16,6 +16,7 @@ coverage==4.5.1
 curtsies==0.3.0
 enum-compat==0.0.2
 eventlet==0.22.1
+feedgen==0.6.1
 Flask==0.12.2
 Flask-Migrate==2.1.1
 Flask-Script==2.0.6
@@ -24,6 +25,7 @@ Flask-SQLAlchemy==2.3.2
 Flask-WTF==0.14.2
 fuzzywuzzy==0.16.0
 greenlet==0.4.13
+icalendar==4.0.1
 idna==2.6
 itsdangerous==0.24
 Jinja2==2.10
