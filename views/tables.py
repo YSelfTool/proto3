@@ -178,9 +178,13 @@ class ProtocolTypeTable(SingleValueTable):
             calendar_headers = []
         network_headers = ["Netzwerke einschränken", "Erlaubte Netzwerke"]
         action_headers = ["Aktion"]
+        feed_headers = []
+        if self.value.has_public_anonymous_view_right():
+            feed_headers = [Markup("<img height=\"18px\" src=\"{}\" /> Feed".format(
+                url_for("static", filename="images/feed-icon.svg")))]
         return (general_headers + etherpad_headers + mail_headers
             + printing_headers + wiki_headers + calendar_headers
-            + network_headers + action_headers)
+            + network_headers + feed_headers + action_headers)
 
     def row(self):
         user = current_user()
@@ -224,11 +228,24 @@ class ProtocolTypeTable(SingleValueTable):
             network_part.append(", ".join(map(str.strip, self.value.allowed_networks.split(","))))
         else:
             network_part.append("")
+        feed_part = []
+        if self.value.has_public_anonymous_view_right():
+            feed_part = [Markup(", ".join([
+                Table.link(url_for("feed_protocols_rss",
+                    protocoltype_id=self.value.id), "Protokolle (RSS)"),
+                Table.link(url_for("feed_protocols_atom",
+                    protocoltype_id=self.value.id), "Protokolle (Atom)"),
+                Table.link(url_for("feed_appointments_rss",
+                    protocoltype_id=self.value.id), "Sitzungen (RSS)"),
+                Table.link(url_for("feed_appointments_atom",
+                    protocoltype_id=self.value.id), "Sitzungen (Atom)"),
+            ]))]
         action_part = [Table.link(url_for("delete_type", protocoltype_id=self.value.id), "Löschen", confirm="Bist du dir sicher, dass du den Protokolltype {} löschen möchtest?".format(self.value.name))]
         if not self.value.has_admin_right(user):
             action_part = [""]
         return (general_part + etherpad_part + mail_part + printing_part
-            + wiki_part +  calendar_part + network_part + action_part)
+            + wiki_part +  calendar_part + network_part + feed_part
+            + action_part)
 
 class DefaultTOPsTable(Table):
     def __init__(self, tops, protocoltype=None):

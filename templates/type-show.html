@@ -2,6 +2,13 @@
 {% from "macros.html" import render_table, render_single_table %}
 {% block title %}Protokolltyp {{protocoltype.short_name}}{% endblock %}
 
+{% block additional_js %}
+    <link rel="alternate" type="application/rss+xml" href="{{url_for("feed_protocols_rss", protocoltype_id=protocoltype.id)}}" title="Protokolle" />
+    <link rel="alternate" type="application/atom+xml" href="{{url_for("feed_protocols_atom", protocoltype_id=protocoltype.id)}}" title="Protokolle" />
+    <link rel="alternate" type="application/rss+xml" href="{{url_for("feed_appointments_rss", protocoltype_id=protocoltype.id)}}" title="Sitzungen" />
+    <link rel="alternate" type="application/atom+xml" href="{{url_for("feed_appointments_atom", protocoltype_id=protocoltype.id)}}" title="Sitzungen" />
+{% endblock %}
+
 {% block content %}
 <div class="container">
     {{render_single_table(protocoltype_table)}}
