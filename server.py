@@ -1328,7 +1328,7 @@ def create_protocols_feed(protocoltype):
         abort(403)
     protocols = [protocol
         for protocol in protocoltype.protocols
-        if protocol.done
+        if protocol.is_done()
     ]
     feed = feedgen.feed.FeedGenerator()
     feed.description(protocoltype.name)
@@ -1357,6 +1357,43 @@ def create_protocols_feed(protocoltype):
         entry.published(aware_date)
     return feed
 
+
+def create_appointments_feed(protocoltype):
+    if not protocoltype.has_public_anonymous_view_right():
+        abort(403)
+    protocols = [protocol
+        for protocol in protocoltype.protocols
+        if not protocol.is_done()
+    ]
+    feed = feedgen.feed.FeedGenerator()
+    feed.description(protocoltype.name)
+    feed.generator("Protokollsystem 3",
+        uri="https://git.fsmpi.rwth-aachen.de/protokollsystem/proto3")
+    feed.id(url_for("show_type", protocoltype_id=protocoltype.id, _external=True))
+    feed.link(href=url_for("list_protocols", protocoltype_id=protocoltype.id,
+        state_open=True, _external=True), rel="alternate")
+    feed.title("{}-Termine".format(protocoltype.short_name))
+    for protocol in protocols:
+        entry = feed.add_entry()
+        entry.id(url_for("show_protocol",
+            protocol_id=protocol.id, _external=True))
+        entry.link(href=url_for("show_protocol", protocol_id=protocol.id,
+            _external=True), rel="alternate")
+        entry.title(protocol.get_title())
+        entry.summary("\n".join(
+            [",\n".join(
+                "{}: {}".format(meta.name, meta.value)
+                for meta in protocol.metas
+                if not meta.internal
+            ),
+            "Tagesordnung:",
+            ",\n".join(
+                "TOP {}".format(top.name)
+                for top in protocol.get_tops()
+            )]))
+    return feed
+
+
 @app.route("/feed/protocols/rss/<int:protocoltype_id>")
 @db_lookup(ProtocolType)
 def feed_protocols_rss(protocoltype):
@@ -1368,6 +1405,19 @@ def feed_protocols_rss(protocoltype):
 def feed_protocols_atom(protocoltype):
     return Response(create_protocols_feed(protocoltype).atom_str(),
         mimetype="application/atom+xml")
+
+@app.route("/feed/appointments/rss/<int:protocoltype_id>")
+@db_lookup(ProtocolType)
+def feed_appointments_rss(protocoltype):
+    return Response(create_appointments_feed(protocoltype).rss_str(),
+        mimetype="application/rss+xml")
+
+@app.route("/feed/appointments/atom/<int:protocoltype_id>")
+@db_lookup(ProtocolType)
+def feed_appointments_atom(protocoltype):
+    return Response(create_appointments_feed(protocoltype).atom_str(),
+        mimetype="application/atom+xml")
+
 
 @app.route("/like/new")
 @login_required
