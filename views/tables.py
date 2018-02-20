@@ -239,6 +239,8 @@ class ProtocolTypeTable(SingleValueTable):
                     protocoltype_id=self.value.id), "Sitzungen (RSS)"),
                 Table.link(url_for("feed_appointments_atom",
                     protocoltype_id=self.value.id), "Sitzungen (Atom)"),
+                Table.link(url_for("feed_appointments_ical",
+                    protocoltype_id=self.value.id), "Sitzungen (iCal)"),
             ]))]
         action_part = [Table.link(url_for("delete_type", protocoltype_id=self.value.id), "Löschen", confirm="Bist du dir sicher, dass du den Protokolltype {} löschen möchtest?".format(self.value.name))]
         if not self.value.has_admin_right(user):
