@@ -236,6 +236,24 @@ class Protocol(DatabaseModel):
     def is_done(self):
         return self.done
 
+    def get_state_glyph(self):
+        if self.is_done():
+            state = "unchecked" #"Fertig"
+            if self.public:
+                state = "check" #"Veröffentlicht"
+        else:
+            state = "pencil" #"Geplant"
+        return state
+
+    def get_state_name(self):
+        if self.is_done():
+            state = "Fertig"
+            if self.public:
+                state = "Veröffentlicht"
+        else:
+            state = "Geplant"
+        return state
+
     def get_identifier(self):
         if self.pad_identifier is not None:
             return self.pad_identifier
