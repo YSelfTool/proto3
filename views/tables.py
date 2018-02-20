@@ -31,11 +31,9 @@ class Table:
         if confirm:
             confirmation = " onclick=\"return confirm('{}');\"".format(confirm)
         return Markup(
-                '''<div class="btn-group btn-group-xs">
-                    <a href="{target}" class="btn btn-{style}" {confirmation}>
+                '''<a href="{target}" class="btn btn-{style}" {confirmation}>
                         <span class="glyphicon glyphicon-{icon}"></span>
-                    </a>
-                </div>'''.format(target=target, style=style, confirmation=confirmation, icon=icon))
+                   </a>'''.format(target=target, style=style, confirmation=confirmation, icon=icon))
     
     @staticmethod
     def mail(target):
@@ -72,24 +70,19 @@ class ProtocolsTable(Table):
     def headers(self):
         user = current_user()
         result = ["Sitzung", "Sitzung", "Datum"]
-        state_part = ["Status"]
-        search_part = ["Suchergebnis"]
-        login_part = [""]
+        state_part = ["Status", "Status",""]
+        search_part = ["Suchergebnis",""]
         if self.search_results is None:
             result.extend(state_part)
         else:
             result.extend(search_part)
-        if check_login():
-            result.extend(login_part)
         return result
 
     def classes(self):
-        state_or_search_class = "hidden-xs" if self.search_results is None else None
-        result = ["hidden-sm hidden-md hidden-lg", "hidden-xs", "hidden-xs", None]
-        #result.append(state_or_search_class)
-        login_part = ["hidden-xs"]
-        if check_login():
-            result.extend(login_part)
+        if self.search_results is None:
+            result = ["hidden-sm hidden-md hidden-lg", "hidden-xs", "hidden-xs", "hidden-sm hidden-md hidden-lg", "hidden-xs", ""]
+        else:
+            result = ["hidden-sm hidden-md hidden-lg", "hidden-xs", "hidden-xs", "", "hidden-xs","hidden-xs"]
         return result
 
     def row(self, protocol):
@@ -101,23 +94,21 @@ class ProtocolsTable(Table):
             date_filter(protocol.date),
         ]
         if self.search_results is None:
-            state = "pencil" #"Geplant"
-            if protocol.is_done():
-                state = "unchecked" #"Fertig"
-                if protocol.public:
-                    state = "check" #"Veröffentlicht"
-            result.append(Markup('<span class="glyphicon glyphicon-{state}">'.format(state=state)))
+            result.append(Markup('<span class="glyphicon glyphicon-{state}"></span>'.format(state=protocol.get_state_glyph())))
+            result.append(Markup('<span class="glyphicon glyphicon-{glyph}"></span> {state}'.format(state=protocol.get_state_name(),glyph=protocol.get_state_glyph())))
         elif protocol in self.search_results:
             result.append(Markup(self.search_results[protocol]))
+            result.append(Markup('<span class="glyphicon glyphicon-{state}"></span>'.format(state=protocol.get_state_glyph())))
         
         login_part1=""
         login_part2=""
-        if state !=  "pencil":
-            document = protocol.get_compiled_document()
+        if protocol.has_public_view_right(user):
+            user_right = protocol.has_private_view_right(user)
+            document = protocol.get_compiled_document(user_right)
             if document is not None:
                 login_part1 = Table.button(
                     url_for("download_document", document_id=document.id),
-                    icon="download", style="")
+                    icon="download", style="success")
 
         if protocol.protocoltype.has_admin_right(user):
             login_part2 = Table.button(
