@@ -14,9 +14,10 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 import atexit
 import feedgen.feed
+import icalendar
 from io import StringIO, BytesIO
 import os
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 import math
 import mimetypes
 import subprocess
@@ -1352,9 +1353,7 @@ def create_protocols_feed(protocoltype):
         entry.title(protocol.get_title())
         entry.summary(",\n".join(top.name for top in protocol.get_tops()))
         entry.content(protocol.content_public)
-        aware_date = datetime.combine(protocol.date, protocoltype.usual_time).replace(
-            tzinfo=tz.tzlocal())
-        entry.published(aware_date)
+        entry.published(protocol.get_timezone_aware_start_date())
     return feed
 
 
@@ -1381,10 +1380,13 @@ def create_appointments_feed(protocoltype):
             _external=True), rel="alternate")
         entry.title(protocol.get_title())
         entry.summary("\n".join(
-            [",\n".join(
-                "{}: {}".format(meta.name, meta.value)
-                for meta in protocol.metas
-                if not meta.internal
+            [",\n".join([
+                    "Beginn: {}".format(protocol.get_time())
+                ] + [
+                    "{}: {}".format(meta.name, meta.value)
+                    for meta in protocol.metas
+                    if not meta.internal
+                ]
             ),
             "Tagesordnung:",
             ",\n".join(
@@ -1418,6 +1420,37 @@ def feed_appointments_atom(protocoltype):
     return Response(create_appointments_feed(protocoltype).atom_str(),
         mimetype="application/atom+xml")
 
+@app.route("/feed/appointments/ical/<int:protocoltype_id>")
+@db_lookup(ProtocolType)
+def feed_appointsments_ical(protocoltype):
+    if not protocoltype.has_public_anonymous_view_right():
+        abort(403)
+    protocols = [protocol
+        for protocol in protocoltype.protocols
+        if not protocol.is_done()
+    ]
+    calendar = icalendar.Calendar()
+    calendar["summary"] = protocoltype.short_name
+    calendar["prodid"] = "Protokollsystem 3"
+    calendar["version"] = "2.0"
+    for protocol in protocols:
+        event = icalendar.Event()
+        event["uid"] = protocol.id
+        to_datetime = icalendar.prop.vDatetime
+        start = protocol.get_timezone_aware_start_date()
+        event["dtstamp"] = to_datetime(start)
+        event["dtstart"] = to_datetime(start)
+        event["dtend"] = to_datetime(start + timedelta(hours=3))
+        event["summary"] = protocoltype.short_name
+        event["description"] = "\n".join(top.name
+            for top in protocol.get_tops())
+        calendar.add_component(event)
+    content = calendar.to_ical().decode("utf-8")
+    for key in config.CALENDAR_TIMEZONE_MAP:
+        content = content.replace("TZID={}:".format(key),
+            "TZID={}:".format(config.CALENDAR_TIMEZONE_MAP[key]))
+    return Response(content.encode("utf-8"), mimetype="text/calendar")
+
 
 @app.route("/like/new")
 @login_required
@@ -1444,6 +1477,7 @@ def new_like():
     db.session.commit()
     flash("Like!", "alert-success")
     return redirect(request.args.get("next") or url_for("index"))
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

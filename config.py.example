@@ -60,6 +60,11 @@ CALENDAR_URL = "https://user:password@calendar.example.com/dav/"
 CALENDAR_DEFAULT_DURATION = 3 # default meeting length in hours
 CALENDAR_MAX_REQUESTS = 10 # number of retries before giving up (some caldav servers like to randomly reply with errors)
 
+CALENDAR_TIMEZONE_MAP = {
+    "CET": "Europe/Berlin",
+    "CEST": "Europe/Berlin",
+}
+
 SESSION_PROTECTION = "strong" # do not change
 
 # authentication
