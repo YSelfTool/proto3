@@ -113,14 +113,22 @@ class ProtocolsTable(Table):
         login_part1=""
         login_part2=""
         if state !=  "pencil":
-           login_part1 = '<a href=url_for("download_document", document_id=protocol.get_compiled_document().id)" class="btn">  <span class="glyphicon glyphicon-download"></span>  </a>'
+            document = protocol.get_compiled_document()
+            if document is not None:
+                login_part1 = Table.button(
+                    url_for("download_document", document_id=document.id),
+                    icon="download", style="")
+
         if protocol.protocoltype.has_admin_right(user):
-            login_part2 = '<a href=url_for("delete_protocol", protocol_id=protocol.id)" class="btn btn-danger" confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?">  <span class="glyphicon glyphicon-trash"></span>  </a>'
+            login_part2 = Table.button(
+                url_for("delete_protocol", protocol_id=protocol.id),
+                icon="trash",
+                style="danger",
+                confirm="Bist du dir sicher, dass du das Protokoll {} löschen möchtest?")
 
-        result.append(Markup('<div class="btn-group btn-group-xs"> {} </div>'.format(login_part1.join(login_part2))))
-
-
-
+        result.append(Markup(
+            '<div class="btn-group btn-group-xs"> {} </div>'.format(
+                "".join((login_part1, login_part2)))))
 
         return result
 
