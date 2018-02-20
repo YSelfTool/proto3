@@ -1422,7 +1422,7 @@ def feed_appointments_atom(protocoltype):
 
 @app.route("/feed/appointments/ical/<int:protocoltype_id>")
 @db_lookup(ProtocolType)
-def feed_appointsments_ical(protocoltype):
+def feed_appointments_ical(protocoltype):
     if not protocoltype.has_public_anonymous_view_right():
         abort(403)
     protocols = [protocol
