@@ -185,6 +185,19 @@ LATEX_BULLETPOINTS = [
 # optional: include header and footer in asta-style, not just a page number on top
 #LATEX_HEADER_FOOTER = True
 
+# optional: define multiple LaTeX-templates to use with a each protocol type individually
+#LATEX_TEMPLATES = {
+#    "yourtemplate": {
+#        "name": "Dein Template",
+#        "path": "local-templates/yourtemplate",
+#        "logo": "asta-logo.tex",
+#        "geometry": "bottom=1.6cm,top=1.6cm,inner=2.5cm,outer=1.0cm,footskip=1.0cm,headsep=0.6cm",
+#        "pagestyle": "fancy",
+#        "additionalpackages": ["[absolute]{textpos}", "{fancyheadings}"],
+#        "headerfooter": True
+#    }
+#}
+
 HTML_LEVEL_OFFSET = 3
 
 def dummy_todomail_provider():
