@@ -71,6 +71,7 @@ class ProtocolType(DatabaseModel):
     calendar = db.Column(db.String)
     restrict_networks = db.Column(db.Boolean)
     allowed_networks = db.Column(db.String)
+    latex_template = db.Column(db.String)
 
     protocols = relationship("Protocol", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="Protocol.id")
     default_tops = relationship("DefaultTOP", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="DefaultTOP.number")
