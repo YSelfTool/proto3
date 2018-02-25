@@ -193,12 +193,13 @@ class ProtocolTypeTable(SingleValueTable):
         network_headers = ["Netzwerke einschränken", "Erlaubte Netzwerke"]
         action_headers = ["Aktion"]
         feed_headers = []
+        latex_template_headers = ["LaTeX Vorlage"] if getattr(config, "LATEX_TEMPLATES", None) is not None else []
         if self.value.has_public_anonymous_view_right():
             feed_headers = [Markup("<img height=\"18px\" src=\"{}\" /> Feed".format(
                 url_for("static", filename="images/feed-icon.svg")))]
         return (general_headers + etherpad_headers + mail_headers
             + printing_headers + wiki_headers + calendar_headers
-            + network_headers + feed_headers + action_headers)
+            + network_headers + latex_template_headers + feed_headers + action_headers)
 
     def row(self):
         user = current_user()
@@ -217,7 +218,7 @@ class ProtocolTypeTable(SingleValueTable):
             Table.bool(self.value.non_reproducible_pad_links)
         ]
         if not config.ETHERPAD_ACTIVE:
-            ethernet_part = []
+            etherpad_part = []
         mail_part = [
             self.value.private_mail,
             self.value.public_mail,
@@ -242,6 +243,11 @@ class ProtocolTypeTable(SingleValueTable):
             network_part.append(", ".join(map(str.strip, self.value.allowed_networks.split(","))))
         else:
             network_part.append("")
+        _latex_templates = getattr(config, "LATEX_TEMPLATES", None)
+        if _latex_templates is not None:
+            latex_template_part = [_latex_templates[self.value.latex_template]['name'] if self.value.latex_template is not (None or "") else "Standardvorlage"]
+        else:
+            latex_template_part = []
         feed_part = []
         if self.value.has_public_anonymous_view_right():
             feed_part = [Markup(", ".join([
@@ -260,7 +266,7 @@ class ProtocolTypeTable(SingleValueTable):
         if not self.value.has_admin_right(user):
             action_part = [""]
         return (general_part + etherpad_part + mail_part + printing_part
-            + wiki_part +  calendar_part + network_part + feed_part
+            + wiki_part +  calendar_part + network_part + latex_template_part + feed_part
             + action_part)
 
 class DefaultTOPsTable(Table):
