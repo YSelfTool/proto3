@@ -57,6 +57,48 @@ if latex_pagestyle is not None and latex_pagestyle:
     texenv.globals["latex_pagestyle"] = latex_pagestyle
 latex_header_footer = getattr(config, "LATEX_HEADER_FOOTER", False)
 texenv.globals["latex_header_footer"] = latex_header_footer
+latex_templates = getattr(config, "LATEX_TEMPLATES", None)
+
+def provide_latex_template(template, documenttype):
+	_latex_template_documenttype_filename = {
+		"class": "protokoll2.cls",
+		"protocol": "protocol.tex",
+		"decision": "decision.tex"
+	}
+	_latex_template_filename = _latex_template_documenttype_filename[documenttype]
+	_latex_template_foldername = ""
+	if logo_template is not None:
+		texenv.globals["logo_template"] = logo_template
+	texenv.globals["latex_geometry"] = latex_geometry
+	texenv.globals["additional_packages"] = additional_packages
+	if latex_pagestyle is not None and latex_pagestyle:
+		texenv.globals["latex_pagestyle"] = latex_pagestyle
+	elif "latex_pagestyle" in texenv.globals:
+		del texenv.globals["latex_pagestyle"]
+	texenv.globals["latex_header_footer"] = latex_header_footer
+	if (latex_templates is not None) and (template is not ""):
+		if template in latex_templates:
+			if "provides" in latex_templates[template]:
+				_latex_template_foldername = (template + "/") if documenttype in latex_templates[template]["provides"] else ""
+			if "logo" in latex_templates[template]:
+				texenv.globals["logo_template"] = template + "/" + latex_templates[template]["logo"]
+			if "geometry" in latex_templates[template]:
+				texenv.globals["latex_geometry"] = latex_templates[template]["geometry"]
+			if "pagestyle" in latex_templates[template]:
+				if latex_templates[template]["pagestyle"]:
+					texenv.globals["latex_pagestyle"] = latex_templates[template]["pagestyle"]
+			if "additionalpackages" in latex_templates[template]:
+				_raw_additional_packages = latex_templates[template]["additionalpackages"]
+				_additional_packages = []
+				if _raw_additional_packages is not None:
+					for _package in _raw_additional_packages:
+						if "{" not in _package:
+							_package = "{{{}}}".format(_package)
+						_additional_packages.append(_package)
+				texenv.globals["additional_packages"] = _additional_packages	
+			if "headerfooter" in latex_templates[template]:
+				texenv.globals["latex_header_footer"] = latex_templates[template]["headerfooter"]
+	return _latex_template_foldername + _latex_template_filename
 
 mailenv = app.create_jinja_environment()
 mailenv.trim_blocks = True
@@ -370,7 +412,7 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         decisions_to_render.append((decision, decision_tag))
     for decision, decision_tag in decisions_to_render:
         decision_top = decision_tag.fork.get_top()
-        decision_content = texenv.get_template("decision.tex").render(
+        decision_content = texenv.get_template(provide_latex_template(protocol.protocoltype.latex_template, "decision")).render(
             render_type=RenderType.latex, decision=decision,
             protocol=protocol, top=decision_top, show_private=True)
         maxdepth = decision_top.get_maxdepth()
@@ -458,7 +500,7 @@ def parse_protocol_async_inner(protocol, encoded_kwargs):
         render_type=RenderType.html, show_private=False, **public_render_kwargs)
 
     for show_private in privacy_states:
-        latex_source = texenv.get_template("protocol.tex").render(
+        latex_source = texenv.get_template(provide_latex_template(protocol.protocoltype.latex_template, "protocol")).render(
             render_type=RenderType.latex,
             show_private=show_private,
             **render_kwargs[show_private])
@@ -558,7 +600,7 @@ def compile_async(content, protocol_id, show_private=False, use_decision=False, 
             log_filename = "protocol.log"
             with open(os.path.join(compile_dir, protocol_source_filename), "w") as source_file:
                 source_file.write(content)
-            protocol2_class_source = texenv.get_template(protocol_class_filename).render(fonts=config.FONTS, maxdepth=maxdepth, bulletpoints=config.LATEX_BULLETPOINTS)
+            protocol2_class_source = texenv.get_template(provide_latex_template(protocol.protocoltype.latex_template, "class")).render(fonts=config.FONTS, maxdepth=maxdepth, bulletpoints=config.LATEX_BULLETPOINTS)
             with open(os.path.join(compile_dir, protocol_class_filename), "w") as protocol2_class_file:
                 protocol2_class_file.write(protocol2_class_source)
             os.chdir(compile_dir)

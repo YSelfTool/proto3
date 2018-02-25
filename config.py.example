@@ -172,7 +172,7 @@ LATEX_BULLETPOINTS = [
     r"\textperiodcentered"
 ]
 
-# optional: path to additional jinja-templates
+# optional: path to additional jinja-templates, will be need in combination with LATEX_TEMPLATES
 #LATEX_LOCAL_TEMPLATES = "local-templates"
 # optional: the template to include at the top of protocol.tex
 #LATEX_LOGO_TEMPLATE = "asta-logo.tex"
@@ -184,17 +184,20 @@ LATEX_BULLETPOINTS = [
 #LATEX_ADDITIONAL_PACKAGES = ["[absolute]{textpos}", "{fancyheadings}"]
 # optional: include header and footer in asta-style, not just a page number on top
 #LATEX_HEADER_FOOTER = True
-
-# optional: define multiple LaTeX-templates to use with a each protocol type individually
+# optional: define multiple LaTeX-templates to use with a each protocol type individually overiding the general LATEX options
+# the LATEX_LOCAL_TEMPLATES parameter is need to provide the path for the templates
+# each template must be placed in an individual folder named by its ID in LATEX_TEMPLATES and must contain the provided template files: e.g.
+# - the files for the template "yourtemplate" need to be in the folder named "yourtemplate"
+# - the templates provides the files: "protokoll2.cls" (class), "protocol.tex" (protocol), "decision.tex" (decision) and "asta-logo.tex"
 #LATEX_TEMPLATES = {
 #    "yourtemplate": {
 #        "name": "Dein Template",
-#        "path": "local-templates/yourtemplate",
-#        "logo": "asta-logo.tex",
-#        "geometry": "bottom=1.6cm,top=1.6cm,inner=2.5cm,outer=1.0cm,footskip=1.0cm,headsep=0.6cm",
-#        "pagestyle": "fancy",
-#        "additionalpackages": ["[absolute]{textpos}", "{fancyheadings}"],
-#        "headerfooter": True
+#        "provides": ["class", "protocol", "decision"], # optional: if this option is set the corresponding files must be provided
+#        "logo": "asta-logo.tex", # optional: replaces the general template to include at the top of protocol.tex set by LATEX_LOGO_TEMPLATE
+#        "geometry": "bottom=1.6cm,top=1.6cm,inner=2.5cm,outer=1.0cm,footskip=1.0cm,headsep=0.6cm", # optional: replaces the general protocol page geometry set by LATEX_GEOMETRY
+#        "pagestyle": "fancy", # optional: replaces the general protocol pagestyle set by LATEX_PAGESTYLE
+#        "additionalpackages": ["[absolute]{textpos}", "{fancyheadings}"], # optional: replaces the general latex packages set by LATEX_ADDITIONAL_PACKAGES
+#        "headerfooter": True # optional: replaces the general LATEX_HEADER_FOOTER option
 #    }
 #}
 
