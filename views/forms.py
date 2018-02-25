@@ -61,11 +61,12 @@ def get_printer_choices():
 	
 def get_latex_template_choices():
     choices = []
-    if config.LATEX_TEMPLATES is not None:
+    _latex_templates = getattr(config, "LATEX_TEMPLATES", None)
+    if _latex_templates is not None:
         choices = [
             (key, values['name'])
             for key, values
-            in config.LATEX_TEMPLATES.items()
+            in _latex_templates.items()
         ]
     choices.insert(0, ("", "Standardvorlage"))
     return choices
