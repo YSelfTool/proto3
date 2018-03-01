@@ -778,7 +778,7 @@ def push_tops_to_calendar_async(protocol_id):
             client.set_event_at(begin=protocol.get_datetime(),
                 name=protocol.protocoltype.short_name, description=description)
         except CalendarException as exc:
-            error = Protocol.create_error("Calendar",
+            error = protocol.create_error("Calendar",
                 "Pushing TOPs to Calendar failed", str(exc))
             db.session.add(error)
             db.session.commit()
