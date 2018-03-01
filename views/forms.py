@@ -58,6 +58,18 @@ def get_printer_choices():
         choices = list(zip(config.PRINTING_PRINTERS, config.PRINTING_PRINTERS))
     choices.insert(0, ("", "Nicht drucken"))
     return choices
+	
+def get_latex_template_choices():
+    choices = []
+    _latex_templates = getattr(config, "LATEX_TEMPLATES", None)
+    if _latex_templates is not None:
+        choices = [
+            (key, values['name'])
+            for key, values
+            in _latex_templates.items()
+        ]
+    choices.insert(0, ("", "Standardvorlage"))
+    return choices
 
 def get_group_choices():
     user = current_user()
@@ -130,12 +142,14 @@ class ProtocolTypeForm(FlaskForm):
     calendar = SelectField("Kalender", choices=[])
     restrict_networks = BooleanField("Netzwerke einschränken")
     allowed_networks = IPNetworkField("Erlaubte Netzwerke")
+    latex_template = SelectField("LaTeX Vorlage", choices=[])
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         protocoltype = kwargs["obj"] if "obj" in kwargs else None
         self.calendar.choices = get_calendar_choices(protocoltype=protocoltype)
         self.printer.choices = get_printer_choices()
+        self.latex_template.choices = get_latex_template_choices()
         group_choices = get_group_choices()
         self.publish_group.choices = group_choices
         self.modify_group.choices = group_choices
