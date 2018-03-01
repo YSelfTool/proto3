@@ -673,10 +673,10 @@ def send_reminder_async(reminder_id, protocol_id):
                 reminder_text, reply_to=protocol.protocoltype.private_mail)
 
 def remind_finishing(protocol, delay_days, min_delay_days):
-    remind_finishing.delay(protocol.id, delay_days, min_delay_days)
+    remind_finishing_async.delay(protocol.id, delay_days, min_delay_days)
 
 @celery.task
-def remind_finishing(protocol_id, delay_days, min_delay_days):
+def remind_finishing_async(protocol_id, delay_days, min_delay_days):
     with app.app_context():
         protocol = Protocol.query.filter_by(id=protocol_id).first()
         mail_text = render_template("remind-finishing-mail.txt",
