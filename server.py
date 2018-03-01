@@ -1279,7 +1279,7 @@ def edit_defaultmeta(defaultmeta):
 def delete_defaultmeta(defaultmeta):
     name = defaultmeta.name
     type_id = defaultmeta.protocoltype.id
-    db.session.delete(meta)
+    db.session.delete(defaultmeta)
     db.session.commit()
     flash("Metadatenfeld '{}' gelöscht.".format(name), "alert-success")
     return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=type_id))
