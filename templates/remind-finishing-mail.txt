@@ -1,4 +1,4 @@
-Das Protokoll {{protocol.protocoltype.name}} vom {{protocol.date|datify}} ist, obwohl diese Sitzung bereits {{delay_days}} in der Vergangenheit liegt, noch nicht fertig.
+Das Protokoll {{protocol.protocoltype.name}} vom {{protocol.date|datify}} ist, obwohl diese Sitzung bereits {{delay_days}} Tage in der Vergangenheit liegt, noch nicht fertig.
 Bitte erledigt dies.
 
 Falls die Sitzung nicht stattgefunden hat, könnt ihr sie ohne Protokoll schließen oder von den Admins löschen lassen.
