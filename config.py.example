@@ -196,7 +196,7 @@ LATEX_BULLETPOINTS = [
 #        "logo": "asta-logo.tex", # optional: replaces the general template to include at the top of protocol.tex set by LATEX_LOGO_TEMPLATE
 #        "geometry": "bottom=1.6cm,top=1.6cm,inner=2.5cm,outer=1.0cm,footskip=1.0cm,headsep=0.6cm", # optional: replaces the general protocol page geometry set by LATEX_GEOMETRY
 #        "pagestyle": "fancy", # optional: replaces the general protocol pagestyle set by LATEX_PAGESTYLE
-#        "additionalpackages": ["[absolute]{textpos}", "{fancyheadings}"], # optional: replaces the general latex packages set by LATEX_ADDITIONAL_PACKAGES
+#        "additional_packages": ["[absolute]{textpos}", "{fancyheadings}"], # optional: replaces the general latex packages set by LATEX_ADDITIONAL_PACKAGES
 #        "headerfooter": True # optional: replaces the general LATEX_HEADER_FOOTER option
 #    }
 #}
