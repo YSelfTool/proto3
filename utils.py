@@ -14,6 +14,7 @@ from io import BytesIO
 import ipaddress
 from socket import getfqdn
 from uuid import uuid4
+import subprocess
 
 import config
 
@@ -223,3 +224,28 @@ def parse_datetime_from_string(text):
         except ValueError as exc:
             print(exc)
     raise ValueError("Date '{}' does not match any known format!".format(text))
+
+
+def get_git_revision():
+    try:
+        gitlab_url = "https://git.fsmpi.rwth-aachen.de/protokollsystem/proto3"
+        commit_hash = subprocess.check_output(
+            ["git", "log", "-g", "-1", "--pretty=%H"]).decode("UTF-8").strip()
+        timestamp = int(subprocess.check_output(
+            ["git", "log", "-g", "-1", "--pretty=%at"]).strip())
+        commit_date = datetime.fromtimestamp(timestamp)
+        return {"url": gitlab_url, "hash": commit_hash, "date": commit_date}
+    except subprocess.SubprocessError:
+        pass
+
+
+def get_max_page_length_exp(objects):
+    length = len(objects)
+    if length > 0:
+        return math.ceil(math.log10(length))
+    return 1
+
+
+def get_internal_filename(protocol, document, filename):
+    return "{}-{}-{}".format(protocol.id, document.id, filename)
+    

@@ -48,6 +48,10 @@ class DatabaseModel(db.Model):
             columns.append("{}={}".format(column_name, value))
         return "{}({})".format(self.__class__.__name__, ", ".join(columns))
 
+    @classmethod
+    def first_by_id(cls, instance_id):
+        return cls.query.filter_by(id=instance_id).first()
+
 class ProtocolType(DatabaseModel):
     __tablename__ = "protocoltypes"
     __model_name__ = "protocoltype"
@@ -234,6 +238,11 @@ class Protocol(DatabaseModel):
             (self.public and self.protocoltype.has_public_view_right(user))
             or self.protocoltype.has_private_view_right(user)
         )
+
+    def get_visible_content(self, user):
+        if self.has_private_view_right(user):
+            return self.content_private
+        return self.content_public
 
     def is_done(self):
         return self.done
