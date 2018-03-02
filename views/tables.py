@@ -245,7 +245,7 @@ class ProtocolTypeTable(SingleValueTable):
             network_part.append("")
         _latex_templates = getattr(config, "LATEX_TEMPLATES", None)
         if _latex_templates is not None:
-            latex_template_part = [_latex_templates[self.value.latex_template]['name'] if self.value.latex_template is not (None or "") else "Standardvorlage"]
+            latex_template_part = ["Standardvorlage" if self.value.latex_template is None or self.value.latex_template == "" else _latex_templates[self.value.latex_template]['name']]
         else:
             latex_template_part = []
         feed_part = []
