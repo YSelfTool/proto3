@@ -31,6 +31,7 @@ from models.database import ProtocolType, Protocol, DefaultTOP, TOP, LocalTOP, D
 from views.forms import LoginForm, ProtocolTypeForm, DefaultTopForm, MeetingReminderForm, NewProtocolForm, DocumentUploadForm, KnownProtocolSourceUploadForm, NewProtocolSourceUploadForm, generate_protocol_form, TopForm, LocalTopForm, SearchForm, DecisionSearchForm, ProtocolSearchForm, TodoSearchForm, NewProtocolFileUploadForm, NewTodoForm, TodoForm, TodoMailForm, DefaultMetaForm, MetaForm, MergeTodosForm, DecisionCategoryForm, DocumentEditForm
 from views.tables import ProtocolsTable, ProtocolTypesTable, ProtocolTypeTable, DefaultTOPsTable, MeetingRemindersTable, ErrorsTable, TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable, TodoMailsTable, DefaultMetasTable, DecisionCategoriesTable
 from legacy import import_old_todos, import_old_protocols, import_old_todomails
+import back
 
 app = Flask(__name__)
 app.config.from_object(config)
@@ -158,6 +159,7 @@ def send_file(file_like, cache_timeout, as_attachment, attachment_filename):
     return response
 
 @app.route("/")
+@back.anchor
 def index():
     user = current_user()
     protocols = [
@@ -217,6 +219,7 @@ def index():
     return render_template("index.html", open_protocols=open_protocols, protocol=protocol, todos=todos, show_private=show_private, has_public_view_right=has_public_view_right)
 
 @app.route("/documentation")
+@back.anchor
 @login_required
 def documentation():
     todostates = list(TodoState)
@@ -224,6 +227,7 @@ def documentation():
     return render_template("documentation.html", todostates=todostates, name_to_state=name_to_state)
 
 @app.route("/types/list")
+@back.anchor
 @login_required
 def list_types():
     is_logged_in = check_login()
@@ -251,7 +255,7 @@ def new_type():
             db.session.add(protocoltype)
             db.session.commit()
             flash("Der Protokolltyp {} wurde angelegt.".format(protocoltype.name), "alert-success")
-        return redirect(request.args.get("next") or url_for("list_types"))
+        return back.redirect("list_types")
     return render_template("type-new.html", form=form)
 
 @app.route("/type/edit/<int:protocoltype_id>", methods=["GET", "POST"])
@@ -267,10 +271,11 @@ def edit_type(protocoltype):
         else:
             form.populate_obj(protocoltype)
             db.session.commit()
-            return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
+            return back.redirect("show_type", protocoltype_id=protocoltype.id)
     return render_template("type-edit.html", form=form, protocoltype=protocoltype)
 
 @app.route("/type/show/<int:protocoltype_id>")
+@back.anchor
 @login_required
 @db_lookup(ProtocolType)
 @require_private_view_right()
@@ -292,7 +297,7 @@ def delete_type(protocoltype):
     db.session.delete(protocoltype) 
     db.session.commit()
     flash("Der Protokolltype {} wurde gelöscht.".format(name), "alert-success")
-    return redirect(request.args.get("next") or url_for("list_types"))
+    return back.redirect("list_types")
 
 @app.route("/type/reminders/new/<int:protocoltype_id>", methods=["GET", "POST"])
 @login_required
@@ -305,7 +310,7 @@ def new_reminder(protocoltype):
         form.populate_obj(meetingreminder)
         db.session.add(meetingreminder)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
+        return back.redirect("show_type", protocoltype_id=protocoltype.id)
     return render_template("reminder-new.html", form=form, protocoltype=protocoltype)
 
 @app.route("/type/reminder/edit/<int:meetingreminder_id>", methods=["GET", "POST"])
@@ -317,7 +322,7 @@ def edit_reminder(meetingreminder):
     if form.validate_on_submit():
         form.populate_obj(meetingreminder)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
+        return back.redirect("show_type", protocoltype_id=protocoltype.id)
     return render_template("reminder-edit.html", form=form, meetingreminder=meetingreminder)
 
 @app.route("/type/reminder/delete/<int:meetingreminder_id>")
@@ -328,7 +333,7 @@ def delete_reminder(meetingreminder):
     protocoltype = meetingreminder.protocoltype
     db.session.delete(meetingreminder)
     db.session.commit()
-    return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
+    return back.redirect("show_type", protocoltype_id=protocoltype.id)
 
 @app.route("/type/tops/new/<int:protocoltype_id>", methods=["GET", "POST"])
 @login_required
@@ -348,7 +353,7 @@ def new_default_top(protocoltype):
                 db.session.add(localtop)
         db.session.commit()
         flash("Der Standard-TOP {} wurde für dem Protokolltyp {} hinzugefügt.".format(defaulttop.name, protocoltype.name), "alert-success")
-        return redirect(request.args.get("next") or url_for("index"))
+        return back.redirect()
     return render_template("default-top-new.html", form=form, protocoltype=protocoltype)
 
 @app.route("/type/tops/edit/<int:protocoltype_id>/<int:defaulttop_id>", methods=["GET", "POST"])
@@ -360,7 +365,7 @@ def edit_default_top(protocoltype, defaulttop):
     if form.validate_on_submit():
         form.populate_obj(defaulttop)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
+        return back.redirect("show_type", protocoltype_id=protocoltype.id)
     return render_template("default-top-edit.html", form=form, protocoltype=protocoltype, defaulttop=defaulttop)
 
 @app.route("/type/tops/delete/<int:defaulttop_id>")
@@ -370,7 +375,7 @@ def edit_default_top(protocoltype, defaulttop):
 def delete_default_top(defaulttop):
     db.session.delete(defaulttop)
     db.session.commit()
-    return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=defaulttop.protocoltype.id))
+    return back.redirect("show_type", protocoltype_id=defaulttop.protocoltype.id)
 
 @app.route("/type/tops/move/<int:defaulttop_id>/<diff>/")
 @login_required
@@ -382,9 +387,10 @@ def move_default_top(defaulttop, diff):
         db.session.commit()
     except ValueError:
         flash("Die angegebene Differenz ist keine Zahl.", "alert-error")
-    return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=defaulttop.protocoltype.id))
+    return back.redirect("show_type", protocoltype_id=defaulttop.protocoltype.id)
 
 @app.route("/protocols/list")
+@back.anchor
 def list_protocols():
     is_logged_in = check_login()
     user = current_user()
@@ -506,10 +512,10 @@ def new_protocol():
         protocoltype = ProtocolType.query.filter_by(id=form.protocoltype_id.data).first()
         if protocoltype is None or not protocoltype.has_modify_right(user):
             flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
-            return redirect(request.args.get("next") or url_for("index"))
+            return back.redirect()
         protocol = Protocol.create_new_protocol(protocoltype,
             form.date.data, form.start_time.data)
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+        return back.redirect("show_protocol", protocol_id=protocol.id)
     type_id = request.args.get("protocoltype_id")
     if type_id is not None:
         form.protocoltype.data = type_id
@@ -517,6 +523,7 @@ def new_protocol():
     return render_template("protocol-new.html", form=form, upload_form=upload_form, file_upload_form=file_upload_form, protocoltypes=protocoltypes)
 
 @app.route("/protocol/show/<int:protocol_id>")
+@back.anchor
 @db_lookup(Protocol)
 def show_protocol(protocol):
     user = current_user()
@@ -525,7 +532,7 @@ def show_protocol(protocol):
         flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
         if check_login():
             return redirect(url_for("index"))
-        return redirect(request.args.get("next") or url_for("login", next=request.url))
+        return redirect(url_for("login"))
     visible_documents = [
         document for document in protocol.documents
         if (not document.is_private and document.protocol.has_public_view_right(user))
@@ -554,7 +561,7 @@ def delete_protocol(protocol):
     db.session.delete(protocol)
     db.session.commit()
     flash("Protokoll {} ist gelöscht.".format(name), "alert-success")
-    return redirect(request.args.get("next") or url_for("list_protocols"))
+    return back.redirect("list_protocols")
 
 @app.route("/protocol/etherpull/<int:protocol_id>")
 @login_required
@@ -563,12 +570,12 @@ def delete_protocol(protocol):
 def etherpull_protocol(protocol):
     if not config.ETHERPAD_ACTIVE:
         flash("Die Etherpadfunktion ist nicht aktiviert.", "alert-error")
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
+        return back.redirect("show_protocol", protocol_id=protocol_id)
     protocol.source = get_etherpad_text(protocol.get_identifier())
     db.session.commit()
     tasks.parse_protocol(protocol)
     flash("Das Protokoll wird kompiliert.", "alert-success")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    return back.redirect("show_protocol", protocol_id=protocol.id)
 
 @app.route("/protocol/upload/known/<int:protocol_id>", methods=["POST"])
 @login_required
@@ -590,7 +597,7 @@ def upload_source_to_known_protocol(protocol):
                 db.session.commit()
                 tasks.parse_protocol(protocol)
                 flash("Das Protokoll wird kompiliert.", "alert-success")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    return back.redirect("show_protocol", protocol_id=protocol.id)
 
 @app.route("/protocol/upload/new/", methods=["POST"])
 @login_required
@@ -618,7 +625,7 @@ def upload_new_protocol():
             db.session.add(local_top)
         db.session.commit()
         tasks.parse_protocol(protocol)
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+        return back.redirect("show_protocol", protocol_id=protocol.id)
     return redirect(request.args.get("fail") or url_for("new_protocol"))
 
 @app.route("/protocol/upload/new/file/", methods=["POST"])
@@ -655,7 +662,7 @@ def upload_new_protocol_by_file():
         document.filename = internal_filename
         file.save(os.path.join(config.DOCUMENTS_PATH, internal_filename))
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+        return back.redirect("show_protocol", protocol_id=protocol.id)
     return redirect(request.args.get("fail") or url_for("new_protocol"))
 
 @app.route("/protocol/recompile/<int:protocol_id>")
@@ -665,7 +672,7 @@ def upload_new_protocol_by_file():
 @require_modify_right()
 def recompile_protocol(protocol):
     tasks.parse_protocol(protocol)
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    return back.redirect("show_protocol", protocol_id=protocol.id)
 
 @app.route("/protocol/source/<int:protocol_id>")
 @login_required
@@ -690,10 +697,10 @@ def get_protocol_template(protocol):
 def etherpush_protocol(protocol):
     if not config.ETHERPAD_ACTIVE:
         flash("Die Etherpadfunktion ist nicht aktiviert.", "alert-error")
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
+        return back.redirect("show_protocol", protocol_id=protocol_id)
     if not protocol.is_done():
         tasks.set_etherpad_content(protocol)
-    return redirect(request.args.get("next") or protocol.get_etherpad_link())
+    return redirect(protocol.get_etherpad_link())
 
 @app.route("/protocol/update/<int:protocol_id>", methods=["GET", "POST"])
 @login_required
@@ -708,7 +715,7 @@ def update_protocol(protocol):
             meta.value = getattr(edit_form.metas, meta.name).data
         db.session.commit()
         tasks.push_tops_to_calendar(protocol)
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+        return back.redirect("show_protocol", protocol_id=protocol.id)
     for meta in protocol.metas:
         getattr(edit_form.metas, meta.name).data = meta.value
     return render_template("protocol-update.html", upload_form=upload_form, edit_form=edit_form, protocol=protocol)
@@ -720,7 +727,7 @@ def update_protocol(protocol):
 def publish_protocol(protocol):
     protocol.public = True
     db.session.commit()
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    return back.redirect("show_protocol", protocol_id=protocol.id)
 
 @app.route("/prococol/send/private/<int:protocol_id>")
 @login_required
@@ -729,10 +736,10 @@ def publish_protocol(protocol):
 def send_protocol_private(protocol):
     if not config.MAIL_ACTIVE:
         flash("Die Mailfunktion ist nicht aktiviert.", "alert-error")
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
+        return back.redirect("show_protocol", protocol_id=protocol_id)
     tasks.send_protocol_private(protocol)
     flash("Das Protokoll wurde versandt.", "alert-success")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    return back.redirect("show_protocol", protocol_id=protocol.id)
 
 @app.route("/prococol/send/public/<int:protocol_id>")
 @login_required
@@ -741,10 +748,10 @@ def send_protocol_private(protocol):
 def send_protocol_public(protocol):
     if not config.MAIL_ACTIVE:
         flash("Die Mailfunktion ist nicht aktiviert.", "alert-error")
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
+        return back.redirect("show_protocol", protocol_id=protocol_id)
     tasks.send_protocol_public(protocol)
     flash("Das Protokoll wurde versandt.", "alert-success")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    return back.redirect("show_protocol", protocol_id=protocol.id)
 
 @app.route("/protocol/reminder/<int:protocol_id>")
 @login_required
@@ -753,11 +760,11 @@ def send_protocol_public(protocol):
 def send_protocol_reminder(protocol):
     if not config.MAIL_ACTIVE:
         flash("Die Mailfunktion ist nicht aktiviert.", "alert-error")
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
+        return back.redirect("show_protocol", protocol_id=protocol_id)
     meetingreminders = MeetingReminder.query.filter_by(protocoltype_id=protocol.protocoltype.id).all()
     if len(meetingreminders) == 0:
         flash("Für diesen Protokolltyp sind keine Einladungsmails konfiguriert.", "alert-error")
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol_id))
+        return back.redirect("show_protocol", protocol_id=protocol_id)
     day_difference = (protocol.date - datetime.now().date()).days
     past_reminders = [
         meetingreminder for meetingreminder in meetingreminders
@@ -770,7 +777,7 @@ def send_protocol_reminder(protocol):
     choosen_reminder = past_reminders[0]
     tasks.send_reminder(choosen_reminder, protocol)
     flash("Einladungsmail ist versandt.", "alert-success")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    return back.redirect("show_protocol", protocol_id=protocol.id)
         
 
 @app.route("/protocol/tops/new/<int:protocol_id>", methods=["GET", "POST"])
@@ -785,7 +792,7 @@ def new_top(protocol):
         db.session.add(top)
         db.session.commit()
         tasks.push_tops_to_calendar(top.protocol)
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+        return back.redirect("show_protocol", protocol_id=protocol.id)
     else:
         current_numbers = list(map(lambda t: t.number, protocol.tops))
         suggested_number = get_first_unused_int(current_numbers)
@@ -802,7 +809,7 @@ def edit_top(top):
         form.populate_obj(top)
         db.session.commit()
         tasks.push_tops_to_calendar(top.protocol)
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=top.protocol.id))
+        return back.redirect("show_protocol", protocol_id=top.protocol.id)
     return render_template("top-edit.html", form=form, top=top)
 
 @app.route("/protocol/top/delete/<int:top_id>")
@@ -816,7 +823,7 @@ def delete_top(top):
     db.session.commit()
     tasks.push_tops_to_calendar(protocol)
     flash("Der TOP {} wurde gelöscht.".format(name), "alert-success")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    return back.redirect("show_protocol", protocol_id=protocol.id)
 
 @app.route("/protocol/top/move/<int:top_id>/<diff>")
 @login_required
@@ -829,7 +836,7 @@ def move_top(top, diff):
         tasks.push_tops_to_calendar(top.protocol)
     except ValueError:
         flash("Die angegebene Differenz ist keine Zahl.", "alert-error")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=top.protocol.id))
+    return back.redirect("show_protocol", protocol_id=top.protocol.id)
 
 @app.route("/protocol/localtop/edit/<int:localtop_id>", methods=["GET", "POST"])
 @login_required
@@ -840,7 +847,7 @@ def edit_localtop(localtop):
     if form.validate_on_submit():
         form.populate_obj(localtop)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=localtop.protocol.id))
+        return back.redirect("show_protocol", protocol_id=localtop.protocol.id)
     return render_template("localtop-edit.html", form=form, localtop=localtop)
 
 def _get_page():
@@ -862,6 +869,7 @@ def _get_page_length():
         return config.PAGE_LENGTH
 
 @app.route("/todos/list")
+@back.anchor
 @login_required
 def list_todos():
     user = current_user()
@@ -933,7 +941,7 @@ def new_todo():
     if protocoltype is not None and protocol is not None:
         if protocol.protocoltype != protocoltype:
             flash("Ungültige Protokoll-Typ-Kombination", "alert-error")
-            return redirect(request.args.get("next") or url_for("index"))
+            return back.redirect()
     if protocoltype is None and protocol is not None:
         protocoltype = protocol.protocoltype
     protocoltypes = ProtocolType.get_modifiable_protocoltypes(user)
@@ -942,7 +950,7 @@ def new_todo():
         added_protocoltype = ProtocolType.query.filter_by(id=form.protocoltype_id.data).first()
         if added_protocoltype is None or not added_protocoltype.has_modify_right(user):
             flash("Invalider Protokolltyp.")
-            return redirect(request.args.get("next") or url_for("index"))
+            return back.redirect()
         todo = Todo()
         form.populate_obj(todo)
         if protocol is not None:
@@ -953,9 +961,9 @@ def new_todo():
         db.session.commit()
         flash("Todo wurde angelegt.", "alert-success")
         if protocol is not None:
-            return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+            return back.redirect("show_protocol", protocol_id=protocol.id)
         else:
-            return redirect(request.args.get("next") or url_for("list_todos", protocoltype_id=protocoltype_id))
+            return back.redirect("list_todos", protocoltype_id=protocoltype_id)
     else:
         if protocoltype is not None:
             form.protocoltype_id.data = protocoltype.id
@@ -970,10 +978,11 @@ def edit_todo(todo):
     if form.validate_on_submit():
         form.populate_obj(todo)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("list_todos", protocoltype_id=todo.protocoltype.id))
+        return back.redirect("list_todos", protocoltype_id=todo.protocoltype.id)
     return render_template("todo-edit.html", form=form, todo=todo)
 
 @app.route("/todo/show/<int:todo_id>")
+@back.anchor
 @login_required
 @db_lookup(Todo)
 @require_private_view_right()
@@ -990,7 +999,7 @@ def delete_todo(todo):
     db.session.delete(todo)
     db.session.commit()
     flash("Todo gelöscht.", "alert-success")
-    return redirect(request.args.get("next") or url_for("list_todos", protocoltype_id=type_id))
+    return back.redirect("list_todos", protocoltype_id=type_id)
 
 @app.route("/todo/merge", methods=["GET", "POST"])
 @login_required
@@ -1012,10 +1021,11 @@ def merge_todos():
             db.session.delete(todo2)
             db.session.commit()
             flash("Merged todos {} and {}.".format(id1, id2), "alert-success")
-            return redirect(request.args.get("next") or url_for("list_todos"))
-    return render_template("todos-merge.html", form=form, next_url=request.args.get("next"))
+            return back.redirect("list_todos")
+    return render_template("todos-merge.html", form=form)
 
 @app.route("/decisions/list")
+@back.anchor
 def list_decisions():
     is_logged_In = check_login()
     user = current_user()
@@ -1090,7 +1100,7 @@ def download_document(document):
         or (not document.is_private
             and not document.protocol.has_public_view_right(user))):
         flash("Dir fehlen die nötigen Zugriffsrechte.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+        return back.redirect()
     return send_file(document.as_file_like(), cache_timeout=1, as_attachment=True, attachment_filename=document.name)
 
 @app.route("/document/upload/<int:protocol_id>", methods=["POST"])
@@ -1101,11 +1111,11 @@ def upload_document(protocol):
     form = DocumentUploadForm()
     if form.document.data is None:
         flash("Es wurde keine Datei ausgewählt.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+        return back.redirect()
     file = form.document.data
     if file.filename == "":
         flash("Es wurde keine Datei ausgewählt.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+        return back.redirect()
     # todo: Dateitypen einschränken?
     if file:
         filename = secure_filename(file.filename)
@@ -1120,7 +1130,7 @@ def upload_document(protocol):
         if datetime.now().date() >= protocol.date:
             protocol.done = True
         db.session.commit()
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    return back.redirect("show_protocol", protocol_id=protocol.id)
 
 @app.route("/document/edit/<int:document_id>", methods=["GET", "POST"])
 @login_required
@@ -1131,7 +1141,7 @@ def edit_document(document):
     if form.validate_on_submit():
         form.populate_obj(document)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.protocol.id))
+        return back.redirect("show_protocol", protocol_id=document.protocol.id)
     return render_template("document-edit.html", document=document, form=form)
 
 @app.route("/document/delete/<int:document_id>")
@@ -1145,7 +1155,7 @@ def delete_document(document):
     db.session.delete(document)
     db.session.commit()
     flash("Das Dokument {} wurde gelöscht.".format(name), "alert-success")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=protocol.id))
+    return back.redirect("show_protocol", protocol_id=protocol.id)
 
 @app.route("/document/print/<int:document_id>")
 @login_required
@@ -1154,10 +1164,10 @@ def delete_document(document):
 def print_document(document):
     if not config.PRINTING_ACTIVE:
         flash("Die Druckfunktion ist nicht aktiviert.", "alert-error")
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.protocol.id))
+        return back.redirect("show_protocol", protocol_id=document.protocol.id)
     tasks.print_file(document.get_filename(), document.protocol)
     flash("Das Dokument {} wird gedruckt.".format(document.name), "alert-success")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=document.protocol.id))
+    return back.redirect("show_protocol", protocol_id=document.protocol.id)
 
 @app.route("/decision/print/<int:decisiondocument_id>")
 @login_required
@@ -1167,12 +1177,13 @@ def print_decision(decisiondocument):
     user = current_user()
     if not config.PRINTING_ACTIVE:
         flash("Die Druckfunktion ist nicht aktiviert.", "alert-error")
-        return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=decisiondocument.decision.protocol.id))
+        return back.redirect("show_protocol", protocol_id=decisiondocument.decision.protocol.id)
     tasks.print_file(decisiondocument.get_filename(), decisiondocument.decision.protocol)
     flash("Das Dokument {} wird gedruckt.".format(decisiondocument.name), "alert-success")
-    return redirect(request.args.get("next") or url_for("show_protocol", protocol_id=decisiondocument.decision.protocol.id))
+    return back.redirect("show_protocol", protocol_id=decisiondocument.decision.protocol.id)
 
 @app.route("/errors/list")
+@back.anchor
 @login_required
 def list_errors():
     user = current_user()
@@ -1184,6 +1195,7 @@ def list_errors():
     return render_template("errors-list.html", errros=errors, errors_table=errors_table)
 
 @app.route("/error/show/<int:error_id>")
+@back.anchor
 @login_required
 @db_lookup(Error)
 @require_modify_right()
@@ -1200,9 +1212,10 @@ def delete_error(error):
     db.session.delete(error)
     db.session.commit()
     flash("Fehler {} gelöscht.".format(name), "alert-success")
-    return redirect(request.args.get("next") or url_for("list_errors"))
+    return back.redirect("list_errors")
 
 @app.route("/todomails/list")
+@back.anchor
 @login_required
 def list_todomails():
     todomails = sorted(TodoMail.query.all(), key=lambda tm: tm.name.lower())
@@ -1219,7 +1232,7 @@ def new_todomail():
         db.session.add(todomail)
         db.session.commit()
         flash("Die Todomailzuordnung für {} wurde angelegt.".format(todomail.name), "alert-success")
-        return redirect(request.args.get("next") or url_for("list_todomails"))
+        return back.redirect("list_todomails")
     return render_template("todomail-new.html", form=form)
 
 @app.route("/todomail/edit/<int:todomail_id>", methods=["GET", "POST"])
@@ -1231,7 +1244,7 @@ def edit_todomail(todomail):
         form.populate_obj(todomail)
         db.session.commit()
         flash("Die Todo-Mail-Zuordnung wurde geändert.", "alert-success")
-        return redirect(request.args.get("next") or url_for("list_todomails"))
+        return back.redirect("list_todomails")
     return render_template("todomail-edit.html", todomail=todomail, form=form)
 
 @app.route("/todomail/delete/<int:todomail_id>")
@@ -1242,7 +1255,7 @@ def delete_todomail(todomail):
     db.session.delete(todomail)
     db.session.commit()
     flash("Die Todo-Mail-Zuordnung für {} wurde gelöscht.".format(name), "alert-success")
-    return redirect(request.args.get("next") or url_for("list_todomails"))
+    return back.redirect("list_todomails")
     
 @app.route("/defaultmeta/new/<int:protocoltype_id>", methods=["GET", "POST"])
 @login_required
@@ -1256,7 +1269,7 @@ def new_defaultmeta(protocoltype):
         db.session.add(meta)
         db.session.commit()
         flash("Metadatenfeld hinzugefügt.", "alert-success")
-        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
+        return back.redirect("show_type", protocoltype_id=protocoltype.id)
     return render_template("defaultmeta-new.html", form=form, protocoltype=protocoltype)
 
 @app.route("/defaultmeta/edit/<int:defaultmeta_id>", methods=["GET", "POST"])
@@ -1268,7 +1281,7 @@ def edit_defaultmeta(defaultmeta):
     if form.validate_on_submit():
         form.populate_obj(defaultmeta)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=defaultmeta.protocoltype.id))
+        return back.redirect("show_type", protocoltype_id=defaultmeta.protocoltype.id)
     return render_template("defaultmeta-edit.html", form=form, defaultmeta=defaultmeta)
 
 @app.route("/defaultmeta/delete/<int:defaultmeta_id>")
@@ -1282,7 +1295,7 @@ def delete_defaultmeta(defaultmeta):
     db.session.delete(defaultmeta)
     db.session.commit()
     flash("Metadatenfeld '{}' gelöscht.".format(name), "alert-success")
-    return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=type_id))
+    return back.redirect("show_type", protocoltype_id=type_id)
 
 @app.route("/decisioncategory/new/<int:protocoltype_id>", methods=["GET", "POST"])
 @login_required
@@ -1296,7 +1309,7 @@ def new_decisioncategory(protocoltype):
         db.session.add(category)
         db.session.commit()
         flash("Beschlusskategorie hinzugefügt.", "alert-success")
-        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=protocoltype.id))
+        return back.redirect("show_type", protocoltype_id=protocoltype.id)
     return render_template("decisioncategory-new.html", form=form, protocoltype=protocoltype)
 
 @app.route("/decisioncategory/edit/<int:decisioncategory_id>", methods=["GET", "POST"])
@@ -1308,7 +1321,7 @@ def edit_decisioncategory(decisioncategory):
     if form.validate_on_submit():
         form.populate_obj(decisioncategory)
         db.session.commit()
-        return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=decisioncategory.protocoltype.id))
+        return back.redirect("show_type", protocoltype_id=decisioncategory.protocoltype.id)
     return render_template("decisioncategory-edit.html", form=form, decisioncategory=decisioncategory)
 
 @app.route("/decisioncategory/delete/<int:decisioncategory_id>")
@@ -1322,7 +1335,7 @@ def delete_decisioncategory(decisioncategory):
     db.session.delete(decisioncategory)
     db.session.commit()
     flash("Beschlusskategorie {} gelöscht.".format(name), "alert-success")
-    return redirect(request.args.get("next") or url_for("show_type", protocoltype_id=type_id))
+    return back.redirect("show_type", protocoltype_id=type_id)
 
 def create_protocols_feed(protocoltype):
     if not protocoltype.has_public_anonymous_view_right():
@@ -1467,16 +1480,16 @@ def new_like():
         parent = TOP.query.filter_by(id=request.args.get("top_id")).first()
     if parent is None or not parent.has_public_view_right(user):
         flash("Missing object to like.", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+        return back.redirect()
     if len([like for like in parent.likes if like.who == user.username]) > 0:
         flash("You have liked this already!", "alert-error")
-        return redirect(request.args.get("next") or url_for("index"))
+        return back.redirect()
     like = Like(who=user.username)
     db.session.add(like)
     parent.likes.append(like)
     db.session.commit()
     flash("Like!", "alert-success")
-    return redirect(request.args.get("next") or url_for("index"))
+    return back.redirect()
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -1491,7 +1504,7 @@ def login():
             session["auth"] = security_manager.hash_user(user)
             session.permanent = form.permanent.data
             flash("Login successful, {}!".format(user.username), "alert-success")
-            return redirect(request.args.get("next") or url_for("index"))
+            return back.redirect()
         else:
             flash("Wrong login data. Try again.", "alert-error")
     return render_template("login.html", form=form)

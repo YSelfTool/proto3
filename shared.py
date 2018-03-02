@@ -5,6 +5,8 @@ import re
 from functools import wraps
 from enum import Enum
 
+import back
+
 import config
 
 db = SQLAlchemy()
@@ -110,7 +112,7 @@ def login_required(function):
         if check_login():
             return function(*args, **kwargs)
         else:
-            return redirect(url_for("login", next=request.url))
+            return redirect(url_for("login"))
     return decorated_function
 
 def group_required(group):
@@ -121,7 +123,7 @@ def group_required(group):
                 return function(*args, **kwargs)
             else:
                 flash("You do not have the necessary permissions to view this page.")
-                return redirect(request.args.get("next") or url_for("index"))
+                return back.redirect()
         return decorated_function
     return decorator
 

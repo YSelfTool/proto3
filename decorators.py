@@ -4,6 +4,7 @@ from functools import wraps
 
 from models.database import ALL_MODELS
 from shared import db, current_user
+import back
 
 ID_KEY = "id"
 KEY_NOT_PRESENT_MESSAGE = "Missing {}_id."
@@ -12,10 +13,10 @@ OBJECT_DOES_NOT_EXIST_MESSAGE = "There is no {} with id {}."
 MISSING_VIEW_RIGHT = "Dir fehlenden die nötigen Zugriffsrechte."
 
 def default_redirect():
-    return redirect(request.args.get("next") or url_for("index"))
+    return back.redirect()
 
 def login_redirect():
-    return redirect(request.args.get("next") or url_for("login"))
+    return back.redirect("login")
 
 def db_lookup(*models, check_exists=True):
     def _decorator(function):
