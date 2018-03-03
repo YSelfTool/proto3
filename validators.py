@@ -1,7 +1,7 @@
 from models.database import TodoState
 from wtforms import ValidationError
 from wtforms.validators import InputRequired
-from shared import db
+
 
 class CheckTodoDateByState:
     def __init__(self):
@@ -16,4 +16,3 @@ class CheckTodoDateByState:
                 date_check(form, form.date)
         except ValueError:
             raise ValidationError("Invalid state.")
-
