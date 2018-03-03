@@ -306,7 +306,8 @@ class ProtocolTypeTable(SingleValueTable):
         if _latex_templates is not None:
             latex_template_part = [
                 _latex_templates[self.value.latex_template]['name']
-                if self.value.latex_template is not (None or "")
+                if (self.value.latex_template is not None
+                    and self.value.latex_template != "")
                 else "Standardvorlage"]
         else:
             latex_template_part = []
