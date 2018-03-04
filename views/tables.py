@@ -103,35 +103,42 @@ class ProtocolsTable(Table):
     def classes(self):
         if self.search_results is None:
             result = [
-                "hidden-sm hidden-md hidden-lg",
-                "hidden-xs", "hidden-xs",
-                "hidden-sm hidden-md hidden-lg",
-                "hidden-xs", ""
+                "hidden-sm hidden-md hidden-lg",        # "Sitzung" 2 lines     mobile view
+                "hidden-xs",                            # "Sitzung" 1 line      standard view
+                "hidden-xs",                            # "Datum"               standard view
+                "hidden-sm hidden-md hidden-lg",        # "Status" only icon    mobile view
+                "hidden-xs",                            # "Status" icon + text  standard view
+                ""                                      # column for buttons    all vievs
             ]
         else:
             result = [
-                "hidden-sm hidden-md hidden-lg",
-                "hidden-xs", "hidden-xs",
-                "", "hidden-xs", "hidden-xs"]
+                "hidden-sm hidden-md hidden-lg",        # "Sitzung" 2 lines     mobile view
+                "hidden-xs",                            # "Sitzung" 1 line      standard view
+                "hidden-xs",                            # "Datum"               standard view
+                "",                                     # "Suchergebnis"        all vievs
+                "hidden-xs",                            # Status without header standard view
+                "hidden-xs"                             # column for buttons    standard view
+            ]
         return result
 
     def row(self, protocol):
         user = current_user()
         protocol_link = url_for("show_protocol", protocol_id=protocol.id)
         result = [
-            Table.concat_lines([
+            Table.concat_lines([                                            # "Sitzung" 2 lines
                 Table.link(protocol_link, protocol.protocoltype.name),
                 date_filter(protocol.date)]),
-            Table.link(protocol_link, protocol.protocoltype.name),
-            date_filter(protocol.date),
+            Table.link(protocol_link, protocol.protocoltype.name),          # "Sitzung" 1 line
+            date_filter(protocol.date)                                      # "Datum"
         ]
         if self.search_results is None:
-            result.append(Table.glyphicon(protocol.get_state_glyph()))
-            result.append(Table.glyphicon(
-                protocol.get_state_glyph(), protocol.get_state_name()))
+            result.append(Table.glyphicon(protocol.get_state_glyph()))      # "Status" only icon
+            result.append(Table.glyphicon(                                  # "Status" icon + text
+
+                protocol.get_state_glyph(), protocol.get_state_name()))     
         elif protocol in self.search_results:
-            result.append(Markup(self.search_results[protocol]))
-            result.append(Table.glyphicon(protocol.get_state_glyph()))
+            result.append(Markup(self.search_results[protocol]))            # "Suchergebnis"
+            result.append(Table.glyphicon(protocol.get_state_glyph()))      # "Status" only icon
 
         buttons = []
         if protocol.has_public_view_right(user):
@@ -150,7 +157,7 @@ class ProtocolsTable(Table):
                 confirm="Bist du dir sicher, dass du das Protokoll {} "
                         "löschen möchtest?"))
 
-        result.append(Table.button_group(buttons))
+        result.append(Table.button_group(buttons))                      # column for buttons
         return result
 
 
