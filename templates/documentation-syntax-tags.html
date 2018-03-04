@@ -3,45 +3,48 @@
 
 {% block documentation_content %}
     <h3>Tags</h3>
-    <h4 id="tag">Tags</h4>
-        Tags können Text besonders hervorheben oder bestimmte Aktionen ausführen.
-        Die grundsätzliche Syntax ist <code>[Name;Arg1;Arg2;…]</code>, wobei theoretisch beliebig viele Argumente angegeben werden können, allerdings je nach Typ nur endlich viele eine Bedeutung haben.
-        <h5>URL-Tag</h5>
-        Mittels <code>[url;https://protokolle.fsmpi.rwth-aachen.de ]</code> kann ein entsprechend formatierter Link eingebunden werden.
-        Das Leerzeichen am Ende ist nicht notwendig für das Protokollsystem, erleichtert aber das Anklicken im Etherpad.
-        <h5>Beschluss-Tag</h5>
-        <code>[beschluss;Wir beschließen etwas tolles.]</code> erzeugt einen Beschluss im Protokoll.
-        Ein Beschluss wird zusätzlich am Anfang des Protokoll angezeigt.
-        Die Beschlüsse sind online durchsuchbar.
-        Beschluss-Tags dürfen nicht in internen Abschnitten stehen.
-        Falls für den Protokolltyp <b>Beschlusskategorien</b> definiert sind, können Beschlüsse mit <code>[…;finanzwirksam;…]</code> diesen zugeordnet werden.
-        Beschlüsse können nach Beschlusskategorien gefiltert werden.
-        Es empfiehlt sich Beschlüsse klar, einfach, eindeutig und auch kontextlos verständlich zu formulieren.
-        Sind die Beschlüsse im Rahmen einer Abstimmung ergangen, so empfiehlt es sich das Abstimmungsergebnis am Ende des Beschlusses in der Form (JA/NEIN/ENTHALTUNG) anzugeben.         <code>[beschluss;Wir beschaffen für bis zu 100,00 € einen Stuhl.(9/1/3);finanzwirksam;Inventar]</code>
-        <h5>Todo-Tag</h5>
-        In den Protokollen können <a href="#todos">Todos</a> verwaltet werden.
-        Ein neuer Todo wird mit <code>[todo;Name;Aufgabe]</code> angelegt.
-        Dieser ist dann online und in den Mails sichtbar.
-        Falls der Name einer Mail <a href="{{url_for("list_todomails")}}">zugeordnet</a> ist, wird diese Person (oder AG, AK, …) per Mail über ihre offenen Todos informiert.
-        Mehrere Personen können durch Leerzeichen oder Kommata getrennt angegeben werden.
-
-        Ein bereits bestehender Todo wird mit der zusätzlichen Option <code>[…;id 1338]</code> in ein neues Protokoll eingefügt, falls es den TOP „Todos“ beinhaltet.. Wird dieser Todo dann geändert, passiert das auch im Protokollsystem.
-        Außerdem kann der Status des Todos, z.B. <code>[…;done;…]</code> angegeben werden.
-        Wenn der Status ein Datum benötigt 
-        ({{todostates|select("needs_date")|map("todo_get_name")|join(", ")}})
-        muss dies als <code>[…;dd.mm.yyyy;…]</code> angegeben werden.
-        <br>
-        Folgende Begriffe werden vom Protokollsystem verstanden (Groß- und Kleinschreibung spielt keine Rolle):
-        <ul>
-            {% for name in name_to_state %}
-                {% set state = name_to_state[name] %}
-                <li><code>{{name}}{% if state.needs_date() %};dd.mm.yyyy{% endif %}</code>: {{state.get_name()}}</li>
-            {% endfor %}
-        </ul>
-        <h5>Fußnoten-Tag</h5>
-        Fußnoten können im Protokoll mit <code>[footnote;Inhalt]</code> geschrieben werden.
-        <h5>Sitzungs-Tag</h5>
-        Aus dem Protokoll können neue Sitzungen desselben Typs mit dem Tag <code>[sitzung;Datum]</code>, z.B. <code>[sitzung;24.12.2017]</code> angelegt werden.
-        Optional kann zusätzlich eine Uhrzeit angegeben werden: <code>[sitzung;Datum;Uhrzeit]</code> (z.B. <code>[sitzung;01.01.2018;9:00]</code>).
-
+    Tags können Text besonders hervorheben oder bestimmte Aktionen ausführen.
+    Die grundsätzliche Syntax ist <code>[Name;Arg1;Arg2;…]</code>, wobei theoretisch beliebig viele Argumente angegeben werden können, allerdings je nach Typ nur endlich viele eine Bedeutung haben.
+	
+	<h4>URL-Tag</h4>
+	Mittels <code>[url;https://protokolle.fsmpi.rwth-aachen.de ]</code> kann ein entsprechend formatierter Link eingebunden werden.
+	Das Leerzeichen am Ende ist nicht notwendig für das Protokollsystem, erleichtert aber das Anklicken im Etherpad.
+	
+	<h4>Beschluss-Tag</h4>
+	<code>[beschluss;Wir beschließen etwas tolles.]</code> erzeugt einen Beschluss im Protokoll.
+	Ein Beschluss wird zusätzlich am Anfang des Protokoll angezeigt.
+	Die Beschlüsse sind online durchsuchbar.
+	Beschluss-Tags dürfen nicht in internen Abschnitten stehen.
+	Falls für den Protokolltyp <b>Beschlusskategorien</b> definiert sind, können Beschlüsse mit <code>[…;finanzwirksam;…]</code> diesen zugeordnet werden.
+	Beschlüsse können nach Beschlusskategorien gefiltert werden.
+	Es empfiehlt sich Beschlüsse klar, einfach, eindeutig und auch kontextlos verständlich zu formulieren.
+	Sind die Beschlüsse im Rahmen einer Abstimmung ergangen, so empfiehlt es sich das Abstimmungsergebnis am Ende des Beschlusses in der Form (JA/NEIN/ENTHALTUNG) anzugeben. <code>[beschluss;Wir beschaffen für bis zu 100,00 € einen Stuhl.(9/1/3);finanzwirksam;Inventar]</code>
+	
+	<h4>Todo-Tag</h4>
+	In den Protokollen können <a href="#todos">Todos</a> verwaltet werden.
+	Ein neuer Todo wird mit <code>[todo;Name;Aufgabe]</code> angelegt.
+	Dieser ist dann online und in den Mails sichtbar.
+	Falls der Name einer Mail <a href="{{url_for("list_todomails")}}">zugeordnet</a> ist, wird diese Person (oder AG, AK, …) per Mail über ihre offenen Todos informiert.
+	Mehrere Personen können durch Leerzeichen oder Kommata getrennt angegeben werden.
+	Ein bereits bestehender Todo wird mit der zusätzlichen Option <code>[…;id 1338]</code> in ein neues Protokoll eingefügt, falls es den TOP „Todos“ beinhaltet.. Wird dieser Todo dann geändert, passiert das auch im Protokollsystem.
+	Außerdem kann der Status des Todos, z.B. <code>[…;done;…]</code> angegeben werden.
+	Wenn der Status ein Datum benötigt 
+	({{todostates|select("needs_date")|map("todo_get_name")|join(", ")}})
+	muss dies als <code>[…;dd.mm.yyyy;…]</code> angegeben werden.
+	<br>
+	Folgende Begriffe werden vom Protokollsystem verstanden (Groß- und Kleinschreibung spielt keine Rolle):
+	<ul>
+		{% for name in name_to_state %}
+			{% set state = name_to_state[name] %}
+			<li><code>{{name}}{% if state.needs_date() %};dd.mm.yyyy{% endif %}</code>: {{state.get_name()}}</li>
+		{% endfor %}
+	</ul>
+	
+	<h4>Fußnoten-Tag</h4>
+	Fußnoten können im Protokoll mit <code>[footnote;Inhalt]</code> geschrieben werden.
+	
+	<h4>Sitzungs-Tag</h4>
+	Aus dem Protokoll können neue Sitzungen desselben Typs mit dem Tag <code>[sitzung;Datum]</code>, z.B. <code>[sitzung;24.12.2017]</code> angelegt werden.
+	Optional kann zusätzlich eine Uhrzeit angegeben werden: <code>[sitzung;Datum;Uhrzeit]</code> (z.B. <code>[sitzung;01.01.2018;9:00]</code>).
+	
 {% endblock %}
