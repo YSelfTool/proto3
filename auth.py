@@ -19,7 +19,8 @@ class User:
     def summarize(self):
         return ":".join((
             self.username, ",".join(self.groups),
-            str(self.timestamp.timestamp()), self.obsolete, self.permanent))
+            str(self.timestamp.timestamp()), str(self.obsolete),
+            str(self.permanent)))
 
     @staticmethod
     def from_summary(summary):
