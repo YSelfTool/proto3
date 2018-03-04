@@ -219,9 +219,101 @@ def index():
 @app.route("/documentation")
 @login_required
 def documentation():
+    return render_template(
+        "documentation.html")
+
+@app.route("/documentation/sessionmanagement")
+@back.anchor
+@login_required
+def sessionmanagement_documentation():
+    return render_template(
+        "documentation-sessionmanagement.html")
+
+@app.route("/documentation/sessionmanagement/plan")
+@back.anchor
+@login_required
+def plan_sessionmanagement_documentation():
+    return render_template(
+        "documentation-sessionmanagement-plan.html")
+
+@app.route("/documentation/sessionmanagement/write")
+@back.anchor
+@login_required
+def write_sessionmanagement_documentation():
+    return render_template(
+        "documentation-sessionmanagement-write.html")
+
+@app.route("/documentation/sessionmanagement/tracking")
+@back.anchor
+@login_required
+def tracking_sessionmanagement_documentation():
+    return render_template(
+        "documentation-sessionmanagement-tracking.html")
+
+@app.route("/documentation/syntax")
+@back.anchor
+@login_required
+def syntax_documentation():
+    return render_template(
+        "documentation-syntax.html")
+
+@app.route("/documentation/syntax/meta")
+@back.anchor
+@login_required
+def meta_syntax_documentation():
+    return render_template(
+        "documentation-syntax-meta.html")
+
+@app.route("/documentation/syntax/top")
+@back.anchor
+@login_required
+def top_syntax_documentation():
+    return render_template(
+        "documentation-syntax-top.html")
+
+@app.route("/documentation/syntax/lists")
+@back.anchor
+@login_required
+def lists_syntax_documentation():
+    return render_template("documentation-syntax-lists.html")
+
+@app.route("/documentation/syntax/internal")
+@back.anchor
+@login_required
+def internal_syntax_documentation():
+    return render_template(
+        "documentation-syntax-internal.html")
+
+@app.route("/documentation/syntax/tags")
+@back.anchor
+@login_required
+def tags_syntax_documentation():
     todostates = list(TodoState)
     name_to_state = TodoState.get_name_to_state()
-    return render_template("documentation.html", todostates=todostates, name_to_state=name_to_state)
+    return render_template(
+        "documentation-syntax-tags.html", todostates=todostates,
+        name_to_state=name_to_state)
+
+@app.route("/documentation/configuration")
+@back.anchor
+@login_required
+def configuration_documentation():
+    return render_template(
+        "documentation-configuration.html")
+
+@app.route("/documentation/configuration/types")
+@back.anchor
+@login_required
+def types_configuration_documentation():
+    return render_template(
+        "documentation-configuration-types.html")
+
+@app.route("/documentation/configuration/todomails")
+@back.anchor
+@login_required
+def todomails_configuration_documentation():
+    return render_template(
+        "documentation-configuration-todomails.html")
 
 @app.route("/types/list")
 @login_required
