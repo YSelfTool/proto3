@@ -1,0 +1,26 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "write_sessionmanagement_documentation" %}
+
+{% block documentation_content %}
+    <h3>Protokollieren</h3>
+    <h4 id="wie">Wie schreibe ich eine Protokoll?</h4>
+        Die folgenden Schritte werden erst ein paar Minuten vor der Sitzung ausgeführt. Vorher werden Inhalte und TOPs wie oben beschrieben vorprotokolliert.
+        <ol>
+            <li>Protokoll auswählen (s.o.)</li>
+            <li>mit „In Etherpad“ die Vorlage in das Etherpad schreiben.</li>
+            <li>mit „Etherpad“ das Etherpad öffnen</li>
+            <li>verlese Tagesordnung und Todos</li>
+            <li>falls Todo erledigt, markiere als erledigt (Details siehe <a href="#Todos">Todos</a></li>
+            <li>schreibe das Protokoll im Etherpad</li>
+            <li>Importiere das Protokoll am Ende mit „Aus Etherpad“</li>
+            <li>Falls Fehler auftreten, behebe sie (siehe <a href="#fehler">Fehler</a></li>
+            <li>Wenn keine Fehler mehr auftreten, drucke das Protokoll mit „Löschen” (unten beim Anhang) aus.</li>
+            <li>Korrekturlesen lassen und im Etherpad korrigieren, dann nochmal „aus Etherpad“</li>
+            <li>Drucken und abheften</li>
+            <li>Intern per Mail versenden</li>
+            <li>Korrekturen abwarten (z.B. die Genehmigung auf der nächsten Sitzung)</li>
+            <li>Veröffentlichen (und ggf. öffentlich versenden)</li>
+        </ol>
+        <h5>Höchst interne Protokolle</h5>
+        Falls das Protokoll Daten beinhaltet, die auf keinen Fall öffentlich sein sollten (z.B. personenbezogene Daten bei einem Sozialausschuss), kann anstelle des Editierens im Etherpad auch mit „Vorlage“ die leere Protokollvorlage heruntergeladen werden. Darin kann lokal mit einem beliebigen Texteditor die Sitzung protokolliert werden, um sie dann am Ende lokal zu speichern und mit „Quellcode hochladen“ hochzuladen.
+{% endblock %}

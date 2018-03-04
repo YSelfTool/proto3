@@ -1,0 +1,15 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "top_syntax_documentation" %}
+
+{% block documentation_content %}
+    <h3>Tagesordnungspunkte</h3>
+    
+    <h4 id="tops">Tagesordnungspunkte</h4>
+        Ein TOP besteht aus einem Titel und beliebigem Inhalt.
+        Ein TOP ist eine besondere Liste (s.u.) und kann somit wie diese verwendet werden.
+<pre>
+{TOP Tagesordnungspunkt
+    Inhalt:
+}
+</pre>
+{% endblock %}

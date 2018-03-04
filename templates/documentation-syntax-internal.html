@@ -1,0 +1,27 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "internal_syntax_documentation" %}
+
+{% block documentation_content %}
+    <h3>Interne Abschnitte</h3>
+    {% if config.PRIVATE_KEYWORDS|length > 0 %}
+        <h4 id="intern">Interne Abschnitte</h4>
+        Wenn der Name einer Liste (bis auf Leerzeichen und einen optionalen <code>:</code>) eins aus
+        {{config.PRIVATE_KEYWORDS|map("code")|join(" ")|safe}}
+        ist, ist diese Liste intern.
+        Daher wird sie nur in der internen Version des Protokolls angezeigt.
+        In der öffentlichen Version steht stattdessen nur ein Hinweis auf diese interne Stelle.
+        Es bietet sich beim Protokollieren an, wenn nach dem internen Bereich kurz dessen Inhalt zusammengefasst wird (natürlich nur sofern dies geht ohne die Interna zu verraten), oder begründet wird, warum dies intern ist.
+<pre>
+{TOP Tagesordnungspunkt
+    Dieser Punkt ist öffentlich.
+    {{config.PRIVATE_KEYWORDS[0]}}: {
+        Dieser Punkt ist intern.
+        Dieser auch, wir diskutieren Kritik an einem namentlich genannten Professor und seiner Vorlesung.
+        Hier entwickeln wir eine Strategie.
+    }
+    Dieser ist wieder öffentlich.
+    Es wurde die Krtik an einer Vorlesung kritsiert.
+}
+</pre>
+{% endif %}
+{% endblock %}

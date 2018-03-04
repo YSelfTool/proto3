@@ -1,0 +1,12 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "sessionmanagement_documentation" %}
+
+{% block documentation_content %}
+    <h3>Sitzungsverwaltung</h3>
+    
+    <h4 id="suche">Suche</h4>
+        <a href="{{url_for("list_protocols")}}">Protokolle</a>, <a href="{{url_for("list_todos")}}">Todos</a> und <a href="{{url_for("list_decisions")}}">Beschlüsse</a> können durchsucht werden.
+        Im Suchfeld können mehrere durch Leerzeichen getrennte Suchbegriffe angegeben werden: <code>Begriff1 Begriff2</code>.
+        Angezeigt werden alle Ergebnisse, die jeden der Suchbegriffe (unabhängig von Groß- oder Kleinschreibung) enthalten.
+        Wenn ein Suchbegriff ein Leerzeichen beinhaltet, muss er mit Anführungszeichen umrandet werden: <code>"Begriff1 mit Leerzeichen" Begriff2</code>.
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "types_configuration_documentation" %}
+
+{% block documentation_content %}
+    <h3>Typen</h3>
+    <h4 id="rechte">Rechteverwaltung</h4>
+        Das Protokollsystem hat ein Konzept von Rechteverwaltung, dass auf den Benutzergruppen im LDAP basiert.
+        Rechte werden pro Protokolltyp eingestellt.
+        Die vorhandenen Rechtestufen sind „Darf öffentliche Version einsehen“, „Darf interne Version einsehen“, „Darf Ändern“ und „Darf Protokolltyp bearbeiten“.
+        Jedes Protokoll hat eine öffentliche Gruppe, eine interne Gruppe, eine Bearbeitungsgruppe, eine Verwaltungsgruppe und eine Einstellung, ob es öffentlich ist.<br>
+
+        Die öffentliche Version einsehen dürfen:
+        <ul>
+            <li>
+                Nicht authentifizierte Nutzer, wenn für den Protokolltyp „Öffentlich“ eingestellt ist, sobald das Protokoll veröffentlicht ist.
+                <ul>
+                    <li>Die Tagesordnung und Metadaten sind auch vor Veröffentlichung einsehbar.</li>
+                </ul>
+            </li>
+            <li>Authentifizierte Nutzer auch dann, wenn der Protokolltyp nicht „Öffentlich“ ist, aber sie die „Öffentliche Gruppe“ oder die „Interne Gruppe” des Protokolltyps haben. Wenn keine Gruppe eingestellt ist, kann auch kein Nutzer diese haben.</li>
+        </ul>
+        Die interne Version einsehen dürfen:
+        <ul>
+            <li>Authentifizierte Nutzer, wenn sie die „Interne Gruppe” des Protokolltyps haben.</li>
+        </ul>
+        Das Protokoll bearbeiten dürfen:
+        <ul>
+            <li>Authentifizierte Benutzer, wenn sie die „Bearbeitungsgruppe“ des Protokolltyps haben.</li>
+        </ul>
+        Die Einstellungen des Protokolltyps bearbeiten und das Protokoll veröffentlichen dürfen:
+        <ul>
+            <li>Authentifizierte Benutzer, wenn sie die „Verwaltungsgruppe“ des Protokolltyps haben.</li>
+        </ul>
+
+        Vom Protokoll wird eine interne und eine öffentliche Version generiert, falls es Inhalte gibt, die nur intern sind.
+        Todos sind generell intern, Beschlüsse sind generell öffentlich (d.h. einsehbar, wenn man das Recht „Darf öffentliche Version sehen“ hat).
+        Daher dürfen Beschlüsse nicht in einem internen Teil des Protokolls sein.
+{% endblock %}

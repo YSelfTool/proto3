@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_table %}
+{% set navigation_bar = [
+    ('documentation', 'Dokumentation', None),
+    ('sessionmanagement_documentation', 'Sitzungsverwaltung', [
+        ('plan_sessionmanagement_documentation', 'Planung'),
+        ('write_sessionmanagement_documentation', 'Protokollieren'),
+        ('tracking_sessionmanagement_documentation', 'Nachverfolgung')
+    ]),
+    ('syntax_documentation', 'Syntax', [
+        ('meta_syntax_documentation', 'Metadaten'),
+        ('top_syntax_documentation', 'Tagesordnungspunkte'),
+        ('lists_syntax_documentation', 'Listen'),
+        ('internal_syntax_documentation', 'Interne Abschnitte'),
+        ('tags_syntax_documentation', 'Tags')
+    ]),
+    ('configuration_documentation', 'Einrichtung' [
+        ('types_configuration_documentation', 'Typen'),
+        ('todomails_configuration_documentation', 'Todo Mails')
+    ])
+] -%}
+{% set active_page = active_page|default('documentation') -%}
+
+{% block title %}{{active_page}}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div id="left-column", class="col-lg-9">
+    {% block documentation_content %}
+        Diese Seite ist leer.
+    {% endblock %}
+    </div>
+    <div id="right-column", class="col-lg-3">
+        <ul id="right-column-navigation", class="nav nav-pills flex-column">
+        {% for id, caption, children in navigation_bar %}
+            <li class="nav-item">
+                <a {% if id == active_page %} class="nav-link active"{% else %} class="nav-link"{% endif %}" href="{{url_for(id|e)}}">{{caption|e}}</a>
+                {% if children is not None %}
+                <ul class="nav nav-pills flex-column">
+                {% for child_id, child_caption in children %}
+                    <li class="nav-item">
+                        <a {% if child_id == active_page %} class="nav-link active"{% else %} class="nav-link"{% endif %}" href="{{url_for(child_id|e)}}">{{child_caption|e}}</a>
+                    </li>
+                {% endfor %}
+                </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

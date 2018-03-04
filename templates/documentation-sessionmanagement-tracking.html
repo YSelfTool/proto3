@@ -1,0 +1,26 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "tracking_sessionmanagement_documentation" %}
+
+{% block documentation_content %}
+    <h3>Nachverfolgung</h3>
+    <h4 id="todos">Todosystem</h4>
+        Das Protokollsystem verwaltet Todos über mehrere Protokolle hinweg. Offene Todos werden in die Protokollvorlage eingefügt, falls diese einen TOP „Todos“ beinhaltet.
+        <ul>
+            <li>Jedes Todo hat eine (oder durch Kommata oder Leerzeichen getrennt mehrere) Personen, die es erledigen sollen.</li>
+            <li>Todos haben auch einen Zustand, in dem sie sich befinden. Es gibt:
+                <ul>
+                    <li>offen: Das Todo muss noch erledigt werden</li>
+                    <li>wartet auf Rückmeldung: Jemand kümmert sich um das Todo, wartet allerdings gerade darauf, dass jemand anderes (intern oder extern) sich zurückmeldet.</li>
+                    <li>in Bearbeitung: Jemand kümmert sich gerade um das Todo.</li>
+                    <li>ab: Das Todo wird erst ab dem Datum relevant.</li>
+                    <li>vor: Das Todo muss vor dem Datum erledigt werden.</li>
+                    <li>verwaist: Das Todo hat niemanden, der es erledigen wird.</li>
+                    <li>erledigt: Das Todo ist erledigt.</li>
+                    <li>abgewiesen: Das Todo ist nicht und wird nicht mehr erledigt.</li>
+                    <li>obsolet: Das Todo wurde nicht erledigt und nun ist es zu spät, das noch zu tun.</li>
+                </ul>
+            </li>
+            <li>Alle Todos findest du unter <a href="{{url_for("list_todos")}}">Todos</a>.</li>
+        </ul>
+    <h4 id="decisions">Beschlüsse</h4>
+{% endblock %}

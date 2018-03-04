@@ -1,0 +1,23 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "lists_syntax_documentation" %}
+
+{% block documentation_content %}
+    <h3>Listen</h3>
+    <h4 id="liste">Liste</h4>
+        Die Liste ist das einzige strukturierende Element.
+        Listen können beliebig geschachtelt werden.
+        Die Elemente der Liste werden durch das Zeilenende getrennt.
+<pre>
+{TOP Tagesordnungspunkt
+    Zeile mit Text drin
+    Hier eine geschachtelte Liste: {
+        Details zu diesem Punkt.
+        Mehr Details zu diesen Punkt.
+    }
+}
+</pre>
+
+        Text, der vor der öffnenden Klammer <code>{</code> steht, wird als Name der Liste angesehen, nur TOPs können Text hinter der öffnenden Klammer haben.
+        Listen in der höchsten Ebene müssen TOPs sein.
+
+{% endblock %}
