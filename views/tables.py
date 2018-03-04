@@ -1,5 +1,5 @@
 from flask import Markup, url_for, request
-from shared import date_filter, datetime_filter, current_user
+from shared import date_filter, datetime_filter, time_filter, current_user
 
 import config
 
@@ -92,7 +92,7 @@ class ProtocolsTable(Table):
 
     def headers(self):
         result = ["Sitzung", "Sitzung", "Datum"]
-        state_part = ["Status", "Status", ""]
+        state_part = ["Uhrzeit", "Status", "Status", ""]
         search_part = ["Suchergebnis", ""]
         if self.search_results is None:
             result.extend(state_part)
@@ -106,6 +106,7 @@ class ProtocolsTable(Table):
                 "hidden-sm hidden-md hidden-lg",        # "Sitzung" 2 lines     mobile view
                 "hidden-xs",                            # "Sitzung" 1 line      standard view
                 "hidden-xs",                            # "Datum"               standard view
+                "hidden-xs",                            # "Uhrzeit"             standard view
                 "hidden-sm hidden-md hidden-lg",        # "Status" only icon    mobile view
                 "hidden-xs",                            # "Status" icon + text  standard view
                 ""                                      # column for buttons    all vievs
@@ -132,6 +133,7 @@ class ProtocolsTable(Table):
             date_filter(protocol.date)                                      # "Datum"
         ]
         if self.search_results is None:
+            result.append(Markup(time_filter(protocol.start_time)))         # "Uhrzeit"
             result.append(Table.glyphicon(protocol.get_state_glyph()))      # "Status" only icon
             result.append(Table.glyphicon(                                  # "Status" icon + text
 
