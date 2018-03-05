@@ -1,22 +1,33 @@
 {% extends "documentation-base.html" %}
 {% set active_page = "plan_sessionmanagement_documentation" %}
+{% block title %}Sitzungsverwaltung: Planung{% endblock %}
 
 {% block documentation_content %}
-    <h3>Planung</h3>
-    <h4 id="planung">Sitzungsplanung</h4>
-        Sollte das Protokoll noch nicht existieren:
-        <ol>
-            <li>Gehe auf <a href="{{url_for("new_protocol")}}">Neu</a></li>
-            <li>Wähle bei „Typ“ den Typ der Sitzung aus.</li>
-            <li>Gib das Datum der Sitzung ein.</li>
-            <li>Anlegen</li>
-        </ol>
-        Wenn es existiert:
-        <ol>
-            <li>Gehe auf <a href="{{url_for("list_protocols")}}">Protokolle</a></li>
-            <li>Wähle die Sitzung aus. Noch ausstehende Sitzungen sind ganz oben.</a>
-        </ol>
-        Auf der Seite der Sitzung siehst du die Tagesordnung.
+    <h3>Sitzungsverwaltung: Planung</h3>
+	Im Vorfeld einer Sitzung sollten verschiedene Tätigkeiten vorgenommen werden. Hierbei ist zu unterscheiden ob zu einem geplanten Sitzungstermin bereits ein Protokoll existiert oder nicht. Zu bereits existierenden und noch nicht geschriebenen Protokollen kann die Tagesordnung verwaltet werden.
+	
+	<h4>Nicht existierendes Protokoll</h4>
+    Versichere dich zuerst auf der <a href="{{url_for("list_protocols")}}">Protokollübersichtsseite</a>, dass das Protokoll nicht bereits existiert. Sollte das Protokoll noch nicht existieren, so führe die folgenden Schritte aus um es anzulegen.
+    <ol>
+        <li>Gehe auf <a href="{{url_for("new_protocol")}}">Neues Protokoll</a>.</li>
+        <li>Wähle bei „Typ“ den <a href="/documentation/configuration/types">Typ der Sitzung</a> aus.</li>
+        <li>Gib das Datum der Sitzung und ggf. einen Startzeitpunkt ein.</li>
+        <li>Klicke auf Anlegen.</li>
+    </ol>
+	
+	<h4>Existierendes Protokoll finden</h4>
+    Ist das Protokoll bereits angelegt, so kann es auf zwei verschiedenen Wegen gefunden werden. Zum einen über die Übersicht der nächsten Sitzungen auf der Startseite und zum anderen auf der Protokollübersichtsseite.
+	
+	Um ein Protokoll auf der Protokollübersichtsseite zu finden:
+    <ol>
+        <li>Gehe auf <a href="{{url_for("list_protocols")}}">Protokolle</a>,</li>
+        <li>Wähle die Sitzung aus - noch ausstehende Sitzungen sind ganz oben.</a>
+    </ol>
+	
+	<h4>Existierendes Protokoll vorbereiten</h4>
+    Soll ein bereits existierendes Protokoll für die Sitzung vorbereitet oder angepasst werden, so ist das Protokoll entsprechend aufzurufen.
+	
+	Auf der Seite der Sitzung werden neben verschiedenen sogenannten <a href="/documentation/syntax/meta">Metadaten</a>, wie Datum und Uhrzeit der Sitzung, auch die Tagesordnung dargestellt.
         <ul>
             <li>Die ersten und letztes TOPs sind Standard-TOPs, die jede Sitzung hat. Die kannst du nur über beim Protokolltyp ändern, nicht beim Protokoll selbst.</li>
             <li>Die mittleren TOPs gehören nur zu dieser Sitzung. Du kannst welche hinzufügen oder sie umsortieren.</li>
