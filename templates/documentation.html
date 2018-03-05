@@ -1,9 +1,35 @@
 {% extends "documentation-base.html" %}
 {% set active_page = "documentation" %}
+{% block title %}Dokumentation{% endblock %}
 
 {% block documentation_content %}
-        <h3>Protokollsystem</h3>
+        <h3>Protokollsystem 3 - Das Protokollsystem</h3>
         Das Protokollsystem dient der Planung von Sitzungen und Verwaltung von Protokollen. Die anstehenden Sitzungen der nächsten Woche sind auf der <a href="{{url_for("index")}}">Startseite</a>, alle Protokolle unter <a href="{{url_for("list_protocols")}}">Protokolle</a> zu finden.
+		
+		Des weiteren wird können die Sitzungen mittels Todos und einer Beschlussdatenbank nach verfolgt werden. Die eigenen offenen Todos werden auf der <a href="{{url_for("index")}}">Startseite</a> angezeigt, alle Todos sind unter <a href="{{url_for("list_todos")}}">Todos</a> zu finden. Die Beschlüsse finden sich in der  <a href="{{url_for("list_decisions")}}">Beschlussdatenbank</a> zu finden.
+		
+		<h3>Dokumentation</h3>
+		Dieser Dokumentation können Beschreibungen zu nahezu allen wichtigen Systemfunktionen entnommen werden. Gegliedert sind die Themen wie folgt:
+		<ul>
+			<li><a href="/documentation/sessionmanagement">Sitzungsverwaltung</a><ul>
+				<li><a href="/documentation/sessionmanagement/plan">Planung</a></li>
+				<li><a href="/documentation/sessionmanagement/write">Protokollieren</a></li>
+				<li><a href="/documentation/sessionmanagement/tracking">Nachverfolgung</a></li>
+			</ul></li>
+			<li><a href="/documentation/syntax">Syntax</a><ul>
+				<li><a href="/documentation/syntax/meta">Metadaten</a></li>
+				<li><a href="/documentation/syntax/top">Tagesordnungspunkte</a></li>
+				<li><a href="/documentation/syntax/lists">Listen</a></li>
+				<li><a href="/documentation/syntax/internal">Interne Abschnitte</a></li>
+				<li><a href="/documentation/syntax/tags">Tags</a></li>
+			</ul></li>
+			<li><a href="/documentation/configuration">Einrichtung</a><ul>
+				<li><a href="/documentation/configuration/types">Typen</a></li>
+				<li><a href="/documentation/configuration/todomails">Todo Mails</a></li>
+			</ul></li>
+		</ul>
+		
+		Sollten deine Fragen nach dem Studium der Dokumentation noch offen sein, wende dich an jemand erfahreneren oder die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a>. Offene Punkte innerhalb der Dokumentation können dann durch die Admins zur Behebung auch an die Entwickler der Software weitergegeben werden.
 
         <h3 id="fehler">Fehlerbehandlung</h3>
         <ul>
