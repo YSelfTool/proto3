@@ -75,22 +75,32 @@ def date_filter(date):
 
 
 def datetime_filter(date):
+    if date is None:
+        return ""
     return date.strftime("%d. %B %Y, %H:%M")
 
 
 def date_filter_long(date):
+    if date is None:
+        return ""
     return date.strftime("%A, %d.%m.%Y, Kalenderwoche %W")
 
 
 def date_filter_short(date):
+    if date is None:
+        return ""
     return date.strftime("%d.%m.%Y")
 
 
 def time_filter(time):
+    if time is None:
+        return ""
     return time.strftime("%H:%M Uhr")
 
 
 def time_filter_short(time):
+    if time is None:
+        return ""
     return time.strftime("%H:%M")
 
 
