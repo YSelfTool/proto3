@@ -1,4 +1,4 @@
-from flask import Markup, url_for, request
+from flask import Markup, url_for
 from shared import date_filter, datetime_filter, time_filter, current_user
 from utils import get_csrf_token
 
@@ -102,46 +102,36 @@ class ProtocolsTable(Table):
         return result
 
     def classes(self):
+        _MOBILE = ["hidden-sm hidden-md hidden-lg"]
+        _STANDARD = ["hidden-xs"]
+        _ALL = [""]
         if self.search_results is None:
-            result = [
-                "hidden-sm hidden-md hidden-lg",        # "Sitzung" 2 lines     mobile view
-                "hidden-xs",                            # "Sitzung" 1 line      standard view
-                "hidden-xs",                            # "Datum"               standard view
-                "hidden-xs",                            # "Uhrzeit"             standard view
-                "hidden-sm hidden-md hidden-lg",        # "Status" only icon    mobile view
-                "hidden-xs",                            # "Status" icon + text  standard view
-                ""                                      # column for buttons    all vievs
-            ]
+            return _MOBILE + 3 * _STANDARD + _MOBILE + _STANDARD + _ALL
         else:
-            result = [
-                "hidden-sm hidden-md hidden-lg",        # "Sitzung" 2 lines     mobile view
-                "hidden-xs",                            # "Sitzung" 1 line      standard view
-                "hidden-xs",                            # "Datum"               standard view
-                "",                                     # "Suchergebnis"        all vievs
-                "hidden-xs",                            # Status without header standard view
-                "hidden-xs"                             # column for buttons    standard view
-            ]
-        return result
+            return _MOBILE + 2 * _STANDARD + _ALL + 2 * _STANDARD
 
     def row(self, protocol):
         user = current_user()
         protocol_link = url_for("show_protocol", protocol_id=protocol.id)
         result = [
-            Table.concat_lines([                                            # "Sitzung" 2 lines
+            # Protocol (mobile)
+            Table.concat_lines([
                 Table.link(protocol_link, protocol.protocoltype.name),
                 date_filter(protocol.date)]),
-            Table.link(protocol_link, protocol.protocoltype.name),          # "Sitzung" 1 line
-            date_filter(protocol.date)                                      # "Datum"
+            # Protocol (standard)
+            Table.link(protocol_link, protocol.protocoltype.name),
+            date_filter(protocol.date)
         ]
         if self.search_results is None:
-            result.append(Markup(time_filter(protocol.start_time)))         # "Uhrzeit"
-            result.append(Table.glyphicon(protocol.get_state_glyph()))      # "Status" only icon
-            result.append(Table.glyphicon(                                  # "Status" icon + text
-
-                protocol.get_state_glyph(), protocol.get_state_name()))     
+            result.append(Markup(time_filter(protocol.start_time)))
+            # State (mobile)
+            result.append(Table.glyphicon(protocol.get_state_glyph()))
+            # State (standard)
+            result.append(Table.glyphicon(
+                protocol.get_state_glyph(), protocol.get_state_name()))
         elif protocol in self.search_results:
-            result.append(Markup(self.search_results[protocol]))            # "Suchergebnis"
-            result.append(Table.glyphicon(protocol.get_state_glyph()))      # "Status" only icon
+            result.append(Markup(self.search_results[protocol]))
+            result.append(Table.glyphicon(protocol.get_state_glyph()))
 
         buttons = []
         if protocol.has_public_view_right(user):
@@ -160,7 +150,7 @@ class ProtocolsTable(Table):
                 confirm="Bist du dir sicher, dass du das Protokoll {} "
                         "löschen möchtest?"))
 
-        result.append(Table.button_group(buttons))                      # column for buttons
+        result.append(Table.button_group(buttons))
         return result
 
 
