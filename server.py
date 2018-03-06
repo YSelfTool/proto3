@@ -761,7 +761,7 @@ def upload_new_protocol_by_file():
             date=datetime.now().date(), done=True)
         db.session.add(protocol)
         db.session.commit()
-        for local_top in protocol.create_localtops:
+        for local_top in protocol.create_localtops():
             db.session.add(local_top)
         db.session.commit()
         document = Document(
