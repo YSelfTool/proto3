@@ -725,7 +725,7 @@ def upload_new_protocol():
         protocol = Protocol(protocoltype_id=protocoltype.id, source=source)
         db.session.add(protocol)
         db.session.commit()
-        for local_top in protocol.create_localtops:
+        for local_top in protocol.create_localtops():
             db.session.add(local_top)
         db.session.commit()
         tasks.parse_protocol(protocol)
