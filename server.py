@@ -771,7 +771,7 @@ def upload_new_protocol_by_file():
         db.session.add(document)
         db.session.commit()
         internal_filename = get_internal_filename(
-            protocol.id, document.id, filename)
+            protocol, document.id, filename)
         document.filename = internal_filename
         file.save(os.path.join(config.DOCUMENTS_PATH, internal_filename))
         db.session.commit()
