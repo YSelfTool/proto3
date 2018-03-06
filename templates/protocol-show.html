@@ -16,7 +16,7 @@
         <div class="btn-group">
             {% if has_modify_right %}
                 {% if config.ETHERPAD_ACTIVE and not protocol.public %}
-                <a class="btn {% if protocol.source is none %}btn-primary{% else %}btn-default{% endif %}" href="{{url_for("etherpull_protocol", protocol_id=protocol.id)}}">Aus Etherpad</a>
+                <a class="btn {% if protocol.source is none %}btn-primary{% else %}btn-default{% endif %}" href="{{url_for("etherpull_protocol", protocol_id=protocol.id, csrf_token=get_csrf_token())}}">Aus Etherpad</a>
                 {% endif %}
                 {% if protocol.source is not none %}
                     <a class="btn btn-primary" href="{{url_for("get_protocol_source", protocol_id=protocol.id)}}">Quelltext</a>
@@ -26,23 +26,23 @@
                 {% endif %}
                 {% if not protocol.public %}
                     {% if config.ETHERPAD_ACTIVE %}
-                    <a class="btn btn-primary" href="{{url_for("etherpush_protocol", protocol_id=protocol.id)}}"{% if large_time_diff %} onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst {% if time_diff.days != 1 %}in {{time_diff.days}} Tagen{% else %}morgen{% endif %}.');"{% endif %} target="_blank">Etherpad</a>
+                    <a class="btn btn-primary" href="{{url_for("etherpush_protocol", protocol_id=protocol.id, csrf_token=get_csrf_token())}}"{% if large_time_diff %} onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst {% if time_diff.days != 1 %}in {{time_diff.days}} Tagen{% else %}morgen{% endif %}.');"{% endif %} target="_blank">Etherpad</a>
                     {% endif %}
                 {% endif %}
                 {% if not protocol.is_done() %}
                     <a class="btn btn-default" href="{{url_for("get_protocol_template", protocol_id=protocol.id)}}">Vorlage</a>
                     {% if config.MAIL_ACTIVE %}
-                        <a class="btn btn-default" href="{{url_for("send_protocol_reminder", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.');">Einladung versenden</a>
+                        <a class="btn btn-default" href="{{url_for("send_protocol_reminder", protocol_id=protocol.id, csrf_token=get_csrf_token())}}" onclick="return confirm('Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.');">Einladung versenden</a>
                     {% endif %}
                 {% else %}
                     {% if config.MAIL_ACTIVE %}
-                        <a class="btn btn-default" href="{{url_for("send_protocol_private", protocol_id=protocol.id)}}">Intern versenden</a>
+                        <a class="btn btn-default" href="{{url_for("send_protocol_private", protocol_id=protocol.id, csrf_token=get_csrf_token())}}">Intern versenden</a>
                         {% if protocol.public %}
-                            <a class="btn btn-default" href="{{url_for("send_protocol_public", protocol_id=protocol.id)}}">Öffentlich versenden</a>
+                            <a class="btn btn-default" href="{{url_for("send_protocol_public", protocol_id=protocol.id, csrf_token=get_csrf_token())}}">Öffentlich versenden</a>
                         {% endif %}
                     {% endif %}
                     {% if not protocol.public %}
-                        <a class="btn btn-default" href="{{url_for("publish_protocol", protocol_id=protocol.id)}}">Veröffentlichen</a>
+                        <a class="btn btn-default" href="{{url_for("publish_protocol", protocol_id=protocol.id, csrf_token=get_csrf_token())}}">Veröffentlichen</a>
                     {% endif %}
                 {% endif %}
                 <a class="btn btn-default" href="{{url_for("show_type", protocoltype_id=protocol.protocoltype.id)}}">Typ</a>
@@ -50,7 +50,7 @@
                     <a class="btn btn-success" href="{{url_for("download_document", document_id=protocol.get_compiled_document().id)}}">Download</a>
                 {% endif %}
                 {% if has_admin_right %}
-            <a class="btn btn-default" href="{{url_for("recompile_protocol", protocol_id=protocol.id)}}">Neu kompilieren</a>
+            <a class="btn btn-default" href="{{url_for("recompile_protocol", protocol_id=protocol.id, csrf_token=get_csrf_token())}}">Neu kompilieren</a>
             <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_short_identifier()}} löschen möchtest?');">Löschen</a>
                 {% endif %}
             {% endif %}
@@ -104,7 +104,7 @@
                                 <li>
                                     {{decision.content}}
                                     {% if config.PRINTING_ACTIVE and has_private_view_right and decision.document is not none %}
-                                        <a href="{{url_for("print_decision", decisiondocument_id=decision.document.id)}}">Drucken</a>
+                                        <a href="{{url_for("print_decision", decisiondocument_id=decision.document.id, csrf_token=get_csrf_token())}}">Drucken</a>
                                     {% endif %}
                                     {{render_likes(decision.likes, decision_id=decision.id)}}</h2>
                                 </li>

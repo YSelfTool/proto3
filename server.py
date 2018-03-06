@@ -31,9 +31,9 @@ from shared import (
 from utils import (
     get_first_unused_int, get_etherpad_text, split_terms, optional_int_arg,
     fancy_join, footnote_hash, get_git_revision, get_max_page_length_exp,
-    get_internal_filename)
+    get_internal_filename, get_csrf_token)
 from decorators import (
-    db_lookup,
+    db_lookup, protect_csrf,
     require_private_view_right, require_modify_right, require_publish_right,
     require_admin_right)
 from models.database import (
@@ -89,6 +89,7 @@ app.jinja_env.filters["fancy_join"] = fancy_join
 app.jinja_env.filters["footnote_hash"] = footnote_hash
 app.jinja_env.tests["auth_valid"] = security_manager.check_user
 app.jinja_env.tests["needs_date"] = needs_date_test
+app.jinja_env.globals["get_csrf_token"] = get_csrf_token
 
 additional_templates = getattr(config, "LATEX_LOCAL_TEMPLATES", None)
 if additional_templates is not None and os.path.isdir(additional_templates):
@@ -336,6 +337,7 @@ def show_type(protocoltype):
 
 @app.route("/type/delete/<int:protocoltype_id>")
 @login_required
+@protect_csrf
 @db_lookup(ProtocolType)
 @require_admin_right()
 @require_modify_right()
@@ -382,6 +384,7 @@ def edit_reminder(meetingreminder):
 
 @app.route("/type/reminder/delete/<int:meetingreminder_id>")
 @login_required
+@protect_csrf
 @db_lookup(MeetingReminder)
 @require_modify_right()
 def delete_reminder(meetingreminder):
@@ -434,6 +437,7 @@ def edit_default_top(protocoltype, defaulttop):
 
 @app.route("/type/tops/delete/<int:defaulttop_id>")
 @login_required
+@protect_csrf
 @db_lookup(DefaultTOP)
 @require_modify_right()
 def delete_default_top(defaulttop):
@@ -445,6 +449,7 @@ def delete_default_top(defaulttop):
 
 @app.route("/type/tops/move/<int:defaulttop_id>/<diff>/")
 @login_required
+@protect_csrf
 @db_lookup(DefaultTOP)
 @require_modify_right()
 def move_default_top(defaulttop, diff):
@@ -649,6 +654,7 @@ def show_protocol(protocol):
 
 @app.route("/protocol/delete/<int:protocol_id>")
 @login_required
+@protect_csrf
 @db_lookup(Protocol)
 @require_admin_right()
 @require_modify_right()
@@ -663,6 +669,7 @@ def delete_protocol(protocol):
 
 @app.route("/protocol/etherpull/<int:protocol_id>")
 @login_required
+@protect_csrf
 @db_lookup(Protocol)
 @require_modify_right()
 def etherpull_protocol(protocol):
@@ -781,6 +788,7 @@ def upload_new_protocol_by_file():
 
 @app.route("/protocol/recompile/<int:protocol_id>")
 @login_required
+@protect_csrf
 @db_lookup(Protocol)
 @require_admin_right()
 @require_modify_right()
@@ -814,6 +822,7 @@ def get_protocol_template(protocol):
 
 @app.route("/protocol/etherpush/<int:protocol_id>")
 @login_required
+@protect_csrf
 @db_lookup(Protocol)
 @require_modify_right()
 def etherpush_protocol(protocol):
@@ -848,6 +857,7 @@ def update_protocol(protocol):
 
 @app.route("/protocol/publish/<int:protocol_id>")
 @login_required
+@protect_csrf
 @db_lookup(Protocol)
 @require_publish_right()
 def publish_protocol(protocol):
@@ -858,6 +868,7 @@ def publish_protocol(protocol):
 
 @app.route("/prococol/send/private/<int:protocol_id>")
 @login_required
+@protect_csrf
 @db_lookup(Protocol)
 @require_modify_right()
 def send_protocol_private(protocol):
@@ -871,6 +882,7 @@ def send_protocol_private(protocol):
 
 @app.route("/prococol/send/public/<int:protocol_id>")
 @login_required
+@protect_csrf
 @db_lookup(Protocol)
 @require_publish_right()
 def send_protocol_public(protocol):
@@ -884,6 +896,7 @@ def send_protocol_public(protocol):
 
 @app.route("/protocol/reminder/<int:protocol_id>")
 @login_required
+@protect_csrf
 @db_lookup(Protocol)
 @require_modify_right()
 def send_protocol_reminder(protocol):
@@ -947,6 +960,7 @@ def edit_top(top):
 
 @app.route("/protocol/top/delete/<int:top_id>")
 @login_required
+@protect_csrf
 @db_lookup(TOP)
 @require_modify_right()
 def delete_top(top):
@@ -961,6 +975,7 @@ def delete_top(top):
 
 @app.route("/protocol/top/move/<int:top_id>/<diff>")
 @login_required
+@protect_csrf
 @db_lookup(TOP)
 @require_modify_right()
 def move_top(top, diff):
@@ -1145,6 +1160,7 @@ def show_todo(todo):
 
 @app.route("/todo/delete/<int:todo_id>")
 @login_required
+@protect_csrf
 @db_lookup(Todo)
 @require_private_view_right()
 def delete_todo(todo):
@@ -1311,6 +1327,7 @@ def edit_document(document):
 
 @app.route("/document/delete/<int:document_id>")
 @login_required
+@protect_csrf
 @db_lookup(Document)
 @require_admin_right()
 @require_modify_right()
@@ -1325,6 +1342,7 @@ def delete_document(document):
 
 @app.route("/document/print/<int:document_id>")
 @login_required
+@protect_csrf
 @db_lookup(Document)
 @require_modify_right()
 def print_document(document):
@@ -1339,6 +1357,7 @@ def print_document(document):
 
 @app.route("/decision/print/<int:decisiondocument_id>")
 @login_required
+@protect_csrf
 @db_lookup(DecisionDocument)
 @require_modify_right()
 def print_decision(decisiondocument):
@@ -1383,6 +1402,7 @@ def show_error(error):
 
 @app.route("/error/delete/<int:error_id>")
 @login_required
+@protect_csrf
 @db_lookup(Error)
 @require_modify_right()
 def delete_error(error):
@@ -1434,6 +1454,7 @@ def edit_todomail(todomail):
 
 @app.route("/todomail/delete/<int:todomail_id>")
 @login_required
+@protect_csrf
 @db_lookup(TodoMail)
 def delete_todomail(todomail):
     name = todomail.name
@@ -1478,6 +1499,7 @@ def edit_defaultmeta(defaultmeta):
 
 @app.route("/defaultmeta/delete/<int:defaultmeta_id>")
 @login_required
+@protect_csrf
 @db_lookup(DefaultMeta)
 @require_admin_right()
 @require_modify_right()
@@ -1527,6 +1549,7 @@ def edit_decisioncategory(decisioncategory):
 
 @app.route("/decisioncategory/delete/<int:decisioncategory_id>")
 @login_required
+@protect_csrf
 @db_lookup(DecisionCategory)
 @require_admin_right()
 @require_modify_right()
@@ -1688,6 +1711,7 @@ def feed_appointments_ical(protocoltype):
 
 @app.route("/like/new")
 @login_required
+@protect_csrf
 def new_like():
     user = current_user()
     parent = None
@@ -1736,6 +1760,7 @@ def login():
 
 @app.route("/logout")
 @login_required
+@protect_csrf
 def logout():
     if "auth" in session:
         session.pop("auth")

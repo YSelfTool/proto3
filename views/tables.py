@@ -1,5 +1,6 @@
 from flask import Markup, url_for, request
 from shared import date_filter, datetime_filter, time_filter, current_user
+from utils import get_csrf_token
 
 import config
 
@@ -341,7 +342,8 @@ class ProtocolTypeTable(SingleValueTable):
             ]))]
         action_part = [
             Table.link(
-                url_for("delete_type", protocoltype_id=self.value.id),
+                url_for("delete_type", protocoltype_id=self.value.id,
+                        csrf_token=get_csrf_token()),
                 "Löschen",
                 confirm="Bist du dir sicher, dass du den Protokolltype "
                         "{} löschen möchtest?".format(self.value.name))
@@ -371,10 +373,12 @@ class DefaultTOPsTable(Table):
             top.number,
             Table.concat([
                 Table.link(
-                    url_for("move_default_top", defaulttop_id=top.id, diff=1),
+                    url_for("move_default_top", defaulttop_id=top.id, diff=1,
+                            csrf_token=get_csrf_token()),
                     "Runter"),
                 Table.link(
-                    url_for("move_default_top", defaulttop_id=top.id, diff=-1),
+                    url_for("move_default_top", defaulttop_id=top.id, diff=-1,
+                            csrf_token=get_csrf_token()),
                     "Hoch"),
                 Table.link(
                     url_for(
@@ -383,7 +387,8 @@ class DefaultTOPsTable(Table):
                         defaulttop_id=top.id),
                     "Ändern"),
                 Table.link(
-                    url_for("delete_default_top", defaulttop_id=top.id),
+                    url_for("delete_default_top", defaulttop_id=top.id,
+                            csrf_token=get_csrf_token()),
                     "Löschen",
                     confirm="Bist du dir sicher, dass du den Standard-TOP "
                             "{} löschen willst?".format(top.name))
@@ -413,7 +418,8 @@ class MeetingRemindersTable(Table):
                 url_for("edit_reminder", meetingreminder_id=reminder.id),
                 "Ändern"),
             Table.link(
-                url_for("delete_reminder", meetingreminder_id=reminder.id),
+                url_for("delete_reminder", meetingreminder_id=reminder.id,
+                        csrf_token=get_csrf_token()),
                 "Löschen",
                 confirm="Bist du dir sicher, dass du die Einladungsmail {} "
                         "Tage vor der Sitzung löschen willst?".format(
@@ -452,7 +458,8 @@ class ErrorsTable(Table):
             datetime_filter(error.datetime),
             error.get_short_description(),
             Table.link(
-                url_for("delete_error", error_id=error.id, next=request.path),
+                url_for("delete_error", error_id=error.id,
+                        csrf_token=get_csrf_token()),
                 "Löschen",
                 confirm="Bist du dir sicher, dass du den Fehler löschen "
                         "möchtest?")
@@ -519,7 +526,8 @@ class TodosTable(Table):
         if todo.protocoltype.has_modify_right(user):
             row.append(Table.concat([
                 Table.link(url_for("edit_todo", todo_id=todo.id), "Ändern"),
-                Table.link(url_for("delete_todo", todo_id=todo.id), "Löschen")
+                Table.link(url_for("delete_todo", todo_id=todo.id,
+                           csrf_token=get_csrf_token()), "Löschen")
             ]))
         else:
             row.append("")
@@ -552,7 +560,8 @@ class TodoTable(SingleValueTable):
                 Table.link(
                     url_for("edit_todo", todo_id=self.value.id), "Ändern"),
                 Table.link(
-                    url_for("delete_todo", todo_id=self.value.id), "Löschen",
+                    url_for("delete_todo", todo_id=self.value.id,
+                            csrf_token=get_csrf_token()), "Löschen",
                     confirm="Bist du dir sicher, dass du das Todo löschen "
                             "willst?")
             ]))
@@ -592,7 +601,8 @@ class DecisionsTable(Table):
             Table.link(
                 url_for(
                     "print_decision",
-                    decisiondocument_id=decision.document.id),
+                    decisiondocument_id=decision.document.id,
+                    csrf_token=get_csrf_token()),
                 "Drucken")
             if (config.PRINTING_ACTIVE
                 and decision.protocol.protocoltype.has_modify_right(user)
@@ -634,11 +644,13 @@ class DocumentsTable(Table):
                 "Bearbeiten"))
         if config.PRINTING_ACTIVE and document.protocol.has_modify_right(user):
             links.append(Table.link(
-                url_for("print_document", document_id=document.id),
+                url_for("print_document", document_id=document.id,
+                        csrf_token=get_csrf_token()),
                 "Drucken"))
         if document.protocol.protocoltype.has_admin_right(user):
             links.append(Table.link(
-                url_for("delete_document", document_id=document.id),
+                url_for("delete_document", document_id=document.id,
+                        csrf_token=get_csrf_token()),
                 "Löschen",
                 confirm="Bist du dir sicher, dass du das Dokument {} löschen "
                         "willst?".format(document.name)))
@@ -675,7 +687,8 @@ class TodoMailsTable(Table):
                     url_for("edit_todomail", todomail_id=todomail.id),
                     "Ändern"),
                 Table.link(
-                    url_for("delete_todomail", todomail_id=todomail.id),
+                    url_for("delete_todomail", todomail_id=todomail.id,
+                            csrf_token=get_csrf_token()),
                     "Löschen",
                     confirm="Bist du dir sicher, dass du die "
                             "Todomailzuordnung {} zu {} löschen "
@@ -707,7 +720,8 @@ class DefaultMetasTable(Table):
             Table.link(
                 url_for("edit_defaultmeta", defaultmeta_id=meta.id), "Ändern"),
             Table.link(
-                url_for("delete_defaultmeta", defaultmeta_id=meta.id),
+                url_for("delete_defaultmeta", defaultmeta_id=meta.id,
+                        csrf_token=get_csrf_token()),
                 "Löschen",
                 confirm="Bist du dir sicher, dass du das Metadatenfeld {} "
                         "löschen willst?".format(meta.name))
@@ -739,7 +753,8 @@ class DecisionCategoriesTable(Table):
                 Table.link(
                     url_for(
                         "delete_decisioncategory",
-                        decisioncategory_id=category.id),
+                        decisioncategory_id=category.id,
+                        csrf_token=get_csrf_token()),
                     "Löschen",
                     confirm="Bist du dir sicher, dass du die "
                             "Beschlusskategorie {} löschen "

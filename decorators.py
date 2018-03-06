@@ -1,9 +1,10 @@
-from flask import flash
+from flask import request, flash, abort
 
 from functools import wraps
 
 from models.database import ALL_MODELS
 from shared import current_user
+from utils import get_csrf_token
 import back
 
 ID_KEY = "id"
@@ -90,3 +91,14 @@ def require_publish_right(require_exist=True):
 
 def require_admin_right(require_exist=True):
     return require_right("admin", require_exist)
+
+
+def protect_csrf(function):
+    @wraps(function)
+    def _decorated_function(*args, **kwargs):
+        token = request.args.get("csrf_token")
+        if token != get_csrf_token():
+            print(token, get_csrf_token())
+            abort(400)
+        return function(*args, **kwargs)
+    return _decorated_function

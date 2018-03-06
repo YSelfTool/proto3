@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, session
 
 import random
 import string
@@ -14,6 +14,8 @@ import ipaddress
 from socket import getfqdn
 from uuid import uuid4
 import subprocess
+import os
+import hashlib
 
 import config
 
@@ -258,3 +260,9 @@ def get_max_page_length_exp(objects):
 
 def get_internal_filename(protocol, document, filename):
     return "{}-{}-{}".format(protocol.id, document.id, filename)
+
+
+def get_csrf_token():
+    if "_csrf" not in session:
+        session["_csrf"] = hashlib.sha1(os.urandom(64)).hexdigest()
+    return session["_csrf"]
