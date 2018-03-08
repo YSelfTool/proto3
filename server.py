@@ -261,7 +261,7 @@ def sessionmanagement_documentation():
         "documentation-sessionmanagement.html")
 
 @app.route("/documentation/sessionmanagement/plan")
-back.anchor
+@back.anchor
 @login_required
 def plan_sessionmanagement_documentation():
     return render_template(
