@@ -13,27 +13,197 @@
         <li>Wähle bei „Typ“ den <a href="/documentation/configuration/types">Typ der Sitzung</a> aus.</li>
         <li>Gib das Datum der Sitzung und ggf. einen Startzeitpunkt ein.</li>
         <li>Klicke auf Anlegen.</li>
-    </ol>
+    </ol>    
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title">Beispiel - Neues Protokoll anlegen</h5>
+        </div>
+        <div class="panel-body">
+            <h3>Neue Sitzung</h3>
+            <form role="form" class="">
+                <div class="form-group  ">
+                    <label for="protocoltype_id" class="control-label"><label for="protocoltype_id">Typ</label></label>
+                    <select class="form-control" id="protocoltype_id" name="protocoltype_id" placeholder="Typ" title="">
+                        <option value="1">sitzung</option>
+                        <option value="2">versammlung</option>
+                        <option value="3">arbeitsgruppe</option>
+                    </select>
+                </div>
+                <div class="form-group  ">
+                    <label for="date" class="control-label"><label for="date">Datum (dd.mm.yyyy)</label></label>
+                    <input class="form-control" id="date" name="date" placeholder="Datum (dd.mm.yyyy)" title="" type="text" value="">
+                </div>
+                <div class="form-group  ">
+                    <label for="start_time" class="control-label"><label for="start_time">Uhrzeit (HH:MM, optional)</label></label>
+                    <input class="form-control" id="start_time" name="start_time" placeholder="Uhrzeit (HH:MM, optional)" title="" type="text" value="">
+                </div>
+                <button type="button" class="btn btn-default">Anlegen</button>
+            </form>
+        </div>
+    </div>
 	
-	<h4>Existierendes Protokoll finden</h4>
+	<h4 id="find_protokoll_docu">Existierendes Protokoll finden</h4>
     Ist das Protokoll bereits angelegt, so kann es auf zwei verschiedenen Wegen gefunden werden. Zum einen über die Übersicht der nächsten Sitzungen auf der Startseite und zum anderen auf der Protokollübersichtsseite.
 	
 	Um ein Protokoll auf der Protokollübersichtsseite zu finden:
     <ol>
         <li>Gehe auf <a href="{{url_for("list_protocols")}}">Protokolle</a>,</li>
         <li>Wähle die Sitzung aus - noch ausstehende Sitzungen sind ganz oben.</a>
-    </ol>
+    </ol>    
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title">Beispiel - Protokollübersicht</h5>
+        </div>
+        <div class="panel-body">
+            <form role="form" class="form-inline">
+                <div class="form-group  ">
+                    <input class="form-control" id="search" name="search" placeholder="Suchbegriff" title="" type="text" value="">
+                </div>
+                <div class="form-group  ">
+                    <select class="form-control" id="protocoltype_id" name="protocoltype_id" placeholder="Typ" title="">
+                        <option value="-1">Alle Typen</option>
+                        <option value="1">sitzung</option>
+                        <option value="2">versammlung</option>
+                        <option value="3">arbeitsgruppe</option>
+                    </select>
+                </div>
+                <div class="form-group  ">
+                    <select class="form-control" id="state_open" name="state_open" placeholder="Offen" title="">
+                        <option selected="" value="-1">Alle</option>
+                        <option value="0">Geplant</option>
+                        <option value="1">Fertig</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-default">Suchen</button>
+            </form>
+            <h3>Protokolle <a href="#">Neu</a></h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th class="hidden-xs">ID</th>
+                        <th class="hidden-sm hidden-md hidden-lg">Sitzung</th>
+                        <th class="hidden-xs">Sitzung</th>
+                        <th class="hidden-xs">Datum</th>
+                        <th>Status</th>
+                        <th class="hidden-xs">Typ</th>
+                        <th class="hidden-xs"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="hidden-xs"><a href="#">6</a></td>
+                        <td class="hidden-sm hidden-md hidden-lg"><a href="#">Versammlung</a><br>11. März 2018</td>
+                        <td class="hidden-xs"><a href="#">Versammlung</a></td>
+                        <td class="hidden-xs">11. März 2018</td>
+                        <td>Geplant</td>
+                        <td class="hidden-xs"><a href="#">versammlung</a></td>
+                        <td class="hidden-xs"></td>
+                    </tr>
+                    <tr>
+                        <td class="hidden-xs"><a href="#">5</a></td>
+                        <td class="hidden-sm hidden-md hidden-lg"><a href="#">Sitzung</a><br>08. März 2018</td>
+                        <td class="hidden-xs"><a href="#">Sitzung</a></td>
+                        <td class="hidden-xs">08. März 2018</td>
+                        <td>Geplant</td>
+                        <td class="hidden-xs"><a href="#">sitzung</a></td>
+                        <td class="hidden-xs"></td>
+                    </tr>
+                    <tr>
+                        <td class="hidden-xs"><a href="#">4</a></td>
+                        <td class="hidden-sm hidden-md hidden-lg"><a href="#">Arbeitsgruppe</a><br>02. März 2018</td>
+                        <td class="hidden-xs"><a href="#">Arbeitsgruppe</a></td>
+                        <td class="hidden-xs">02. März 2018</td>
+                        <td>Fertig</td>
+                        <td class="hidden-xs"><a href="#">arbeitsgruppe</a></td>
+                        <td class="hidden-xs"></td>
+                    </tr>
+                    <tr>
+                        <td class="hidden-xs"><a href="#">3</a></td>
+                        <td class="hidden-sm hidden-md hidden-lg"><a href="#">Sitzung</a><br>01. März 2018</td>
+                        <td class="hidden-xs"><a href="#">Sitzung</a></td>
+                        <td class="hidden-xs">01. März 2018</td>
+                        <td>Fertig</td>
+                        <td class="hidden-xs"><a href="#">sitzung</a></td>
+                        <td class="hidden-xs"></td>
+                    </tr>
+                    <tr>
+                        <td class="hidden-xs"><a href="#">2</a></td>
+                        <td class="hidden-sm hidden-md hidden-lg"><a href="#">Sitzung</a><br>22. Februar 2018</td>
+                        <td class="hidden-xs"><a href="#">Sitzung</a></td>
+                        <td class="hidden-xs">22. Februar 2018</td>
+                        <td>Veröffentlicht</td>
+                        <td class="hidden-xs"><a href="#">sitzung</a></td>
+                        <td class="hidden-xs"></td>
+                    </tr>
+                    <tr>
+                        <td class="hidden-xs"><a href="#">1</a></td>
+                        <td class="hidden-sm hidden-md hidden-lg"><a href="#">Arbeitsgruppe</a><br>15. Februar 2018</td>
+                        <td class="hidden-xs"><a href="#">Arbeitsgruppe</a></td>
+                        <td class="hidden-xs">15. Februar 2018</td>
+                        <td>Veröffentlicht</td>
+                        <td class="hidden-xs"><a href="#">arbeitsgruppe</a></td>
+                        <td class="hidden-xs"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 	
 	<h4>Existierendes Protokoll vorbereiten</h4>
-    Soll ein bereits existierendes Protokoll für die Sitzung vorbereitet oder angepasst werden, so ist das Protokoll entsprechend aufzurufen.
+    Soll ein bereits existierendes Protokoll für die Sitzung vorbereitet oder angepasst werden, so ist das Protokoll entsprechend wie <a href="#find_protokoll_docu">oben</a> dargestellt aufzurufen.
 	
 	Auf der Seite der Sitzung werden neben verschiedenen sogenannten <a href="/documentation/syntax/meta">Metadaten</a>, wie Datum und Uhrzeit der Sitzung, auch die Tagesordnung dargestellt.
-        <ul>
-            <li>Die ersten und letztes TOPs sind Standard-TOPs, die jede Sitzung hat. Die kannst du nur über beim Protokolltyp ändern, nicht beim Protokoll selbst.</li>
-            <li>Die mittleren TOPs gehören nur zu dieser Sitzung. Du kannst welche hinzufügen oder sie umsortieren.</li>
-            <li>Möchtest du zu einem TOP vorprotokollieren, so klicke auf ändern und füge unter "Beschreibung" deinen Inhalt ein (hier gilt die gleiche Syntax, wie im normalen Protokoll).</li>
-            <li>Jedes selbstständige Thema oder jeder Antrag sollte in einen eigenen TOP geschrieben werden. Sammel-TOPs, oder TOPs mit allen finanzwirksamen Anträgen sorgen für wenig Übersichtlichkeit.</li>
-            <li>Wir wünschen uns, dass TOPs so früh wie möglich auf die Tagesordnung geschrieben werden und unter "Beschreibung" kurz erläutert weird, worum es gehen soll. Sollte es in dem TOP darum gehen, dass Geld beantragt wird, sollte der TOP im Namen durch ein "(€)" gekennzeichnet werden."</li>
-            <li>Solltest du die TOPs nicht bearbeiten können, handelt es sich um ein Protokoll, das du lesen, aber nicht bearbeiten kannst. Mehr dazu bei <a href="#rechte">Rechteverwaltung</a>.</li>
-        </ul>
+    <ul>
+        <li>Die ersten und letztes TOPs sind Standard-TOPs, die jede Sitzung hat. Die kannst du nur über beim Protokolltyp ändern, nicht beim Protokoll selbst.</li>
+        <li>Die mittleren TOPs gehören nur zu dieser Sitzung. Du kannst welche hinzufügen oder sie umsortieren.</li>
+        <li>Möchtest du zu einem TOP vorprotokollieren, so klicke auf ändern und füge unter "Beschreibung" deinen Inhalt ein (hier gilt die gleiche Syntax, wie im normalen Protokoll).</li>
+        <li>Jedes selbstständige Thema oder jeder Antrag sollte in einen eigenen TOP geschrieben werden. Sammel-TOPs, oder TOPs mit allen finanzwirksamen Anträgen sorgen für wenig Übersichtlichkeit.</li>
+        <li>Wir wünschen uns, dass TOPs so früh wie möglich auf die Tagesordnung geschrieben werden und unter "Beschreibung" kurz erläutert weird, worum es gehen soll. Sollte es in dem TOP darum gehen, dass Geld beantragt wird, sollte der TOP im Namen durch ein "(€)" gekennzeichnet werden."</li>
+        <li>Solltest du die TOPs nicht bearbeiten können, handelt es sich um ein Protokoll, das du lesen, aber nicht bearbeiten kannst. Mehr dazu bei <a href="#rechte">Rechteverwaltung</a>.</li>
+    </ul>
+        
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title">Beispiel - Übersicht der Tagesordnung</h5>
+        </div>
+        <div class="panel-body">
+            <h3>Tagesordnung <a href="#">Top hinzufügen</a></h3>
+            <ul>
+                <li class="defaulttop expansion-button" id="localtop-384" title="Die Versammlung wird begrüßt.">
+                    Begrüßung
+                        <a href="#">Ändern</a>
+                        <span class="glyphicon glyphicon-info-sign"></span>
+                        <pre id="localtop-384-description" class="expansion-text">Die Versammlung wird begrüßt.</pre>
+                </li>
+                <li class="defaulttop">
+                     Todos 
+                        <a href="#">Ändern</a>
+                </li>
+                <li class="defaulttop expansion-button" id="localtop-386" title="">
+                    Rundlauf
+                        <a href="#">Ändern</a>
+                </li>
+                <li class="expansion-button" id="top-1951" title="">
+                    Änderungsbedarf FinO, FSRO und FSOen
+                        (0)
+                        <a href="#">Ändern</a>
+                        <a href="#">Runter</a>
+                        <a href="#">Hoch</a>
+                        <a href="#" onclick="return confirm('Bist du dir sicher, dass du den TOP Änderungsbedarf FinO, FSRO und FSOen löschen möchtest?');">Löschen</a>
+                </li>
+                <li class="expansion-button" id="top-2271" title="">
+                    Neutralität von Prüfern
+                        (1)
+                        <a href="#">Ändern</a>
+                        <a href="#">Runter</a>
+                        <a href="#">Hoch</a>
+                        <a href="#" onclick="return confirm('Bist du dir sicher, dass du den TOP Neutralität von Prüfern löschen möchtest?');">Löschen</a>
+                </li>
+                <li class="defaulttop">
+                    Verschiedenes
+                        <a href="#">Ändern</a>
+                </li>
+            </ul>
+        </div>
+    </div>
 {% endblock %}
