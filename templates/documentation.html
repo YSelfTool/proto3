@@ -4,10 +4,12 @@
 
 {% block documentation_content %}
         <h3>Protokollsystem 3 - Das Protokollsystem</h3>
+		<p>
         Das Protokollsystem dient der Planung von Sitzungen und Verwaltung von Protokollen. Die anstehenden Sitzungen der nächsten Woche sind auf der <a href="{{url_for("index")}}">Startseite</a>, alle Protokolle unter <a href="{{url_for("list_protocols")}}">Protokolle</a> zu finden.
-		
+		</p>
+		<p>
 		Des weiteren wird können die Sitzungen mittels Todos und einer Beschlussdatenbank nach verfolgt werden. Die eigenen offenen Todos werden auf der <a href="{{url_for("index")}}">Startseite</a> angezeigt, alle Todos sind unter <a href="{{url_for("list_todos")}}">Todos</a> zu finden. Die Beschlüsse finden sich in der  <a href="{{url_for("list_decisions")}}">Beschlussdatenbank</a> zu finden.
-		
+		</p>
 		<h3>Dokumentation</h3>
 		Dieser Dokumentation können Beschreibungen zu nahezu allen wichtigen Systemfunktionen entnommen werden. Gegliedert sind die Themen wie folgt:
 		<ul>
@@ -28,9 +30,9 @@
 				<li><a href="/documentation/configuration/todomails">Todo Mails</a></li>
 			</ul></li>
 		</ul>
-		
+		<p>
 		Sollten deine Fragen nach dem Studium der Dokumentation noch offen sein, wende dich an jemand erfahreneren oder die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a>. Offene Punkte innerhalb der Dokumentation können dann durch die Admins zur Behebung auch an die Entwickler der Software weitergegeben werden.
-
+		</p>
         <h3 id="fehler">Fehlerbehandlung</h3>
         <ul>
             <li>Typische Web-Fehler (404, 500, etc.) sollten nicht auftreten. Wenn sie es doch tun, wende dich bitte an die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a></li>
@@ -40,7 +42,9 @@
         
         {% if git_revision %}
         <h3 id="version">Version</h4>
-        Dieses Protokollsystem nutzt die Software <a href="{{git_revision.url}}">„Protokollsystem 3“</a> in der Version vom <a href="{{git_revision.url}}/commit/{{git_revision.hash}}">{{git_revision.date|datify}}</a>.
+		<p>
+        Dieses Protokollsystem nutzt die Software <a href="{{git_revision.url}}">„Protokollsystem 3“</a> in der Version vom <a href="{{git_revision.url}}/commit/{{git_revision.hash}}">{{git_revision.date|datify}}</a>.<br/>
         Alle Änderungen, die seitdem hinzugekommen sind, kannst du <a href="{{git_revision.url}}/compare/{{git_revision.hash}}...master">hier</a> sehen.
+		</p>
         {% endif %}
 {% endblock %}

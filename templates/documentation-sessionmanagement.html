@@ -4,21 +4,29 @@
 
 {% block documentation_content %}
     <h3>Sitzungsverwaltung</h3>
+	<p>
     Ein wesentlicher Bestandteil des Protokollsystems ist das Sitzungsmanagement. Neben dem <a href="/documentation/sessionmanagement/plan">Planen und Anlegen</a> verschiedener Sitzungstermine kann zu jeder Sitzung ein <a href="/documentation/sessionmanagement/write">Protokoll</a> verfasst und anschließend durch das System ausgegeben werden. Die <a href="/documentation/sessionmanagement/tracking">Nachverfolgung</a> der Ergebnisse im System aus einer Sitzung ist zu Beschlüssen und Todos möglich.
-	
+	</p>
 	<h4>Verwaltung im Detail</h4>
+	<p>
 	Um die Funktionen der Sitzungsverwaltung zu verstehen, wird auf den Unterseiten auf die einzelnen Abschnitte des Managements eingegangen. Auch werden die Arbeitsabläufe, wie sie im System vorgesehen sind, vorgestellt.
+	</p>
 	<ul>
 		<li><a href="/documentation/sessionmanagement/plan">Planung</a></li>
 		<li><a href="/documentation/sessionmanagement/write">Protokollieren</a></li>
 		<li><a href="/documentation/sessionmanagement/tracking">Nachverfolgung</a></li>
 	</ul>
+	<p>
 	Sollten die genannten Arbeitsabläufe nicht nachvollziehbar oder fehlerhaft sein, lasse die Entwickler der Software zur Behebung kontaktieren.
+	</p>
 	
     <h4 id="suche">Suche</h4>
-    Einige Elemente der Sitzungsverwaltung sind durchsuchbar - dazu zählen <a href="{{url_for("list_protocols")}}">Protokolle</a>, <a href="{{url_for("list_todos")}}">Todos</a> und <a href="{{url_for("list_decisions")}}">Beschlüsse</a>. Auf jeder der Übersichtsseiten wird ein Suchfeld vorgehalten, das zur Eingabe genutzt werden kann.
-	
-    Im Suchfeld können mehrere durch Leerzeichen getrennte Suchbegriffe angegeben werden: <code>Begriff1 Begriff2</code>.
-    Angezeigt werden alle Ergebnisse, die jeden der Suchbegriffe (unabhängig von Groß- oder Kleinschreibung) enthalten.
+    <p>
+	Einige Elemente der Sitzungsverwaltung sind durchsuchbar - dazu zählen <a href="{{url_for("list_protocols")}}">Protokolle</a>, <a href="{{url_for("list_todos")}}">Todos</a> und <a href="{{url_for("list_decisions")}}">Beschlüsse</a>. Auf jeder der Übersichtsseiten wird ein Suchfeld vorgehalten, das zur Eingabe genutzt werden kann.
+	</p>
+	<p>
+    Im Suchfeld können mehrere durch Leerzeichen getrennte Suchbegriffe angegeben werden: <code>Begriff1 Begriff2</code>.<br/>
+    Angezeigt werden alle Ergebnisse, die jeden der Suchbegriffe (unabhängig von Groß- oder Kleinschreibung) enthalten.<br/>
     Wenn ein Suchbegriff ein Leerzeichen beinhaltet, muss er mit Anführungszeichen umrandet werden: <code>"Begriff1 mit Leerzeichen" Begriff2</code>.
+	</p>
 {% endblock %}
