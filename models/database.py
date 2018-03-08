@@ -1,24 +1,25 @@
-from flask import render_template, send_file, url_for, redirect, flash, request
+from flask import render_template
 
-from datetime import datetime, time, date, timedelta
-import math
-from io import StringIO, BytesIO
+from datetime import datetime
+from io import BytesIO
 from enum import Enum
 from uuid import uuid4
 
-from shared import db, date_filter, date_filter_short, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY, current_user
-from utils import random_string, get_etherpad_url, split_terms, check_ip_in_networks
+from shared import (
+    db, date_filter_short, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY,
+    current_user)
+from utils import get_etherpad_url, split_terms, check_ip_in_networks
 from models.errors import DateNotMatchingException
 from dateutil import tz
 
 import os
 
 from sqlalchemy import event
-from sqlalchemy.orm import relationship, backref, sessionmaker
-from sqlalchemy.ext.hybrid import hybrid_method
+from sqlalchemy.orm import relationship, backref
 
 import config
 from todostates import make_states
+
 
 class DatabaseModel(db.Model):
     __abstract__ = True
@@ -48,6 +49,11 @@ class DatabaseModel(db.Model):
             columns.append("{}={}".format(column_name, value))
         return "{}({})".format(self.__class__.__name__, ", ".join(columns))
 
+    @classmethod
+    def first_by_id(cls, instance_id):
+        return cls.query.filter_by(id=instance_id).first()
+
+
 class ProtocolType(DatabaseModel):
     __tablename__ = "protocoltypes"
     __model_name__ = "protocoltype"
@@ -73,46 +79,70 @@ class ProtocolType(DatabaseModel):
     allowed_networks = db.Column(db.String)
     latex_template = db.Column(db.String)
 
-    protocols = relationship("Protocol", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="Protocol.id")
-    default_tops = relationship("DefaultTOP", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="DefaultTOP.number")
-    reminders = relationship("MeetingReminder", backref=backref("protocoltype"), cascade="all, delete-orphan", order_by="MeetingReminder.days_before")
-    todos = relationship("Todo", backref=backref("protocoltype"), order_by="Todo.id")
-    metas = relationship("DefaultMeta", backref=backref("protocoltype"), cascade="all, delete-orphan")
-    decisioncategories = relationship("DecisionCategory", backref=backref("protocoltype"), cascade="all, delete-orphan")
+    protocols = relationship(
+        "Protocol", backref=backref("protocoltype"),
+        cascade="all, delete-orphan", order_by="Protocol.id")
+    default_tops = relationship(
+        "DefaultTOP", backref=backref("protocoltype"),
+        cascade="all, delete-orphan", order_by="DefaultTOP.number")
+    reminders = relationship(
+        "MeetingReminder", backref=backref("protocoltype"),
+        cascade="all, delete-orphan", order_by="MeetingReminder.days_before")
+    todos = relationship(
+        "Todo", backref=backref("protocoltype"), order_by="Todo.id")
+    metas = relationship(
+        "DefaultMeta", backref=backref("protocoltype"),
+        cascade="all, delete-orphan")
+    decisioncategories = relationship(
+        "DecisionCategory", backref=backref("protocoltype"),
+        cascade="all, delete-orphan")
 
     def get_latest_protocol(self):
-        candidates = sorted([protocol for protocol in self.protocols if protocol.is_done()], key=lambda p: p.date, reverse=True)
+        candidates = sorted([
+            protocol for protocol in self.protocols
+            if protocol.is_done()], key=lambda p: p.date, reverse=True)
         if len(candidates) == 0:
             return None
         return candidates[0]
 
     def has_public_view_right(self, user, check_networks=True):
-        return (self.has_public_anonymous_view_right(check_networks=check_networks)
-            or (user is not None and self.has_public_authenticated_view_right(user))
+        return (
+            self.has_public_anonymous_view_right(check_networks=check_networks)
+            or (user is not None
+                and self.has_public_authenticated_view_right(user))
             or self.has_admin_right(user))
 
     def has_public_anonymous_view_right(self, check_networks=True):
-        return (self.is_public
+        return (
+            self.is_public
             and ((not self.restrict_networks or not check_networks)
-                or check_ip_in_networks(self.allowed_networks)))
+                 or check_ip_in_networks(self.allowed_networks)))
 
     def has_public_authenticated_view_right(self, user):
-        return ((self.public_group != "" and self.public_group in user.groups)
-            or (self.private_group != "" and self.private_group in user.groups))
+        return (
+            (self.public_group != "" and self.public_group in user.groups)
+            or (self.private_group != ""
+                and self.private_group in user.groups))
 
     def has_private_view_right(self, user):
-        return ((user is not None
-            and (self.private_group != "" and self.private_group in user.groups))
+        return (
+            (user is not None
+             and (self.private_group != ""
+                  and self.private_group in user.groups))
             or self.has_admin_right(user))
 
     def has_modify_right(self, user):
-        return ((user is not None
-            and (self.modify_group != "" and self.modify_group in user.groups))
+        return (
+            (user is not None
+             and (self.modify_group != ""
+                  and self.modify_group in user.groups))
             or self.has_admin_right(user))
 
     def has_publish_right(self, user):
-        return ((user is not None
-            and (self.publish_group != "" and self.publish_group in user.groups))
+        return (
+            (user is not None
+             and (self.publish_group != ""
+                  and self.publish_group in user.groups))
             or self.has_admin_right(user))
 
     def has_admin_right(self, user):
@@ -129,7 +159,8 @@ class ProtocolType(DatabaseModel):
     def get_public_protocoltypes(user, check_networks=True):
         return [
             protocoltype for protocoltype in ProtocolType.query.all()
-            if protocoltype.has_public_view_right(user, check_networks=check_networks)
+            if protocoltype.has_public_view_right(
+                user, check_networks=check_networks)
         ]
 
     @staticmethod
@@ -163,12 +194,22 @@ class Protocol(DatabaseModel):
     public = db.Column(db.Boolean)
     pad_identifier = db.Column(db.String)
 
-    tops = relationship("TOP", backref=backref("protocol"), cascade="all, delete-orphan", order_by="TOP.number")
-    decisions = relationship("Decision", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Decision.id")
-    documents = relationship("Document", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Document.is_compiled")
-    errors = relationship("Error", backref=backref("protocol"), cascade="all, delete-orphan", order_by="Error.id")
-    metas = relationship("Meta", backref=backref("protocol"), cascade="all, delete-orphan")
-    localtops = relationship("LocalTOP", backref=backref("protocol"), cascade="all, delete-orphan")
+    tops = relationship(
+        "TOP", backref=backref("protocol"),
+        cascade="all, delete-orphan", order_by="TOP.number")
+    decisions = relationship(
+        "Decision", backref=backref("protocol"),
+        cascade="all, delete-orphan", order_by="Decision.id")
+    documents = relationship(
+        "Document", backref=backref("protocol"),
+        cascade="all, delete-orphan", order_by="Document.is_compiled")
+    errors = relationship(
+        "Error", backref=backref("protocol"), cascade="all, delete-orphan",
+        order_by="Error.id")
+    metas = relationship(
+        "Meta", backref=backref("protocol"), cascade="all, delete-orphan")
+    localtops = relationship(
+        "LocalTOP", backref=backref("protocol"), cascade="all, delete-orphan")
 
     likes = relationship("Like", secondary="likeprotocolassociations")
 
@@ -177,14 +218,16 @@ class Protocol(DatabaseModel):
 
     def create_error(self, action, name, description):
         now = datetime.now()
-        return Error(protocol_id=self.id, action=action, name=name,
+        return Error(
+            protocol_id=self.id, action=action, name=name,
             datetime=now, description=description)
 
     def create_localtops(self):
         local_tops = []
         for default_top in self.protocoltype.default_tops:
-            local_tops.append(LocalTOP(defaulttop_id=default_top.id,
-                protocol_id=self.id, description=default_top.description or ""))
+            local_tops.append(LocalTOP(
+                defaulttop_id=default_top.id, protocol_id=self.id,
+                description=default_top.description or ""))
         return local_tops
 
     def fill_from_remarks(self, remarks):
@@ -211,7 +254,8 @@ class Protocol(DatabaseModel):
             new_date = _date_or_lazy(DATE_KEY, get_date=True)
             if self.date is not None:
                 if new_date != self.date:
-                    raise DateNotMatchingException(original_date=self.date, protocol_date=new_date)
+                    raise DateNotMatchingException(
+                        original_date=self.date, protocol_date=new_date)
             else:
                 self.date = new_date
         if START_TIME_KEY in remarks:
@@ -225,7 +269,9 @@ class Protocol(DatabaseModel):
         for default_meta in self.protocoltype.metas:
             if default_meta.key in remarks:
                 value = remarks[default_meta.key].value.strip()
-                meta = Meta(protocol_id=self.id, name=default_meta.name, value=value, internal=default_meta.internal)
+                meta = Meta(
+                    protocol_id=self.id, name=default_meta.name, value=value,
+                    internal=default_meta.internal)
                 db.session.add(meta)
         db.session.commit()
 
@@ -235,16 +281,21 @@ class Protocol(DatabaseModel):
             or self.protocoltype.has_private_view_right(user)
         )
 
+    def get_visible_content(self, user):
+        if self.has_private_view_right(user):
+            return self.content_private
+        return self.content_public
+
     def is_done(self):
         return self.done
 
     def get_state_glyph(self):
         if self.is_done():
-            state = "unchecked" #"Fertig"
+            state = "unchecked"  # Fertig
             if self.public:
-                state = "check" #"Veröffentlicht"
+                state = "check"  # Veröffentlicht
         else:
-            state = "pencil" #"Geplant"
+            state = "pencil"  # Geplant
         return state
 
     def get_state_name(self):
@@ -280,7 +331,9 @@ class Protocol(DatabaseModel):
         if self.pad_identifier is None:
             identifier = self.get_identifier()
             if self.protocoltype.non_reproducible_pad_links:
-                identifier = "{}-{}".format(identifier, str(uuid4()).replace("-", ""))[:50]
+                identifier = "{}-{}".format(
+                    identifier,
+                    str(uuid4()).replace("-", ""))[:50]
             self.pad_identifier = identifier
             db.session.commit()
         return get_etherpad_url(self.pad_identifier)
@@ -292,13 +345,18 @@ class Protocol(DatabaseModel):
 
     def get_datetime(self):
         time = self.get_time()
-        return datetime(self.date.year, self.date.month, self.date.day, time.hour, time.minute)
+        return datetime(
+            self.date.year, self.date.month, self.date.day, time.hour,
+            time.minute)
 
     def has_nonplanned_tops(self):
         return len([top for top in self.tops if not top.planned]) > 0
 
     def get_originating_todos(self):
-        return [todo for todo in self.todos if self == todo.get_first_protocol()]
+        return [
+            todo for todo in self.todos
+            if self == todo.get_first_protocol()
+        ]
 
     def get_open_todos(self):
         return [
@@ -310,7 +368,7 @@ class Protocol(DatabaseModel):
         candidates = [
             document for document in self.documents
             if document.is_compiled
-                and (private is None or document.is_private == private)
+            and (private is None or document.is_private == private)
         ]
         return len(candidates) > 0
 
@@ -318,10 +376,16 @@ class Protocol(DatabaseModel):
         candidates = [
             document for document in self.documents
             if document.is_compiled
-               and (private is None or document.is_private == private) 
+            and (private is None or document.is_private == private)
         ]
-        private_candidates = [document for document in candidates if document.is_private]
-        public_candidates = [document for document in candidates if not document.is_private]
+        private_candidates = [
+            document for document in candidates
+            if document.is_private
+        ]
+        public_candidates = [
+            document for document in candidates
+            if not document.is_private
+        ]
         if len(private_candidates) > 0:
             return private_candidates[0]
         elif len(public_candidates) > 0:
@@ -359,15 +423,16 @@ class Protocol(DatabaseModel):
     def create_new_protocol(protocoltype, date, start_time=None):
         if start_time is None:
             start_time = protocoltype.usual_time
-        protocol = Protocol(protocoltype_id=protocoltype.id,
-            date=date, start_time=start_time)
+        protocol = Protocol(
+            protocoltype_id=protocoltype.id, date=date, start_time=start_time)
         db.session.add(protocol)
         db.session.commit()
         for local_top in protocol.create_localtops():
             db.session.add(local_top)
         for default_meta in protocoltype.metas:
             if default_meta.prior:
-                meta = Meta(protocol_id=protocol.id, name=default_meta.name,
+                meta = Meta(
+                    protocol_id=protocol.id, name=default_meta.name,
                     internal=default_meta.internal, value=default_meta.value)
                 db.session.add(meta)
         db.session.commit()
@@ -375,7 +440,6 @@ class Protocol(DatabaseModel):
         tasks.push_tops_to_calendar(protocol)
         return protocol
 
-        
 
 @event.listens_for(Protocol, "before_delete")
 def on_protocol_delete(mapper, connection, protocol):
@@ -391,7 +455,9 @@ class DefaultTOP(DatabaseModel):
     number = db.Column(db.Integer)
     description = db.Column(db.String)
 
-    localtops = relationship("LocalTOP", backref=backref("defaulttop"), cascade="all, delete-orphan")
+    localtops = relationship(
+        "LocalTOP", backref=backref("defaulttop"),
+        cascade="all, delete-orphan")
 
     def get_parent(self):
         return self.protocoltype
@@ -400,14 +466,16 @@ class DefaultTOP(DatabaseModel):
         return self.number > 0
 
     def get_localtop(self, protocol):
-        return LocalTOP.query.filter_by(defaulttop_id=self.id,
-            protocol_id=protocol.id).first()
+        return LocalTOP.query.filter_by(
+            defaulttop_id=self.id, protocol_id=protocol.id).first()
 
     def get_top(self, protocol):
         localtop = self.get_localtop(protocol)
-        top = TOP(protocol_id=protocol.id, name=self.name,
+        top = TOP(
+            protocol_id=protocol.id, name=self.name,
             description=localtop.description)
         return top
+
 
 class TOP(DatabaseModel):
     __tablename__ = "tops"
@@ -424,6 +492,7 @@ class TOP(DatabaseModel):
     def get_parent(self):
         return self.protocol
 
+
 class LocalTOP(DatabaseModel):
     __tablename__ = "localtops"
     __model_name__ = "localtop"
@@ -437,7 +506,8 @@ class LocalTOP(DatabaseModel):
 
     def is_expandable(self):
         user = current_user()
-        return (self.has_private_view_right(user)
+        return (
+            self.has_private_view_right(user)
             and self.description is not None
             and len(self.description) > 0)
 
@@ -446,6 +516,7 @@ class LocalTOP(DatabaseModel):
         if self.is_expandable():
             classes.append("expansion-button")
         return classes
+
 
 class Document(DatabaseModel):
     __tablename__ = "documents"
@@ -467,12 +538,14 @@ class Document(DatabaseModel):
         with open(self.get_filename(), "rb") as file:
             return BytesIO(file.read())
 
+
 @event.listens_for(Document, "before_delete")
 def on_document_delete(mapper, connection, document):
     if document.filename is not None:
         document_path = document.get_filename()
         if os.path.isfile(document_path):
             os.remove(document_path)
+
 
 class DecisionDocument(DatabaseModel):
     __tablename__ = "decisiondocuments"
@@ -492,12 +565,14 @@ class DecisionDocument(DatabaseModel):
         with open(self.get_filename(), "rb") as file:
             return BytesIO(file.read())
 
+
 @event.listens_for(DecisionDocument, "before_delete")
 def on_decisions_document_delete(mapper, connection, document):
     if document.filename is not None:
         document_path = document.get_filename()
         if os.path.isfile(document_path):
             os.remove(document_path)
+
 
 class TodoState(Enum):
     open = 0
@@ -513,7 +588,7 @@ class TodoState(Enum):
     def get_name(self):
         STATE_TO_NAME, NAME_TO_STATE = make_states(TodoState)
         return STATE_TO_NAME[self]
-    
+
     @staticmethod
     def get_name_to_state():
         STATE_TO_NAME, NAME_TO_STATE = make_states(TodoState)
@@ -550,8 +625,10 @@ class TodoState(Enum):
     @staticmethod
     def from_name_with_date(name, protocol=None):
         name = name.strip().lower()
-        if not " " in name:
-            raise ValueError("{} does definitely not contain a state and a date".format(name))
+        if " " not in name:
+            raise ValueError(
+                "{} does not contain a state and a date".format(
+                    name))
         name_part, date_part = name.split(" ", 1)
         state = TodoState.from_name(name_part)
         date = None
@@ -566,7 +643,8 @@ class TodoState(Enum):
                     year = datetime.now().year
                     if protocol is not None:
                         year = protocol.date.year
-                    date = datetime(year=year, month=date.month, day=date.day).date()
+                    date = datetime(
+                        year=year, month=date.month, day=date.day).date()
                 break
             except ValueError as exc:
                 last_exc = exc
@@ -587,7 +665,8 @@ class Todo(DatabaseModel):
     state = db.Column(db.Enum(TodoState), nullable=False)
     date = db.Column(db.Date, nullable=True)
 
-    protocols = relationship("Protocol", secondary="todoprotocolassociations", backref="todos")
+    protocols = relationship(
+        "Protocol", secondary="todoprotocolassociations", backref="todos")
     likes = relationship("Like", secondary="liketodoassociations")
 
     def get_parent(self):
@@ -618,11 +697,13 @@ class Todo(DatabaseModel):
 
     def get_state(self):
         return "[{}]".format(self.get_state_plain())
+
     def get_state_plain(self):
         result = self.state.get_name()
         if self.state.needs_date():
             result = "{} {}".format(result, date_filter_short(self.date))
         return result
+
     def get_state_tex(self):
         return self.get_state_plain()
 
@@ -651,7 +732,8 @@ class Todo(DatabaseModel):
         bold = "'''"
         if use_dokuwiki:
             bold = "**"
-        return "{0}{1}:{0} {2}: {3} - {4}".format(bold,
+        return "{0}{1}:{0} {2}: {3} - {4}".format(
+            bold,
             "Neuer Todo" if self.is_new(current_protocol) else "Todo",
             self.who,
             self.description,
@@ -665,10 +747,14 @@ class Todo(DatabaseModel):
         parts.append("id {}".format(self.get_id()))
         return "[{}]".format(";".join(parts))
 
+
 class TodoProtocolAssociation(DatabaseModel):
     __tablename__ = "todoprotocolassociations"
-    todo_id = db.Column(db.Integer, db.ForeignKey("todos.id"), primary_key=True)
-    protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"), primary_key=True)
+    todo_id = db.Column(
+        db.Integer, db.ForeignKey("todos.id"), primary_key=True)
+    protocol_id = db.Column(
+        db.Integer, db.ForeignKey("protocols.id"), primary_key=True)
+
 
 class Decision(DatabaseModel):
     __tablename__ = "decisions"
@@ -677,9 +763,12 @@ class Decision(DatabaseModel):
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     content = db.Column(db.String)
 
-    document = relationship("DecisionDocument", backref=backref("decision"), cascade="all, delete-orphan", uselist=False)
+    document = relationship(
+        "DecisionDocument", backref=backref("decision"),
+        cascade="all, delete-orphan", uselist=False)
 
-    categories = relationship("DecisionCategory", secondary="decisioncategoryassociations")
+    categories = relationship(
+        "DecisionCategory", secondary="decisioncategoryassociations")
     likes = relationship("Like", secondary="likedecisionassociations")
 
     def get_parent(self):
@@ -687,6 +776,7 @@ class Decision(DatabaseModel):
 
     def get_categories_str(self):
         return ", ".join(map(lambda c: c.name, self.categories))
+
 
 class DecisionCategory(DatabaseModel):
     __tablename__ = "decisioncategories"
@@ -698,10 +788,14 @@ class DecisionCategory(DatabaseModel):
     def get_parent(self):
         return self.protocoltype
 
+
 class DecisionCategoryAssociation(DatabaseModel):
     __tablename__ = "decisioncategoryassociations"
-    decision_id = db.Column(db.Integer, db.ForeignKey("decisions.id"), primary_key=True)
-    decisioncategory_id = db.Column(db.Integer, db.ForeignKey("decisioncategories.id"), primary_key=True)
+    decision_id = db.Column(
+        db.Integer, db.ForeignKey("decisions.id"), primary_key=True)
+    decisioncategory_id = db.Column(
+        db.Integer, db.ForeignKey("decisioncategories.id"), primary_key=True)
+
 
 class MeetingReminder(DatabaseModel):
     __tablename__ = "meetingreminders"
@@ -715,6 +809,7 @@ class MeetingReminder(DatabaseModel):
 
     def get_parent(self):
         return self.protocoltype
+
 
 class Error(DatabaseModel):
     __tablename__ = "errors"
@@ -737,6 +832,7 @@ class Error(DatabaseModel):
             return "\n".join(lines)
         return "\n".join(["\n".join(lines[:2]), "…", "\n".join(lines[-2:])])
 
+
 class TodoMail(DatabaseModel):
     __tablename__ = "todomails"
     __model_name__ = "todomail"
@@ -747,6 +843,7 @@ class TodoMail(DatabaseModel):
     def get_formatted_mail(self):
         return "{} <{}>".format(self.name, self.mail)
 
+
 class OldTodo(DatabaseModel):
     __tablename__ = "oldtodos"
     __model_name__ = "oldtodo"
@@ -755,6 +852,7 @@ class OldTodo(DatabaseModel):
     who = db.Column(db.String)
     description = db.Column(db.String)
     protocol_key = db.Column(db.String)
+
 
 class DefaultMeta(DatabaseModel):
     __tablename__ = "defaultmetas"
@@ -770,6 +868,7 @@ class DefaultMeta(DatabaseModel):
     def get_parent(self):
         return self.protocoltype
 
+
 class Meta(DatabaseModel):
     __tablename__ = "metas"
     __model_name__ = "meta"
@@ -782,30 +881,42 @@ class Meta(DatabaseModel):
     def get_parent(self):
         return self.protocol
 
+
 class Like(DatabaseModel):
     __tablename__ = "likes"
     __model_name__ = "like"
     id = db.Column(db.Integer, primary_key=True)
     who = db.Column(db.String)
 
+
 class LikeProtocolAssociation(DatabaseModel):
     __tablename__ = "likeprotocolassociations"
-    like_id = db.Column(db.Integer, db.ForeignKey("likes.id"), primary_key=True)
-    protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"), primary_key=True)
+    like_id = db.Column(
+        db.Integer, db.ForeignKey("likes.id"), primary_key=True)
+    protocol_id = db.Column(
+        db.Integer, db.ForeignKey("protocols.id"), primary_key=True)
+
 
 class LikeTodoAssociation(DatabaseModel):
     __tablename__ = "liketodoassociations"
-    like_id = db.Column(db.Integer, db.ForeignKey("likes.id"), primary_key=True)
-    todo_id = db.Column(db.Integer, db.ForeignKey("todos.id"), primary_key=True)
+    like_id = db.Column(
+        db.Integer, db.ForeignKey("likes.id"), primary_key=True)
+    todo_id = db.Column(
+        db.Integer, db.ForeignKey("todos.id"), primary_key=True)
+
 
 class LikeDecisionAssociation(DatabaseModel):
     __tablename__ = "likedecisionassociations"
-    like_id = db.Column(db.Integer, db.ForeignKey("likes.id"), primary_key=True)
-    decision_id = db.Column(db.Integer, db.ForeignKey("decisions.id"), primary_key=True)
+    like_id = db.Column(
+        db.Integer, db.ForeignKey("likes.id"), primary_key=True)
+    decision_id = db.Column(
+        db.Integer, db.ForeignKey("decisions.id"), primary_key=True)
+
 
 class LikeTOPAssociation(DatabaseModel):
     __tablename__ = "liketopassociations"
-    like_id = db.Column(db.Integer, db.ForeignKey("likes.id"), primary_key=True)
+    like_id = db.Column(
+        db.Integer, db.ForeignKey("likes.id"), primary_key=True)
     top_id = db.Column(db.Integer, db.ForeignKey("tops.id"), primary_key=True)
 
 

@@ -175,7 +175,7 @@ to not render a label for the CRSFTokenField -->
             {% set verb = "likes" %}
         {% endif %}
         {% if add_link %}
-        <a href="{{url_for("new_like", next=request.url, **kwargs)}}">
+        <a href="{{url_for("new_like", csrf_token=get_csrf_token(), **kwargs)}}">
         {% endif %}
         <div class="likes-div">
             <p>{{likes|length}} <span class="like-sign">&#x1f44d;</span></p>

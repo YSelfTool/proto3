@@ -2,14 +2,15 @@ from datetime import datetime, timedelta
 import random
 import quopri
 
-from caldav import DAVClient, Principal, Calendar, Event
-from caldav.lib.error import PropfindError
+from caldav import DAVClient
 from vobject.base import ContentLine
 
 import config
 
+
 class CalendarException(Exception):
     pass
+
 
 class Client:
     def __init__(self, calendar=None, url=None):
@@ -23,9 +24,12 @@ class Client:
                 self.principal = self.client.principal()
                 break
             except Exception as exc:
-                print("Got exception {} from caldav, retrying".format(str(exc)))
+                print("Got exception {} from caldav, retrying".format(
+                    str(exc)))
         if self.principal is None:
-            raise CalendarException("Got {} CalDAV-error from the CalDAV server.".format(config.CALENDAR_MAX_REQUESTS))
+            raise CalendarException(
+                "Got {} CalDAV-error from the CalDAV server.".format(
+                    config.CALENDAR_MAX_REQUESTS))
         if calendar is not None:
             self.calendar = self.get_calendar(calendar)
         else:
@@ -41,9 +45,11 @@ class Client:
                     for calendar in self.principal.calendars()
                 ]
             except Exception as exc:
-                print("Got exception {} from caldav, retrying".format(str(exc)))
-        raise CalendarException("Got {} CalDAV Errors from the CalDAV server.".format(config.CALENDAR_MAX_REQUESTS))
-
+                print("Got exception {} from caldav, retrying".format(
+                    str(exc)))
+        raise CalendarException(
+            "Got {} CalDAV Errors from the CalDAV server.".format(
+                config.CALENDAR_MAX_REQUESTS))
 
     def get_calendar(self, calendar_name):
         candidates = self.principal.calendars()
@@ -57,12 +63,14 @@ class Client:
             return
         candidates = [
             Event.from_raw_event(raw_event)
-            for raw_event in self.calendar.date_search(begin, begin + timedelta(hours=1))
+            for raw_event in self.calendar.date_search(
+                begin, begin + timedelta(hours=1))
         ]
         candidates = [event for event in candidates if event.name == name]
         event = None
         if len(candidates) == 0:
-            event = Event(None, name, description, begin,
+            event = Event(
+                None, name, description, begin,
                 begin + timedelta(hours=config.CALENDAR_DEFAULT_DURATION))
             vevent = self.calendar.add_event(event.to_vcal())
             event.vevent = vevent
@@ -76,11 +84,14 @@ NAME_KEY = "summary"
 DESCRIPTION_KEY = "description"
 BEGIN_KEY = "dtstart"
 END_KEY = "dtend"
+
+
 def _get_item(content, key):
     if key in content:
         return content[key][0].value
     return None
-        
+
+
 class Event:
     def __init__(self, vevent, name, description, begin, end):
         self.vevent = vevent
@@ -97,7 +108,8 @@ class Event:
         description = _get_item(content, DESCRIPTION_KEY)
         begin = _get_item(content, BEGIN_KEY)
         end = _get_item(content, END_KEY)
-        return Event(vevent=vevent, name=name, description=description,
+        return Event(
+            vevent=vevent, name=name, description=description,
             begin=begin, end=end)
 
     def set_description(self, description):
@@ -105,7 +117,8 @@ class Event:
         self.description = description
         encoded = encode_quopri(description)
         if DESCRIPTION_KEY not in raw_event.contents:
-            raw_event.contents[DESCRIPTION_KEY] = [ContentLine(DESCRIPTION_KEY, {"ENCODING": ["QUOTED-PRINTABLE"]}, encoded)]
+            raw_event.contents[DESCRIPTION_KEY] = [ContentLine(
+                DESCRIPTION_KEY, {"ENCODING": ["QUOTED-PRINTABLE"]}, encoded)]
         else:
             content_line = raw_event.contents[DESCRIPTION_KEY][0]
             content_line.value = encoded
@@ -129,21 +142,28 @@ SUMMARY:{summary}
 DESCRIPTION;ENCODING=QUOTED-PRINTABLE:{description}
 END:VEVENT
 END:VCALENDAR""".format(
-            uid=create_uid(), now=date_format(datetime.now()-offset),
-            begin=date_format(self.begin-offset), end=date_format(self.end-offset),
+            uid=create_uid(),
+            now=date_format(datetime.now() - offset),
+            begin=date_format(self.begin - offset),
+            end=date_format(self.end - offset),
             summary=self.name,
             description=encode_quopri(self.description))
+
 
 def create_uid():
     return str(random.randint(0, 1e10)).rjust(10, "0")
 
+
 def date_format(dt):
     return dt.strftime("%Y%m%dT%H%M%SZ")
 
+
 def get_timezone_offset():
     difference = datetime.now() - datetime.utcnow()
-    return timedelta(hours=round(difference.seconds / 3600 + difference.days * 24))
+    return timedelta(
+        hours=round(difference.seconds / 3600 + difference.days * 24))
+
 
 def encode_quopri(text):
-    return quopri.encodestring(text.encode("utf-8")).replace(b"\n", b"=0A").decode("utf-8")
-
+    return quopri.encodestring(text.encode("utf-8")).replace(
+        b"\n", b"=0A").decode("utf-8")

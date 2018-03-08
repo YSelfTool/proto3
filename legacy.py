@@ -1,16 +1,17 @@
 from datetime import datetime
-from fuzzywuzzy import fuzz, process
-import tempfile
+from fuzzywuzzy import process
 
-from models.database import Todo, OldTodo, Protocol, ProtocolType, TodoMail
+from models.database import OldTodo, Protocol, ProtocolType, TodoMail
 from shared import db
 
 import config
 
+
 def lookup_todo_id(old_candidates, new_who, new_description):
     # Check for perfect matches
     for candidate in old_candidates:
-        if candidate.who == new_who and candidate.description == new_description:
+        if (candidate.who == new_who
+                and candidate.description == new_description):
             return candidate.old_id
     # Accept if who has been changed
     for candidate in old_candidates:
@@ -32,10 +33,12 @@ def lookup_todo_id(old_candidates, new_who, new_description):
             new_description, best_match, best_match_score))
         return None
 
+
 INSERT_PROTOCOLTYPE = "INSERT INTO `protocolManager_protocoltype`"
 INSERT_PROTOCOL = "INSERT INTO `protocolManager_protocol`"
 INSERT_TODO = "INSERT INTO `protocolManager_todo`"
 INSERT_TODOMAIL = "INSERT INTO `protocolManager_todonamemailassignment`"
+
 
 def import_old_protocols(sql_text):
     protocoltype_lines = []
@@ -46,22 +49,27 @@ def import_old_protocols(sql_text):
         elif line.startswith(INSERT_PROTOCOL):
             protocol_lines.append(line)
     if (len(protocoltype_lines) == 0
-    or len(protocol_lines) == 0):
+            or len(protocol_lines) == 0):
         raise ValueError("Necessary lines not found.")
     type_id_to_handle = {}
     for type_line in protocoltype_lines:
-        for id, handle, name, mail, protocol_id in _split_insert_line(type_line):
+        for id, handle, name, mail, protocol_id in _split_insert_line(
+                type_line):
             type_id_to_handle[int(id)] = handle.lower()
     protocols = []
     for protocol_line in protocol_lines:
         for (protocol_id, old_type_id, date, source, textsummary, htmlsummary,
-            deleted, sent, document_id) in _split_insert_line(protocol_line):
+                deleted, sent, document_id) in _split_insert_line(
+                protocol_line):
             date = datetime.strptime(date, "%Y-%m-%d")
             handle = type_id_to_handle[int(old_type_id)]
-            protocoltype = ProtocolType.query.filter(ProtocolType.short_name.ilike(handle)).first()
+            protocoltype = ProtocolType.query.filter(
+                ProtocolType.short_name.ilike(handle)).first()
             if protocoltype is None:
-                raise KeyError("No protocoltype for handle '{}'.".format(handle))
-            protocol = Protocol(protocoltype_id=protocoltype.id, date=date, source=source)
+                raise KeyError(
+                    "No protocoltype for handle '{}'.".format(handle))
+            protocol = Protocol(
+                protocoltype_id=protocoltype.id, date=date, source=source)
             db.session.add(protocol)
             db.session.commit()
             import tasks
@@ -69,6 +77,7 @@ def import_old_protocols(sql_text):
     for protocol in sorted(protocols, key=lambda p: p.date):
         print(protocol.date)
         tasks.parse_protocol(protocol)
+
 
 def import_old_todomails(sql_text):
     todomail_lines = []
@@ -98,28 +107,34 @@ def import_old_todos(sql_text):
         elif line.startswith(INSERT_TODO):
             todo_lines.append(line)
     if (len(protocoltype_lines) == 0
-    or len(protocol_lines) == 0
-    or len(todo_lines) == 0):
+            or len(protocol_lines) == 0
+            or len(todo_lines) == 0):
         raise ValueError("Necessary lines not found.")
     type_id_to_handle = {}
     for type_line in protocoltype_lines:
-        for id, handle, name, mail, protocol_id in _split_insert_line(type_line):
+        for id, handle, name, mail, protocol_id in _split_insert_line(
+                type_line):
             type_id_to_handle[int(id)] = handle.lower()
     protocol_id_to_key = {}
     for protocol_line in protocol_lines:
         for (protocol_id, type_id, date, source, textsummary, htmlsummary,
-            deleted, sent, document_id) in _split_insert_line(protocol_line):
+                deleted, sent, document_id) in _split_insert_line(
+                protocol_line):
             handle = type_id_to_handle[int(type_id)]
-            date_string = date [2:]
-            protocol_id_to_key[int(protocol_id)] = "{}-{}".format(handle, date_string)
+            date_string = date[2:]
+            protocol_id_to_key[int(protocol_id)] = "{}-{}".format(
+                handle, date_string)
     todos = []
     for todo_line in todo_lines:
-        for old_id, protocol_id, who, what, start_time, end_time, done in _split_insert_line(todo_line):
+        for (old_id, protocol_id, who, what, start_time, end_time,
+             done) in _split_insert_line(todo_line):
             protocol_id = int(protocol_id)
             if protocol_id not in protocol_id_to_key:
-                print("Missing protocol with ID {} for Todo {}".format(protocol_id, what))
+                print("Missing protocol with ID {} for Todo {}".format(
+                    protocol_id, what))
                 continue
-            todo = OldTodo(old_id=old_id, who=who, description=what,
+            todo = OldTodo(
+                old_id=old_id, who=who, description=what,
                 protocol_key=protocol_id_to_key[protocol_id])
             todos.append(todo)
     OldTodo.query.delete()
@@ -127,12 +142,16 @@ def import_old_todos(sql_text):
     for todo in todos:
         db.session.add(todo)
     db.session.commit()
-        
+
+
 def _split_insert_line(line):
     insert_part, values_part = line.split("VALUES", 1)
     return _split_base_level(values_part)
 
-def _split_base_level(text, begin="(", end=")", separator=",", string_terminator="'", line_end=";", ignore=" ", escape="\\"):
+
+def _split_base_level(
+        text, begin="(", end=")", separator=",", string_terminator="'",
+        line_end=";", ignore=" ", escape="\\"):
     raw_parts = []
     current_part = None
     index = 0
@@ -210,5 +229,3 @@ def _split_base_level(text, begin="(", end=")", separator=",", string_terminator
             fields.append(current_field)
         parts.append(fields)
     return parts
-        
-    
