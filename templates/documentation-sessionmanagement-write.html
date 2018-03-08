@@ -1,18 +1,112 @@
 {% extends "documentation-base.html" %}
 {% set active_page = "write_sessionmanagement_documentation" %}
+{% block title %}Sitzungsverwaltung: Protokollieren{% endblock %}
 
 {% block documentation_content %}
-    <h3>Protokollieren</h3>
+    <h3>Sitzungsverwaltung: Protokollieren</h3>
+	<p>
+	Der wichtigeste Bestandteil des Protokollsystems ist sicherlich das Schreiben des Protokolls selbst. Ist eine Sitzung <a href="plan#prepare">fertig vorbereitet</a> und beginnt die Sitzung in wenigen Minuten so kann das benötigte <a href="plan#find">Protokoll ausgewählt</a> werden. Anschließend kann das Mitschreiben beginnen.
+	</p>
+	<p>
+	Der folgende allgemeine Ablauf soll einen Überblick der Schritte geben, die beim Protokollieren im Protokollsystem vorgenommen werden. Dabei ist der Prozess in drei Phasen unterteilt:
+	</p>
+	<ul>
+		<li><a href="#session_start">Mit Beginn einer Sitzung</a></li>
+		<li><a href="#session_run">Während einer Sitzung</a></li>
+		<li><a href="#session_end">Nach der Sitzung</a></li>
+	</ul>	
+	
+	<h4 id="session_start">Mit Beginn einer Sitzung</h4>
+	<p>
+	Kurz bevor die Sitzung los geht oder mit dem Beginn der Sitzung wird das Protokoll erzeugt und die offenen <a href="/documentation/syntax/meta">Metadaten</a> ausgefüllt. Um dies zu erreichen werden die folgenden Schritte durchgeführt.
+	</p>
+	<ol>
+		<li>Stelle sicher, dass alle mit dem Vorprotokollieren fertig sind.</li>
+		{% if config.ETHERPAD_ACTIVE %}
+		<li>Durch betätigen des Knopfes „Etherpad“ das Etherpad mit dem Protokoll öffnen. <i>Bitte beachte: Nur beim ersten Betätigen werden die TOPs und die vorprotokollierten Inhalte ins Etherpad übertragen.</i></li>
+		{% else %}
+		<li>Durch betätigen des Knopfes „Vorlage“ eine Textdatei mit der Protokollvorlage herunterladen.</li>
+		{% endif %}
+	</ol>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_create_protocoll">Beispiel - Protokoll{% if config.ETHERPAD_ACTIVE %} ins Etherpad übertragen{% else %}vorlage herunterladen{% endif %}</a></h5>
+        </div>
+        <div id="example_create_protocoll" class="panel-body panel-collapse collapse">
+			<div class="btn-group">
+				{% if config.ETHERPAD_ACTIVE %}
+				<a class="btn btn-primary" href="#example_create_protocoll">Aus Etherpad</a>
+				{% endif %}
+				<a class="btn btn-default" href="#example_create_protocoll">Editieren</a>
+				{% if config.ETHERPAD_ACTIVE %}
+				<a class="btn btn-primary" href="#example_create_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.');">Etherpad</a>
+				{% endif %}
+				<a class="btn btn-default" href="#example_create_protocoll">Vorlage</a>
+				{% if config.MAIL_ACTIVE %}
+				<a class="btn btn-default" href="#example_create_protocoll" onclick="return confirm('Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.');">Einladung versenden</a>
+				{% endif %}
+				<a class="btn btn-default" href="#example_create_protocoll">Typ</a>
+				<a class="btn btn-default" href="#example_create_protocoll">Neu kompilieren</a>
+				<a class="btn btn-danger" href="#example_create_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Protokoll löschen möchtest?');">Löschen</a>
+			</div>
+		</div>
+	</div>
+	
+	<h4 id="session_run">Während einer Sitzung</h4>
+	<p>
+	Läuft eine Sitzung so gibt es neben der <a href="/documentation/syntax">Syntax</a> des Protokolls auch weitere Punkte zu beachten.
+	</p>
+	<ul>
+		{% if config.ETHERPAD_ACTIVE %}
+		<li>Schreibe das Protokoll im Etherpad.</li>
+		{% endif %}
+		<li>Fülle alle benötigten <a href="/documentation/syntax/meta">Metadatenfelder</a>.</li>
+		<li>Falls <a href="/documentation/syntax/tags#todo">Todos</a> erledigt sind, markiere diese als erledigt.</li>
+		<li>Erfasse Beschlüsse die während einer Sitzung getroffen werden mit dem <a href="/documentation/syntax/tags#decision">Beschluss-Tag</a>.</li>
+		<li>Nutze auch die anderen <a href="/documentation/syntax/tags">Tags</a>, wo diese erforderlich sind.</li>
+	</ul>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_example_protocoll">Beispiel - Ausschnitt eines Protokolls</a></h5>
+        </div>
+        <div id="example_example_protocoll" class="panel-body panel-collapse collapse">
+			<p>
+				<code>#Datum;14.03.2018</code><br/>
+				<code>#Beginn;17:00</code><br/>
+				<code>#Ende;</code>
+			</p>
+			<p>...</p>
+			<p><code>[todo;Diese Aufage ist noch offen;5;erledigt]</code></p>
+			<p>...</p>
+			<p><code>[beschluss;Die Sitzung genehmigt das Protokoll einstimmig]</code></p>
+		</div>
+	</div>
+	
+	<h4 id="session_end">Nach der Sitzung</h4>
+	<p>
+	Ist die Sitzung zu Ende so kann die Protokoll-PDF-Datei erzeugt werden. Nicht immer klappt dies Reibungslos und gelegentlich schleichen sich Rechtschreibfehler ein, weshalb die folgenden Schritte dazu dienen Fehler so weit wie möglich zu entfernen.
+	</p>
+	<ol>
+		{% if config.ETHERPAD_ACTIVE %}
+		<li>Importiere das Protokoll am Ende mit „Aus Etherpad“</li>
+		{% else %}
+		<li>Importiere das Protokoll über „Hochladen &rarr; Quellcode“</li>
+		{% endif %}
+        <li>Falls Fehler beim Erstellen PDF-Date der auftreten, behebe diese. Ein Auflistung wird dir nach dem Aktualisieren der Webseite oder auf der <a href="{{url_for("list_errors")}}">Fehlerübersichtsseite</a></li>
+        <li>Wenn keine Fehler mehr auftreten, drucke das Protokoll mit „Löschen” (unten beim Anhang) aus.</li>
+        <li>Korrekturlesen lassen und im Etherpad korrigieren, dann nochmal „aus Etherpad“</li>
+	</ol>
+	
+	{% if config.ETHERPAD_ACTIVE %}
+	<h4>Bekannte Problem bei der Etherpadnutzung</h4>
+	<h5>Höchst interne Protokolle</h5>
+    Falls das Protokoll Daten beinhaltet, die auf keinen Fall öffentlich sein sollten (z.B. personenbezogene Daten bei einem Sozialausschuss), kann anstelle des Editierens im Etherpad auch mit „Vorlage“ die leere Protokollvorlage heruntergeladen werden. Darin kann lokal mit einem beliebigen Texteditor die Sitzung protokolliert werden, um sie dann am Ende lokal zu speichern und mit „Quellcode hochladen“ hochzuladen.
+	{% endif %}
+	
     <h4 id="wie">Wie schreibe ich eine Protokoll?</h4>
         Die folgenden Schritte werden erst ein paar Minuten vor der Sitzung ausgeführt. Vorher werden Inhalte und TOPs wie oben beschrieben vorprotokolliert.
         <ol>
-            <li>Protokoll auswählen (s.o.)</li>
-            <li>mit „In Etherpad“ die Vorlage in das Etherpad schreiben.</li>
-            <li>mit „Etherpad“ das Etherpad öffnen</li>
-            <li>verlese Tagesordnung und Todos</li>
-            <li>falls Todo erledigt, markiere als erledigt (Details siehe <a href="#Todos">Todos</a></li>
-            <li>schreibe das Protokoll im Etherpad</li>
-            <li>Importiere das Protokoll am Ende mit „Aus Etherpad“</li>
+			<li>Importiere das Protokoll am Ende mit „Aus Etherpad“</li>
             <li>Falls Fehler auftreten, behebe sie (siehe <a href="#fehler">Fehler</a></li>
             <li>Wenn keine Fehler mehr auftreten, drucke das Protokoll mit „Löschen” (unten beim Anhang) aus.</li>
             <li>Korrekturlesen lassen und im Etherpad korrigieren, dann nochmal „aus Etherpad“</li>
@@ -21,6 +115,4 @@
             <li>Korrekturen abwarten (z.B. die Genehmigung auf der nächsten Sitzung)</li>
             <li>Veröffentlichen (und ggf. öffentlich versenden)</li>
         </ol>
-        <h5>Höchst interne Protokolle</h5>
-        Falls das Protokoll Daten beinhaltet, die auf keinen Fall öffentlich sein sollten (z.B. personenbezogene Daten bei einem Sozialausschuss), kann anstelle des Editierens im Etherpad auch mit „Vorlage“ die leere Protokollvorlage heruntergeladen werden. Darin kann lokal mit einem beliebigen Texteditor die Sitzung protokolliert werden, um sie dann am Ende lokal zu speichern und mit „Quellcode hochladen“ hochzuladen.
 {% endblock %}

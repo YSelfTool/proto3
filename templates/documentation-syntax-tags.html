@@ -6,11 +6,11 @@
     Tags können Text besonders hervorheben oder bestimmte Aktionen ausführen.
     Die grundsätzliche Syntax ist <code>[Name;Arg1;Arg2;…]</code>, wobei theoretisch beliebig viele Argumente angegeben werden können, allerdings je nach Typ nur endlich viele eine Bedeutung haben.
 	
-	<h4>URL-Tag</h4>
+	<h4 id="url">URL-Tag</h4>
 	Mittels <code>[url;https://protokolle.fsmpi.rwth-aachen.de ]</code> kann ein entsprechend formatierter Link eingebunden werden.
 	Das Leerzeichen am Ende ist nicht notwendig für das Protokollsystem, erleichtert aber das Anklicken im Etherpad.
 	
-	<h4>Beschluss-Tag</h4>
+	<h4 id="decision">Beschluss-Tag</h4>
 	<code>[beschluss;Wir beschließen etwas tolles.]</code> erzeugt einen Beschluss im Protokoll.
 	Ein Beschluss wird zusätzlich am Anfang des Protokoll angezeigt.
 	Die Beschlüsse sind online durchsuchbar.
@@ -20,7 +20,7 @@
 	Es empfiehlt sich Beschlüsse klar, einfach, eindeutig und auch kontextlos verständlich zu formulieren.
 	Sind die Beschlüsse im Rahmen einer Abstimmung ergangen, so empfiehlt es sich das Abstimmungsergebnis am Ende des Beschlusses in der Form (JA/NEIN/ENTHALTUNG) anzugeben. <code>[beschluss;Wir beschaffen für bis zu 100,00 € einen Stuhl.(9/1/3);finanzwirksam;Inventar]</code>
 	
-	<h4>Todo-Tag</h4>
+	<h4 id="todo">Todo-Tag</h4>
 	In den Protokollen können <a href="#todos">Todos</a> verwaltet werden.
 	Ein neuer Todo wird mit <code>[todo;Name;Aufgabe]</code> angelegt.
 	Dieser ist dann online und in den Mails sichtbar.
@@ -40,10 +40,10 @@
 		{% endfor %}
 	</ul>
 	
-	<h4>Fußnoten-Tag</h4>
+	<h4 id="footnote">Fußnoten-Tag</h4>
 	Fußnoten können im Protokoll mit <code>[footnote;Inhalt]</code> geschrieben werden.
 	
-	<h4>Sitzungs-Tag</h4>
+	<h4 id="session">Sitzungs-Tag</h4>
 	Aus dem Protokoll können neue Sitzungen desselben Typs mit dem Tag <code>[sitzung;Datum]</code>, z.B. <code>[sitzung;24.12.2017]</code> angelegt werden.
 	Optional kann zusätzlich eine Uhrzeit angegeben werden: <code>[sitzung;Datum;Uhrzeit]</code> (z.B. <code>[sitzung;01.01.2018;9:00]</code>).
 	
