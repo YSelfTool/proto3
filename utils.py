@@ -193,11 +193,16 @@ def add_line_numbers(text):
     return "\n".join(lines)
 
 
-def check_ip_in_networks(networks_string):
+def get_current_ip():
     address = ipaddress.ip_address(request.remote_addr)
     if (address == ipaddress.ip_address("127.0.0.1")
             and "X-Real-Ip" in request.headers):
         address = ipaddress.ip_address(request.headers["X-Real-Ip"])
+    return address
+
+
+def check_ip_in_networks(networks_string):
+    address = get_current_ip()
     try:
         for network_string in networks_string.split(","):
             network = ipaddress.ip_network(network_string.strip())

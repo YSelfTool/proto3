@@ -31,7 +31,7 @@ from shared import (
 from utils import (
     get_first_unused_int, get_etherpad_text, split_terms, optional_int_arg,
     fancy_join, footnote_hash, get_git_revision, get_max_page_length_exp,
-    get_internal_filename, get_csrf_token)
+    get_internal_filename, get_csrf_token, get_current_ip)
 from decorators import (
     db_lookup, protect_csrf,
     require_private_view_right, require_modify_right, require_publish_right,
@@ -64,10 +64,37 @@ migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command("db", MigrateCommand)
 
+try:
+    from raven.contrib.flask import Sentry
+    sentry = Sentry(app, dsn=config.SENTRY_DSN)
+
+    def get_user_info(request):
+        return {
+            "is_authenticated": check_login(),
+            "ip_address": get_current_ip(),
+            "release": get_git_revision(),
+        }
+    sentry.get_user_info = get_user_info
+except ModuleNotFoundError:
+    print("Raven not installed. Not sending issues to Sentry.")
+except AttributeError:
+    print("DSN not configured. Not sending issues to Sentry.")
+
 
 def make_celery(app, config):
     celery = Celery(app.import_name, broker=config.CELERY_BROKER_URL)
     celery.conf.update(app.config)
+    try:
+        from raven import Client as RavenClient
+        from raven.contrib.celery import (
+            register_signal, register_logger_signal)
+        raven_client = RavenClient(config.SENTRY_DSN)
+        register_logger_signal(raven_client)
+        register_signal(raven_client)
+    except ModuleNotFoundError:
+        print("Raven not installed. Not sending celery issues to Sentry.")
+    except AttributeError:
+        print("DSN not configured. Not sending celery issues to Sentry.")
     return celery
 
 
