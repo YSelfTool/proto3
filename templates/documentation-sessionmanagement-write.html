@@ -46,8 +46,6 @@
 				<a class="btn btn-default" href="#example_create_protocoll" onclick="return confirm('Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.');">Einladung versenden</a>
 				{% endif %}
 				<a class="btn btn-default" href="#example_create_protocoll">Typ</a>
-				<a class="btn btn-default" href="#example_create_protocoll">Neu kompilieren</a>
-				<a class="btn btn-danger" href="#example_create_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Protokoll löschen möchtest?');">Löschen</a>
 			</div>
 		</div>
 	</div>
@@ -88,31 +86,172 @@
 	</p>
 	<ol>
 		{% if config.ETHERPAD_ACTIVE %}
-		<li>Importiere das Protokoll am Ende mit „Aus Etherpad“</li>
+		<li>Importiere das Protokoll am Ende der Sitzung mit „Aus Etherpad“.</li>
 		{% else %}
-		<li>Importiere das Protokoll über „Hochladen &rarr; Quellcode“</li>
+		<li>Importiere das Protokoll am Ende der Sitzung über „Hochladen &rarr; Quellcode“.</li>
 		{% endif %}
-        <li>Falls Fehler beim Erstellen PDF-Date der auftreten, behebe diese. Ein Auflistung wird dir nach dem Aktualisieren der Webseite oder auf der <a href="{{url_for("list_errors")}}">Fehlerübersichtsseite</a></li>
-        <li>Wenn keine Fehler mehr auftreten, drucke das Protokoll mit „Löschen” (unten beim Anhang) aus.</li>
-        <li>Korrekturlesen lassen und im Etherpad korrigieren, dann nochmal „aus Etherpad“</li>
+        <li>Falls Fehler beim Erstellen PDF-Date der auftreten, behebe diese und importiere das Protkoll erneut. Ein Auflistung wird dir nach dem Aktualisieren der Webseite oder auf der <a href="{{url_for("list_errors")}}">Fehlerübersichtsseite</a> angezeigt.</li>
 	</ol>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_import_protocoll">Beispiel - Protokoll importieren</a></h5>
+        </div>
+        <div id="example_import_protocoll" class="panel-body panel-collapse collapse">
+			{% if config.ETHERPAD_ACTIVE %}
+			<div class="btn-group">
+				<a class="btn btn-primary" href="#example_import_protocoll">Aus Etherpad</a>
+				<a class="btn btn-default" href="#example_import_protocoll">Editieren</a>
+				<a class="btn btn-primary" href="#example_import_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.');">Etherpad</a>
+				<a class="btn btn-default" href="#example_import_protocoll">Vorlage</a>
+				{% if config.MAIL_ACTIVE %}
+				<a class="btn btn-default" href="#example_import_protocoll" onclick="return confirm('Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.');">Einladung versenden</a>
+				{% endif %}
+				<a class="btn btn-default" href="#example_import_protocoll">Typ</a>
+			</div>
+			{% else %}
+			<form role="form" class="">
+				<div class="form-group  ">
+					<label for="source" class="control-label"><label for="source">Quellcode</label></label>
+					<input class="form-control" id="source" name="source" placeholder="Quellcode" title="" type="file">
+				</div>
+				<button type="button" class="btn btn-default">Hochladen</button>
+			</form>
+			{% endif %}
+		</div>
+	</div>
+	
+	<p>
+	Nach dem das Sitzungsprotokoll vorläufig fertiggestellt ist, kann in den Korrekturprozess eingestiegen werden.
+	</p>
+	<ol>
+		{% if config.MAIL_ACTIVE %}
+        <li>Wenn keine Fehler mehr auftreten, verschicke das Protokoll mit „Intern versenden”.</li>
+		{% else %}
+		<li>Wenn keine Fehler mehr auftreten, gib den Sitzungsteilnehmern Bescheid, dass das Protkoll fertiggestellt ist. Das Protokoll kann mit „Download” heruntergeladen werden.</li>
+		{% endif %}
+        <li>Lasse das Protokoll korrekturlesen und korrigieren.</li>
+		{% if config.ETHERPAD_ACTIVE %}
+		<li>Importiere das Protokoll nach den Korrekturen erneut mit „Aus Etherpad“.</li>
+		{% else %}
+		<li>Importiere das Protokoll nach den Korrekturen erneut über „Hochladen &rarr; Quellcode“.</li>
+		{% endif %}
+	</ol>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_corect_protocoll">Beispiel - Protokoll korrekturlesen</a></h5>
+        </div>
+        <div id="example_corect_protocoll" class="panel-body panel-collapse collapse">
+			<div class="btn-group">
+				{% if config.ETHERPAD_ACTIVE %}
+				<a class="btn btn-default" href="#example_corect_protocoll">Aus Etherpad</a>
+				{% endif %}
+				<a class="btn btn-primary" href="#example_corect_protocoll">Quelltext</a>
+				<a class="btn btn-success" href="#example_corect_protocoll">Editieren</a>
+				{% if config.ETHERPAD_ACTIVE %}
+				<a class="btn btn-primary" href="#example_corect_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.');">Etherpad</a>
+				{% endif %}
+				{% if config.MAIL_ACTIVE %}
+                <a class="btn btn-default" href="#example_corect_protocoll">Intern versenden</a>
+				{% endif %}
+				<a class="btn btn-default" href="#example_corect_protocoll">Veröffentlichen</a>
+				<a class="btn btn-default" href="#example_corect_protocoll">Typ</a>
+				<a class="btn btn-success" href="#example_corect_protocoll">Download</a>
+			</div>
+		</div>
+	</div>
+	
+	<p>
+	Sind die Korrekturen abgeschlossen, so kann zur Veröffentlichung geschritten werden.
+	</p>
+	<ol>
+        <li>Warte alle Korrekturen ab. Ggf. werden letzte Korrekturen mit einer etwaigen Genehmigung des Protokolls auf der nächsten Sitzung vorgenommen.</li>
+		<li>Veröffentliche das Protkoll mit „Veröffentlichen“.</li>
+		{% if config.MAIL_ACTIVE %}
+		<li>Versende das Protkoll ggf. über den öffentenlichen Verteiler mit „Öffentlich versenden“.</li>
+		{% endif %}
+	</ol>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_publish_protocoll">Beispiel - Protokoll veröffentlichen und versenden</a></h5>
+        </div>
+        <ul id="example_publish_protocoll" class="list-group panel-collapse collapse">
+			<li class="list-group-item">
+				<div class="btn-group">
+					{% if config.ETHERPAD_ACTIVE %}
+					<a class="btn btn-default" href="#example_publish_protocoll">Aus Etherpad</a>
+					{% endif %}
+					<a class="btn btn-primary" href="#example_publish_protocoll">Quelltext</a>
+					<a class="btn btn-success" href="#example_publish_protocoll">Editieren</a>
+					{% if config.ETHERPAD_ACTIVE %}
+					<a class="btn btn-primary" href="#example_publish_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.');">Etherpad</a>
+					{% endif %}
+					{% if config.MAIL_ACTIVE %}
+					<a class="btn btn-default" href="#example_publish_protocoll">Intern versenden</a>
+					{% endif %}
+					<a class="btn btn-default" href="#example_publish_protocoll">Veröffentlichen</a>
+					<a class="btn btn-default" href="#example_publish_protocoll">Typ</a>
+					<a class="btn btn-success" href="#example_publish_protocoll">Download</a>
+				</div>
+			</li>
+			<li class="list-group-item">
+				<div class="btn-group">
+					<a class="btn btn-primary" href="#example_publish_protocoll">Quelltext</a>
+					{% if config.MAIL_ACTIVE %}
+					<a class="btn btn-default" href="#example_publish_protocoll">Intern versenden</a>
+					<a class="btn btn-default" href="#example_publish_protocoll">Öffentlich versenden</a>
+					{% endif %}
+					<a class="btn btn-default" href="#example_publish_protocoll">Typ</a>
+					<a class="btn btn-success" href="#example_publish_protocoll">Download</a>
+				</div>
+			</li>
+		</ul>
+	</div>
 	
 	{% if config.ETHERPAD_ACTIVE %}
 	<h4>Bekannte Problem bei der Etherpadnutzung</h4>
-	<h5>Höchst interne Protokolle</h5>
-    Falls das Protokoll Daten beinhaltet, die auf keinen Fall öffentlich sein sollten (z.B. personenbezogene Daten bei einem Sozialausschuss), kann anstelle des Editierens im Etherpad auch mit „Vorlage“ die leere Protokollvorlage heruntergeladen werden. Darin kann lokal mit einem beliebigen Texteditor die Sitzung protokolliert werden, um sie dann am Ende lokal zu speichern und mit „Quellcode hochladen“ hochzuladen.
+	<h5><b>Leeres Etherpad</b></h5>
+	<p>
+	Wird mit „Etherpad“ ein Pad geöffnet und es ist leer bzw. beinhaltet nur den Standardtext, so sollte das Etherpad mit „Etherpad“ erneut geöffnet werden. Schlägt das ganze wende dich bitte an an die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a>.
+	</p>
+	<h5><b>Etherpad zu früh geöffnet</b></h5>
+	<p>
+	Wurde das Pad zu früh erstellt und es wurden noch nicht alle TOPs bzw. alle vorprotokollierten Teil in das Pad übernommen und es zu aufwendig ist diese manuell einzufügen, so lösche den Inhalt des Pad und öffne das Pad erneut mit „Etherpad“.
+	</p>
+	<h5><b>Höchst interne Protokolle</b></h5>
+    <p>
+	Falls das Protokoll Daten beinhaltet, die auf keinen Fall öffentlich sein sollten (z.B. personenbezogene Daten bei einem Sozialausschuss), kann anstelle des Editierens im Etherpad auch mit „Vorlage“ die leere Protokollvorlage heruntergeladen werden. Darin kann lokal mit einem beliebigen Texteditor die Sitzung protokolliert werden, um sie dann am Ende lokal zu speichern und mit „Quellcode hochladen“ hochzuladen.
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_internal_protocoll">Beispiel - Höchst interne Protokolle</a></h5>
+        </div>
+        <ul id="example_internal_protocoll" class="list-group panel-collapse collapse">
+			<li class="list-group-item">
+				<div class="btn-group">
+					{% if config.ETHERPAD_ACTIVE %}
+					<a class="btn btn-primary" href="#example_internal_protocoll">Aus Etherpad</a>
+					{% endif %}
+					<a class="btn btn-default" href="#example_internal_protocoll">Editieren</a>
+					{% if config.ETHERPAD_ACTIVE %}
+					<a class="btn btn-primary" href="#example_internal_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.');">Etherpad</a>
+					{% endif %}
+					<a class="btn btn-default" href="#example_internal_protocoll">Vorlage</a>
+					{% if config.MAIL_ACTIVE %}
+					<a class="btn btn-default" href="#example_internal_protocoll" onclick="return confirm('Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.');">Einladung versenden</a>
+					{% endif %}
+					<a class="btn btn-default" href="#example_internal_protocoll">Typ</a>
+				</div>
+			</li>
+			<li class="list-group-item">
+				<form role="form" class="">
+					<div class="form-group  ">
+						<label for="source" class="control-label"><label for="source">Quellcode</label></label>
+						<input class="form-control" id="source" name="source" placeholder="Quellcode" title="" type="file">
+					</div>
+					<button type="button" class="btn btn-default">Hochladen</button>
+				</form>
+			</li>
+		</ul>
+	</div>
 	{% endif %}
-	
-    <h4 id="wie">Wie schreibe ich eine Protokoll?</h4>
-        Die folgenden Schritte werden erst ein paar Minuten vor der Sitzung ausgeführt. Vorher werden Inhalte und TOPs wie oben beschrieben vorprotokolliert.
-        <ol>
-			<li>Importiere das Protokoll am Ende mit „Aus Etherpad“</li>
-            <li>Falls Fehler auftreten, behebe sie (siehe <a href="#fehler">Fehler</a></li>
-            <li>Wenn keine Fehler mehr auftreten, drucke das Protokoll mit „Löschen” (unten beim Anhang) aus.</li>
-            <li>Korrekturlesen lassen und im Etherpad korrigieren, dann nochmal „aus Etherpad“</li>
-            <li>Drucken und abheften</li>
-            <li>Intern per Mail versenden</li>
-            <li>Korrekturen abwarten (z.B. die Genehmigung auf der nächsten Sitzung)</li>
-            <li>Veröffentlichen (und ggf. öffentlich versenden)</li>
-        </ol>
 {% endblock %}
