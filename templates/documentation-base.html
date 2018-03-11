@@ -1,5 +1,7 @@
 {% extends "layout.html" %}
-{% from "macros.html" import render_table %}
+{% block additional_js %}
+<link rel="stylesheet" href="{{url_for('static', filename='css/pygments-manni.css')}}" />
+{% endblock %}
 {% set navigation_bar = [
     ('sessionmanagement_documentation', '/documentation/sessionmanagement', 'Sitzungsverwaltung', [
         ('plan_sessionmanagement_documentation', '/documentation/sessionmanagement/plan', 'Planung'),
