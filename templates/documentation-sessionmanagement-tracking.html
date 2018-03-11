@@ -1,26 +1,242 @@
 {% extends "documentation-base.html" %}
 {% set active_page = "tracking_sessionmanagement_documentation" %}
+{% block title %}Sitzungsverwaltung: Nachverfolgung{% endblock %}
 
 {% block documentation_content %}
-    <h3>Nachverfolgung</h3>
-    <h4 id="todos">Todosystem</h4>
-        Das Protokollsystem verwaltet Todos über mehrere Protokolle hinweg. Offene Todos werden in die Protokollvorlage eingefügt, falls diese einen TOP „Todos“ beinhaltet.
-        <ul>
-            <li>Jedes Todo hat eine (oder durch Kommata oder Leerzeichen getrennt mehrere) Personen, die es erledigen sollen.</li>
-            <li>Todos haben auch einen Zustand, in dem sie sich befinden. Es gibt:
-                <ul>
-                    <li>offen: Das Todo muss noch erledigt werden</li>
-                    <li>wartet auf Rückmeldung: Jemand kümmert sich um das Todo, wartet allerdings gerade darauf, dass jemand anderes (intern oder extern) sich zurückmeldet.</li>
-                    <li>in Bearbeitung: Jemand kümmert sich gerade um das Todo.</li>
-                    <li>ab: Das Todo wird erst ab dem Datum relevant.</li>
-                    <li>vor: Das Todo muss vor dem Datum erledigt werden.</li>
-                    <li>verwaist: Das Todo hat niemanden, der es erledigen wird.</li>
-                    <li>erledigt: Das Todo ist erledigt.</li>
-                    <li>abgewiesen: Das Todo ist nicht und wird nicht mehr erledigt.</li>
-                    <li>obsolet: Das Todo wurde nicht erledigt und nun ist es zu spät, das noch zu tun.</li>
-                </ul>
-            </li>
-            <li>Alle Todos findest du unter <a href="{{url_for("list_todos")}}">Todos</a>.</li>
-        </ul>
+    <h3>Sitzungsverwaltung: Nachverfolgung</h3>
+	<p>
+	Nachdem eine Sitzung beendet und das <a href="write#session_end">Protokoll importiert</a> wurde, können in einer Sitzung gefasste <a href="#decisions">Beschlüsse</a> und verteilte <a href="#todos">Aufgaben</a> eingesehen sowie nachverfolgt werden.
+	</p>
+	
     <h4 id="decisions">Beschlüsse</h4>
+	<p>
+	Alle in den Protollen festgehaltenen Beschlüsse werden in der <a href="{{url_for('list_decisions')}}">Beschlussübersicht</a> angezeigt. Neben dem Beschlusstext beinhaltet die Übersicht die zu den Beschlüssen gehörenden Protokoll sowie die Beschlusskategorie. In den einzelnen Protokollen werdend die Beschlüsse ebenfalls zusammengefasst dargestellt, um einen Überbrlick über alle Beschlüsse der betrefenden Sitzung zu erhalten.
+	</p>
+	{% if config.PRINTING_ACTIVE %}
+	<p>
+	Beschlüsse können direkt aus dem Protokollsystem an den im <a href="/documentation/configuration/types">Protokolltyp</a> hinterlegten Drucker durch klicken auf „Drucken“ zum Drucken gesendet werden, so dass gedruckte Beschlüsse beispielsweise mit Kassenanweisungen abgeheftet werden können.
+	</p>
+	{% endif %}
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_decision_overview">Beispiel - Beschlussübersicht</a></h5>
+        </div>
+        <div id="example_decision_overview" class="panel-body panel-collapse collapse">
+            <form role="form" class="form-inline">
+                <div class="form-group  ">
+                    <input class="form-control" id="search" name="search" placeholder="Suchbegriff" title="" type="text" value="">
+                </div>
+                <div class="form-group  ">
+                    <select class="form-control" id="protocoltype_id" name="protocoltype_id" placeholder="Typ" title="">
+                        <option value="-1">Alle Typen</option>
+                        <option value="1">sitzung</option>
+                        <option value="2">versammlung</option>
+                        <option value="3">arbeitsgruppe</option>
+                    </select>
+                </div>
+                <div class="form-group  ">
+                    <select class="form-control" id="decisioncategory_id" name="decisioncategory_id" placeholder="Kategorie" title="">
+						<option value="-1">Alle Kategorien</option>
+						<option value="1">finanzwirksam</option>
+						<option value="2">ESA</option>
+					</select>
+                </div>
+                <button type="button" class="btn btn-default">Suchen</button>
+            </form>
+            <h3>Beschlüsse <a href="#">Neu</a></h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+						<th>Sitzung</th>
+						<th>Beschluss</th>
+						<th>Kategorie</th>
+						<th></th>
+					</tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><a href="#">Sitzung-18-03-01</a></td>
+                        <td>Die Sitzung beschließt den Finanzplan der ESA (M/0/2).</td>
+                        <td>finanzwirksam</td>
+                        <td>{% if config.PRINTING_ACTIVE %}<a href="#">Drucken</a>{% endif %}</td>
+					</tr>
+					<tr>
+                        <td><a href="#">Sitzung-18-03-01</a></td>
+                        <td>Die Sitzung beschließt die ESAG mit nach Kräften zu unterstützen (5/1/3).</td>
+                        <td>ESA</td>
+                        <td>{% if config.PRINTING_ACTIVE %}<a href="#">Drucken</a>{% endif %}</td>
+					</tr>
+					<tr>
+                        <td><a href="#">Arbeitsgruppe-18-02-15</a></td>
+                        <td>Die Arbeitsgruppe wählt Katrin Musterfrau als Eventkoordination (M/0/0).</td>
+                        <td></td>
+                        <td>{% if config.PRINTING_ACTIVE %}<a href="#">Drucken</a>{% endif %}</td>
+					</tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+	
+    <h4 id="todos">Aufgaben (Todos)</h4>
+	<p>
+	Einzelne Aufgaben, die während oder außerhalb einer Sitzung vergeben werden, können mit dem Protokollsystem über mehrere Protokolle hinweg verwaltet werden. Offene Todos werden dabei automatisch in die Protokollvorlage eingefügt, falls diese einen <a href="/documentation/configuration/types">Standard-TOP</a> „Todos“ beinhaltet. Darüberhinaus können alle Todos auf der entsprechenden <a href="{{url_for('list_todos')}}">Übersichtsseite</a> eingesehen werden.
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_todo_overview">Beispiel - Todoübersicht</a></h5>
+        </div>
+        <div id="example_todo_overview" class="panel-body panel-collapse collapse">
+            <form role="form" class="form-inline">
+                <div class="form-group  ">
+                    <input class="form-control" id="search" name="search" placeholder="Suchbegriff" title="" type="text" value="">
+                </div>
+                <div class="form-group  ">
+                    <select class="form-control" id="protocoltype_id" name="protocoltype_id" placeholder="Typ" title="">
+                        <option value="-1">Alle Typen</option>
+                        <option value="1">sitzung</option>
+                        <option value="2">versammlung</option>
+                        <option value="3">arbeitsgruppe</option>
+                    </select>
+                </div>
+                <div class="form-group  ">
+                    <select class="form-control" id="state_open" name="state_open" placeholder="Offen" title="">
+						<option selected="" value="-1">Alle</option>
+						<option value="0">Offen</option>
+						<option value="1">In Bearbeitung</option>
+					</select>
+                </div>
+                <button type="button" class="btn btn-default">Suchen</button>
+            </form>
+            <h3>Todos <a href="#">Neu</a></h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th class="hidden-sm hidden-md hidden-lg">Todo</th>
+						<th class="hidden-xs">ID</th>
+						<th class="hidden-xs">Status</th>
+						<th class="hidden-xs">Sitzung</th>
+						<th class="hidden-xs">Name</th>
+						<th>Aufgabe</th>
+						<th class="hidden-xs"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="hidden-sm hidden-md hidden-lg"><a href="#">[offen]</a><br><a href="#">Sitzung</a><br>mmustermann</td>
+                        <td class="hidden-xs"><a href="#">2</a></td>
+                        <td class="hidden-xs">[offen]</td>
+                        <td class="hidden-xs"><a href="#">Sitzung-18-03-01</a></td>
+                        <td class="hidden-xs">mmustermann</td>
+                        <td>Mit der Fakultät treffen</td>
+                        <td class="hidden-xs"><a href="#">Ändern</a>, <a href="#">Löschen</a></td>
+					</tr>
+					<tr>
+                        <td class="hidden-sm hidden-md hidden-lg"><a href="#">[in Bearbeitung]</a><br><a href="#">Arbeitsgruppe</a><br>kmusterfrau</td>
+                        <td class="hidden-xs"><a href="#">1</a></td>
+                        <td class="hidden-xs">[in Bearbeitung]</td>
+                        <td class="hidden-xs"><a href="#">Arbeitsgruppe-18-02-15</a></td>
+                        <td class="hidden-xs">kmusterfrau</td>
+                        <td>Organisiation des nächsten Events</td>
+                        <td class="hidden-xs"><a href="#">Ändern</a>, <a href="#">Löschen</a></td>
+					</tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+	<p>
+	Aufgaben können im Protokollsystem auch außerhalb eines Protokolls direkt auf der <a href="{{url_for('list_todos')}}">Übersichtsseite</a> über die Schaltfläche „neu“ angelegt werden. Zu jeder Aufgabe sollte mindestens eine Person zugeordnet werden, die das Todo erledigt. Werden mehrere Personen angegeben, so sind diese durch Kommata oder Leerzeichen zu trennen. In aller Regel wird für jede Person ein internes Personenkürzel für die Zuweisung einer Aufgabe genutzt. Damit diese Personen eine Benachrichtigung über das neue Todo erhalten, sollten zu jedem internen Personenkürzel eine <a href="/documentation/configuration/todomails">E-Mailadresse</a> hinterlegt werden.
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_new_todo">Beispiel - Todo anlegen</a></h5>
+        </div>
+        <div id="example_new_todo" class="panel-body panel-collapse collapse">
+			<form role="form" class="">
+				<div class="form-group  ">
+					<label for="protocoltype_id" class="control-label"><label for="protocoltype_id">Typ</label></label>
+					<select class="form-control" id="protocoltype_id" name="protocoltype_id" placeholder="Typ" title="">
+						<option value="1">sitzung</option>
+                        <option value="2">versammlung</option>
+                        <option value="3">arbeitsgruppe</option>
+					</select>
+				</div>
+				<div class="form-group  ">
+					<label for="who" class="control-label"><label for="who">Person</label></label>
+					<input class="form-control" id="who" name="who" placeholder="Person" title="" value="" type="text">
+				</div>
+				<div class="form-group  ">
+					<label for="description" class="control-label"><label for="description">Aufgabe</label></label>
+					<input class="form-control" id="description" name="description" placeholder="Aufgabe" title="" value="" type="text">
+				</div>
+				<div class="form-group  ">
+					<label for="state" class="control-label"><label for="state">Status</label></label>
+					<select class="form-control" id="state" name="state" placeholder="Status" title="">
+						<option value="TodoState.open">offen</option>
+						<option value="TodoState.waiting">wartet auf Rückmeldung</option>
+						<option value="TodoState.in_progress">in Bearbeitung</option>
+						<option value="TodoState.after">ab</option>
+						<option value="TodoState.before">vor</option>
+						<option value="TodoState.orphan">verwaist</option>
+						<option value="TodoState.done">erledigt</option>
+						<option value="TodoState.rejected">abgewiesen</option>
+						<option value="TodoState.obsolete">obsolet</option>
+					</select>
+				</div>
+				<div class="form-group  ">
+					<label for="date" class="control-label"><label for="date">Datum</label></label>
+					<input class="form-control" id="date" name="date" placeholder="Datum" title="" value="" type="date">
+				</div>
+				<button type="button" class="btn btn-default">Anlegen</button>
+			</form>
+		</div>
+	</div>
+	<p>
+    Neben der eigentlichen Aufgabe und den zugeordneten Personen haben Todos auch einen Zustand, in dem sie sich befinden. Die folgende Tabelle listet die möglichen Zustände und ihre Bedeutung auf.
+	</p>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Zustand</th>
+				<th>Bedeutung</th>
+			</tr>
+		</thead>
+        <tbody>
+            <tr>
+				<td>offen</td>
+				<td>Das Todo muss noch erledigt werden</td>
+			</tr>
+            <tr>
+				<td>wartet auf Rückmeldung</td>
+				<td>Jemand kümmert sich um das Todo, wartet allerdings gerade darauf, dass jemand anderes (intern oder extern) sich zurückmeldet.</td>
+			</tr>
+			<tr>
+				<td>in Bearbeitung</td>
+				<td>Jemand kümmert sich gerade um das Todo.</td>
+			</tr>
+			<tr>
+				<td>ab</td>
+				<td>Das Todo wird erst ab dem Datum relevant.</td>
+			</tr>
+			<tr>
+				<td>vor</td>
+				<td>Das Todo muss vor dem Datum erledigt werden.</td>
+			</tr>
+			<tr>
+				<td>verwaist</td>
+				<td>Das Todo hat niemanden, der es erledigen wird.</td>
+			</tr>
+			<tr>
+				<td>erledigt</td>
+				<td>Das Todo ist erledigt.</td>
+			</tr>
+			<tr>
+				<td>abgewiesen</td>
+				<td>Das Todo ist nicht und wird nicht mehr erledigt.</td>
+			</tr>
+			<tr>
+				<td>obsolet</td>
+				<td>Das Todo wurde nicht erledigt und nun ist es zu spät, das noch zu tun.</td>
+			</tr>
+        </tbody>
+    </table>
 {% endblock %}
