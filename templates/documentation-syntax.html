@@ -1,10 +1,21 @@
 {% extends "documentation-base.html" %}
 {% set active_page = "syntax_documentation" %}
+{% block title %}Syntax{% endblock %}
 
 {% block documentation_content %}
     <h3>Syntax</h3>
-    
-    <h3 id="syntax">Syntax</h3>
-        Ein Dokument beginn mit einigen Metadaten, danach kommen nacheinander die Tagesordnungspunkte, die durch Listen strukturiert sind.
-        Darüberhinaus gibt es Tags, mit denen URLs, Beschlüsse oder ToDos markiert werden können.
+    <p>
+	Das Herz des Protokollsystems ist der eigentliche Protokollsyntax, aus dem systemintern ein druckbares Dokument und menschenlesbaren Webseiteninhalt erstellt. Der Systax sieht eine Strukturierung des Prokolls vor. Ein Dokument beginn mit einigen Metadaten, danach kommen nacheinander die Tagesordnungspunkte, die strukturiert diskuiterte Punkte enthalten. Darüberhinaus gibt es Tags, mit denen unter anderem URLs, Beschlüsse oder ToDos markiert werden können.
+	</p>
+	<h4>Der Syntax im Detail</h4>
+	<p>
+	Um die Funktionsweise und das Verhalten des Protokollsystems bei der Umwandlung eines Protokolls zu verstehen, wird auf den Unterseiten auf die einzelnen Elemente der Protokollsyntax näher beschrieben.
+	</p>
+	<ul>
+		<li><a href="/documentation/syntax/meta">Metadaten</a></li>
+		<li><a href="/documentation/syntax/top">Tagesordnungspunkte</a></li>
+		<li><a href="/documentation/syntax/lists">Listen</a></li>
+		<li><a href="/documentation/syntax/internal">Interne Abschnitte</a></li>
+		<li><a href="/documentation/syntax/tags">Tags</a></li>
+	</ul>
 {% endblock %}
