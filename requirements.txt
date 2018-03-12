@@ -46,7 +46,7 @@ pyflakes==1.6.0
 Pygments==2.2.0
 pyldap==2.4.45
 pyparsing==2.2.0
-python-dateutil==2.6.1
+python-dateutil==2.7.0
 python-editor==1.0.3
 python-engineio==2.0.2
 python-Levenshtein==0.12.0
