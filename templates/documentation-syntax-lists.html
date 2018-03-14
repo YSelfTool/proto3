@@ -1,23 +1,44 @@
 {% extends "documentation-base.html" %}
 {% set active_page = "lists_syntax_documentation" %}
+{% block title %}Syntax: Listen{% endblock %}
 
 {% block documentation_content %}
-    <h3>Listen</h3>
-    <h4 id="liste">Liste</h4>
-        Die Liste ist das einzige strukturierende Element.
-        Listen können beliebig geschachtelt werden.
-        Die Elemente der Liste werden durch das Zeilenende getrennt.
-<pre>
-{TOP Tagesordnungspunkt
-    Zeile mit Text drin
-    Hier eine geschachtelte Liste: {
-        Details zu diesem Punkt.
-        Mehr Details zu diesen Punkt.
-    }
-}
-</pre>
-
-        Text, der vor der öffnenden Klammer <code>{</code> steht, wird als Name der Liste angesehen, nur TOPs können Text hinter der öffnenden Klammer haben.
-        Listen in der höchsten Ebene müssen TOPs sein.
+    <h3>Syntax: Listen</h3>
+    <p>
+    Das Protokollsystem sieht vor, dass Diskussionen in einem Tagesordnungspunkt strukturiert und in Unterpunkte aufgeteilt werden können. Dies wird durch sogenannte Listen umgesetzt. Mit jedem Zeilenumbruch erzeugt das Protokollsystem beim Kompilieren (Übersetzten des Syntax in ein PDF oder die Webseitenanzeige) einen neue Zeile im fertigen Protokoll, welchem ggf. ein Auszählungszeichen besitzt.
+    </p>
+    <p>
+    Zusätzlich gibt es im Protokollsystem spezielle Listen, die es ermöglichen hinsichtlich der Ausgabe oder des Titels Unterscheidungen vornehmen zu können. {% if config.PRIVATE_KEYWORDS|length > 0  %}Diese Listen sind{% else %}Eine solche Liste ist{% endif %} der <a href="top">Tagesordnungspunkt</a>{% if config.PRIVATE_KEYWORDS|length > 0  %} und der <a href="internal">interne Abschnitt</a>{% endif %}.
+    </p>
+    <h4>Definition</h4>
+	<div class="row">
+        <div class="col-sm-9">
+            <p>
+            Die Liste ist im Protokoll das strukturierende Element. Es beginnt und endet mit einer geschweiften Klammer. Die Elemente der Liste werden durch das Zeilenende getrennt. Es ist möglich Listen beliebig ineinander zuschachteln. Zusätzlich kann eine Liste einen Titel haben, der vor der öffnenden Klammer <code>{</code> steht.
+            </p>
+        </div>
+        <div class="col-sm-3 panel panel-warning">
+            <div class="panel-heading">
+                <h5 class="panel-title">Zu beachten</h5>
+            </div>
+            <div class="panel-body ">
+                <ul>
+                    <li>Spezielle Listen weisen hinsichtlich des Titels ein anders Verhalten auf.</li>
+                    <li>Listen in der höchsten Ebene müssen <a href="top">TOPs</a> sein.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title">Syntax einer Liste</a></h5>
+        </div>
+		<figure class="panel-body">
+			<pre class="highlight"><code><span class="sx">Titel der Liste</span>{
+    <span class="c1">Details zu diesem Punkt.</span>
+    <span class="c1">Mehr Details zu diesen Punkt in einer neuen Zeile.</span>
+}</code></pre>
+        </figure>
+    </div>     
 
 {% endblock %}
