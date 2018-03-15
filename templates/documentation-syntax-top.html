@@ -16,26 +16,28 @@
             <p>
             In Protokollsystax wird ein Tagesordnungspunkt stets von geschweiften Klammern eingeschlossen. An die öffnende Klammer schließt sich das Schlüsselwort <code>TOP</code> an. Abgesetzt mit einem Leerzeichen folgt der Titel des TOPs. Nach einem Zeilenumbruach als in einer neuen Zeile beginnt dann der Inhalt des Tagesordnungspunkts. Durch die Verwendung von sogenannten <a href="lists">Listen</a> kann die Mitschrift in einem Tagesordnungspunkt strukturiert werden.
             </p>
-        </div>
-        <div class="col-sm-3 panel panel-warning">
-            <div class="panel-heading">
-                <h5 class="panel-title">Zu beachten</h5>
-            </div>
-            <div class="panel-body ">
-                <p>
-                Innerhalb eines Tagesordnungspunkts kann es keinen weiteren Tagesordnungspunkt geben.
-                </p>
-            </div>
-        </div>
-    </div>
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h5 class="panel-title">Syntax eines Tagesordnungspunkts</a></h5>
-        </div>
-		<figure class="panel-body">
-			<pre class="highlight"><code>{<span class="kr">TOP</span> <span class="sx">Titel des Tagesordnungspunkts</span>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h5 class="panel-title">Syntax eines Tagesordnungspunkts</a></h5>
+				</div>
+				<figure class="panel-body">
+					<pre class="highlight"><code>{<span class="kr">TOP</span> <span class="sx">Titel des Tagesordnungspunkts</span>
     <span class="c1">Hier steht der Inhalt des Tagesordnungspunkts</span>
 }</code></pre>
-        </figure>
+				</figure>
+			</div>
+        </div>
+        <div class="col-sm-3">
+			<div class="panel panel-warning">
+				<div class="panel-heading">
+					<h5 class="panel-title">Zu beachten</h5>
+				</div>
+				<div class="panel-body ">
+					<p>
+					Innerhalb eines Tagesordnungspunkts kann es keinen weiteren Tagesordnungspunkt geben.
+					</p>
+				</div>
+			</div>
+        </div>
     </div>
 {% endblock %}
