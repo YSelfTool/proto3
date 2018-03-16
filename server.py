@@ -346,6 +346,13 @@ def todomails_configuration_documentation():
     return render_template(
         "documentation-configuration-todomails.html")
 
+@app.route("/documentation/configuration/settings")
+@back.anchor
+@login_required
+def settings_configuration_documentation():
+    return render_template(
+        "documentation-configuration-settings.html")
+
 @app.route("/types/list")
 @back.anchor
 @login_required
