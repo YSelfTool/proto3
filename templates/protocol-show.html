@@ -51,7 +51,7 @@
                 {% endif %}
                 {% if has_admin_right %}
             <a class="btn btn-default" href="{{url_for("recompile_protocol", protocol_id=protocol.id, csrf_token=get_csrf_token())}}">Neu kompilieren</a>
-            <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id)}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_short_identifier()}} löschen möchtest?');">Löschen</a>
+            <a class="btn btn-danger" href="{{url_for("delete_protocol", protocol_id=protocol.id, csrf_token=get_csrf_token())}}" onclick="return confirm('Bist du dir sicher, dass du das Protokoll {{protocol.get_short_identifier()}} löschen möchtest?');">Löschen</a>
                 {% endif %}
             {% endif %}
         </div>
