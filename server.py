@@ -320,11 +320,12 @@ def internal_syntax_documentation():
 @back.anchor
 @login_required
 def tags_syntax_documentation():
-    todostates = list(TodoState)
-    name_to_state = TodoState.get_name_to_state()
-    return render_template(
-        "documentation-syntax-tags.html", todostates=todostates,
-        name_to_state=name_to_state)
+	states = {state:[] for state in list(TodoState)}
+	name_to_state = TodoState.get_name_to_state()
+	for state_name in name_to_state:
+		states[name_to_state[state_name]].append(state_name)
+	return render_template(
+		"documentation-syntax-tags.html", states=states)
 
 @app.route("/documentation/configuration")
 @back.anchor

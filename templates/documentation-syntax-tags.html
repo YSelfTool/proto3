@@ -1,44 +1,125 @@
 {% extends "documentation-base.html" %}
 {% set active_page = "tags_syntax_documentation" %}
+{% block title %}Syntax: Tags{% endblock %}
 
 {% block documentation_content %}
-    <h3>Tags</h3>
-    Tags können Text besonders hervorheben oder bestimmte Aktionen ausführen.
-    Die grundsätzliche Syntax ist <code>[Name;Arg1;Arg2;…]</code>, wobei theoretisch beliebig viele Argumente angegeben werden können, allerdings je nach Typ nur endlich viele eine Bedeutung haben.
+    <h3>Syntax: Tags</h3>
+	<p>
+	Sollen in einem Protokoll Texte hervorgehoben oder in einer anderen Art und Weise formatiert werden, so bietet das Protokollsystem sogenannte Tags. Jeder Tag steht dabei stets in einer eigenen Zeile des Protokolls. Mit diesen Tags können neben einer veränderten Ausgabe des Textes auch bestimmte Aktionen im Protokollsystem ausgeführt werden.
+	</p>
+	<h4>Definition</h4>
+	<div class="row">
+        <div class="col-sm-9">
+			<p>
+			Grundsätzlich wird jeder Tag in eckige Klammern eingeschlossen. Eingeleitet wird ein Tag nach der öffnenden eckigen Klammer <code class="highlight" style="color: inherit;"><span class="nt">[</span></code> mit dem Namen des Tags. Mit Semikolons getrennt, folgen theoretisch beliebig viele Argumente, wobei je nach Tag-Typ nur endlich viele Argumente eine Bedeutung haben. Jeder Tag wird als einzelnes Element einer <a href="lists">Liste</a> interpretiert.
+			</p>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h5 class="panel-title">Syntax eines Tags</h5>
+				</div>
+				<figure class="panel-body">
+					<pre class="highlight"><code><span class="nt">[Name</span>;<span class="sx">Argument 1</span>;<span class="sx">Argument 2</span>;…<span class="nt">]</span></code></pre>
+				</figure>
+			</div>
+        </div>
+        <div class="col-sm-3">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h5 class="panel-title">Verfügbare Typen</h5>
+				</div>
+				<div class="panel-body">
+					<ul>
+						<li><a href="#url">URL</a></li>
+						<li><a href="#decision">Beschluss</a></li>
+						<li><a href="#todo">Todo</a></li>
+						<li><a href="#footnote">Fußnote</a></li>
+						<li><a href="#session">Sitzung</a></li>
+					</ul>
+				</div>
+            </div>
+        </div>
+    </div>
 	
 	<h4 id="url">URL-Tag</h4>
-	Mittels <code>[url;https://protokolle.fsmpi.rwth-aachen.de ]</code> kann ein entsprechend formatierter Link eingebunden werden.
-	Das Leerzeichen am Ende ist nicht notwendig für das Protokollsystem, erleichtert aber das Anklicken im Etherpad.
+	<p>
+	Sollen URLs oder Hyperlinks in einem Protokoll dargestellt werden, so kann und sollte der Tag vom Typ <code class="highlight" style="color: inherit;"><span class="nt">url</span></code> genutzt werden. Als einziges Argument wird im Tag die URL angegeben.{% if config.ETHERPAD_ACTIVE %} Ein Leerzeichen am Ende des Arguments ist nicht notwendig für das Protokollsystem, erleichtert aber das Anklicken im Etherpad.{% endif %}
+	</p>
+	<figure>
+		<pre class="highlight"><code><span class="nt">[url</span>;<span class="sx">https://protokolle.fsmpi.rwth-aachen.de </span><span class="nt">]</span></code></pre>
+	</figure>
 	
 	<h4 id="decision">Beschluss-Tag</h4>
-	<code>[beschluss;Wir beschließen etwas tolles.]</code> erzeugt einen Beschluss im Protokoll.
-	Ein Beschluss wird zusätzlich am Anfang des Protokoll angezeigt.
-	Die Beschlüsse sind online durchsuchbar.
-	Beschluss-Tags dürfen nicht in internen Abschnitten stehen.
-	Falls für den Protokolltyp <b>Beschlusskategorien</b> definiert sind, können Beschlüsse mit <code>[…;finanzwirksam;…]</code> diesen zugeordnet werden.
-	Beschlüsse können nach Beschlusskategorien gefiltert werden.
-	Es empfiehlt sich Beschlüsse klar, einfach, eindeutig und auch kontextlos verständlich zu formulieren.
-	Sind die Beschlüsse im Rahmen einer Abstimmung ergangen, so empfiehlt es sich das Abstimmungsergebnis am Ende des Beschlusses in der Form (JA/NEIN/ENTHALTUNG) anzugeben. <code>[beschluss;Wir beschaffen für bis zu 100,00 € einen Stuhl.(9/1/3);finanzwirksam;Inventar]</code>
+	{% if config.PRIVATE_KEYWORDS|length > 0  %}
+	<div class="row">
+        <div class="col-sm-9">
+	{% endif %}
+			<p>
+			Werden in einer Sitzung Beschlüsse gefasst, so bietet sich die Nutzung des Tags <code class="highlight" style="color: inherit;"><span class="nt">beschluss</span></code> an. Ein Beschluss wird so im Protokoll zum einen als Beschluss gekennzeichnet und zum andern zusätzlich am Anfang des Protokolls angezeigt. Auch werden die Beschlüsse in der Beschlussdatenbank gespeichert und sind online durchsuchbar{% if config.PRINTING_ACTIVE %} sowie einzeln ausdruckbar{% endif %}.
+			</p>
+			<figure>
+				<pre class="highlight"><code><span class="nt">[beschluss</span>;<span class="sx">Beschlusstext</span>;<span class="sx">Beschlusskategorie 1</span>;<span class="sx">Beschlusskategorie 2</span>;…<span class="nt">]</span></code></pre>
+			</figure>
+	{% if config.PRIVATE_KEYWORDS|length > 0  %}
+		</div>
+        <div class="col-sm-3">
+			<div class="panel panel-warning">
+				<div class="panel-heading">
+					<h5 class="panel-title">Zu beachten</h5>
+				</div>
+				<div class="panel-body">Beschluss-Tags dürfen nicht in internen Abschnitten stehen.</div>
+            </div>
+        </div>
+    </div>
+	{% endif %}
+	<p>
+	Ein Beschluss kann mit <a href="/documentation/configuration/types#decision_categories">Beschlusskategorien</a> versehen werden, um Beschlüsse zu einzelnen Themen zusammenfassen zu können. Des Versehen mit Kategorien ist jedoch kein muss. <a href="/documentation/configuration/types#decision_categories">Kategorien</a> müssen vor der Verwendung in den Einstellungen des Protokolltyps definiert werden. Danach können Beschlüsse durch die Angabe der Kategorie entsprechend zugeordnet werden, z.B. <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="sx">finanzwirksam</span>;…<span class="nt">]</span></code>.
+	</p>
+	<p>
+	Es empfiehlt sich Beschlüsse klar, einfach, eindeutig und auch kontextlos verständlich zu formulieren. Sind die Beschlüsse im Rahmen einer Abstimmung ergangen, so empfiehlt es sich das Abstimmungsergebnis am Ende des Beschlusses in der Form (Ja/Nein/Enthaltung) anzugeben.
+	</p>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h5 class="panel-title"><a data-toggle="collapse" href="#example_decision">Beispiel - Beschluss-Tag</a></h5>
+		</div>
+		<figure id="example_decision" class="panel-body panel-collapse collapse">
+			<pre class="highlight"><code><span class="nt">[beschluss</span>;<span class="sx">Wir beschaffen für bis zu 100,00 € einen Stuhl.(9/1/3)</span>;<span class="sx">finanzwirksam</span>;<span class="sx">Inventar</span><span class="nt">]</span></code></pre>
+		</figure>
+	</div>
 	
 	<h4 id="todo">Todo-Tag</h4>
-	In den Protokollen können <a href="#todos">Todos</a> verwaltet werden.
-	Ein neuer Todo wird mit <code>[todo;Name;Aufgabe]</code> angelegt.
-	Dieser ist dann online und in den Mails sichtbar.
-	Falls der Name einer Mail <a href="{{url_for("list_todomails")}}">zugeordnet</a> ist, wird diese Person (oder AG, AK, …) per Mail über ihre offenen Todos informiert.
-	Mehrere Personen können durch Leerzeichen oder Kommata getrennt angegeben werden.
-	Ein bereits bestehender Todo wird mit der zusätzlichen Option <code>[…;id 1338]</code> in ein neues Protokoll eingefügt, falls es den TOP „Todos“ beinhaltet.. Wird dieser Todo dann geändert, passiert das auch im Protokollsystem.
-	Außerdem kann der Status des Todos, z.B. <code>[…;done;…]</code> angegeben werden.
-	Wenn der Status ein Datum benötigt 
-	({{todostates|select("needs_date")|map("todo_get_name")|join(", ")}})
-	muss dies als <code>[…;dd.mm.yyyy;…]</code> angegeben werden.
-	<br>
-	Folgende Begriffe werden vom Protokollsystem verstanden (Groß- und Kleinschreibung spielt keine Rolle):
-	<ul>
-		{% for name in name_to_state %}
-			{% set state = name_to_state[name] %}
-			<li><code>{{name}}{% if state.needs_date() %};dd.mm.yyyy{% endif %}</code>: {{state.get_name()}}</li>
+	<p>
+	Soll in einer Sitzung die Vergebene einer <a href="/documentation/sessionmanagement/tracking#todos">Aufgabe</a> an eine oder mehrere Personen (oder AG, AK, …) festgehalten werden, so kann mittels des Tags <code class="highlight" style="color: inherit;"><span class="nt">todo</span></code> diese Aufgabe im Protokoll festgehalten werden. Neben dem Namen der Person, welche die Aufgabe erledigen möchte, wird die Aufgabe innerhalb des Tags festgehalten. Die Aufgabe ist nach der Sitzung in der <a href="{{url_for('list_todos')}}">Todo-Übersicht</a> und nur im internen Protokoll einsehbar.
+	</p>
+	<figure>
+		<pre class="highlight"><code><span class="nt">[todo</span>;<span class="sx">Name</span>;<span class="sx">Aufgabe</span>;<span class="sx">Argument 1</span>;<span class="sx">Argument 2</span>;…<span class="nt">]</span></code></pre>
+	</figure>
+	<p>
+	{% if config.MAIL_ACTIVE %}Wurde der Name einer Mail <a href="{{url_for('list_todomails')}}">zugeordnet</a>, so wird diese Person (oder AG, AK, …) per Mail über ihre offenen Todos nach einer Sitzung informiert. {% endif %}Bei der Angabe mehrerer Personen können diese durch Leerzeichen oder Kommata voneinander getrennt angegeben werden.
+	</p>
+	<p>
+	Eine bereits bestehende und noch offene Aufgabe wird automatisch in ein neues Protokoll eingefügt, wenn der TOP „Todos“ auf der Tagesordnung steht (der TOP also im Protokoll enthalten ist). Zusätzlich erhält die Aufgabe dann als optionales Argument eine ID: <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="kr">id</span> <span class="mi">1338</span><span class="nt">]</span></code>. Wird dieser Todo dann während des Protokollierens geändert, passiert das auch im Protokollsystem.
+	</p>
+	<p>
+	In einem weiteren optionalen Argument kann außerdem der Status einer Aufgabe, z.B. <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="kr">done</span>;…<span class="nt">]</span></code> angegeben werden. Die Groß- und Kleinschreibung spielen bei der Verwendung keine Rolle. Wenn der Status ein Datum benötigt, muss dieser immer mit angegeben und hat die Form: <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="mi">dd.mm.yyyy</span>;…<span class="nt">]</span></code>. Bei der Angabe des Datums ist es unerheblich, an welcher Stelle innerhalb des Tags es auftacht. Eine Auflistung der verwendbaren Status-Begriffe und ob Status ein Datum benötigt, ist in der folgenden Tabelle angegeben.
+	</p>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Status</th>
+				<th>Benötigt Datum</th>
+				<th>Verwendbare Status-Begriffe</th>
+			</tr>
+		</thead>
+        <tbody>
+		{% for state, posibilities in states.items() %}
+			<tr>
+				<td>{{state.get_name()}}</td>
+				<td><span class="glyphicon glyphicon-{% if state.needs_date() %}ok{% else %}remove{% endif %}" aria-hidden="true"></span></td>
+				<td>{{posibilities|map("code_key")|join(", ")|safe}}</td>
+			</tr>
 		{% endfor %}
-	</ul>
+		</tbody>
+	</table>
 	
 	<h4 id="footnote">Fußnoten-Tag</h4>
 	Fußnoten können im Protokoll mit <code>[footnote;Inhalt]</code> geschrieben werden.
