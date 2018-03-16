@@ -123,6 +123,8 @@ def class_filter(obj):
 def code_filter(text):
     return "<code>{}</code>".format(text)
 
+def code_key_filter(text):
+    return '<code class="highlight" style="color: inherit;"><span class="kr">{}</span></code>'.format(text)
 
 from auth import UserManager, SecurityManager, User
 max_duration = getattr(config, "AUTH_MAX_DURATION")

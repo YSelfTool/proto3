@@ -27,7 +27,7 @@ from shared import (
     date_filter_short, time_filter, time_filter_short, user_manager,
     security_manager, current_user, check_login, login_required,
     class_filter, needs_date_test, todostate_name_filter,
-    code_filter, indent_tab_filter)
+    code_filter, code_key_filter, indent_tab_filter)
 from utils import (
     get_first_unused_int, get_etherpad_text, split_terms, optional_int_arg,
     fancy_join, footnote_hash, get_git_revision, get_max_page_length_exp,
@@ -84,6 +84,7 @@ app.jinja_env.filters["datify_long"] = date_filter_long
 app.jinja_env.filters["class"] = class_filter
 app.jinja_env.filters["todo_get_name"] = todostate_name_filter
 app.jinja_env.filters["code"] = code_filter
+app.jinja_env.filters["code_key"] = code_key_filter
 app.jinja_env.filters["indent_tab"] = indent_tab_filter
 app.jinja_env.filters["fancy_join"] = fancy_join
 app.jinja_env.filters["footnote_hash"] = footnote_hash
