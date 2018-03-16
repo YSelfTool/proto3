@@ -5,10 +5,10 @@
 {% block documentation_content %}
         <h3>Protokollsystem 3 - Das Protokollsystem</h3>
 		<p>
-        Das Protokollsystem dient der Planung von Sitzungen und Verwaltung von Protokollen. Die anstehenden Sitzungen der nächsten Woche sind auf der <a href="{{url_for("index")}}">Startseite</a>, alle Protokolle unter <a href="{{url_for("list_protocols")}}">Protokolle</a> zu finden.
+        Das Protokollsystem dient der Planung von Sitzungen und Verwaltung von Protokollen. Die anstehenden Sitzungen der nächsten Woche sind auf der <a href="{{url_for('index')}}">Startseite</a>, alle Protokolle unter <a href="{{url_for('list_protocols')}}">Protokolle</a> zu finden.
 		</p>
 		<p>
-		Des weiteren wird können die Sitzungen mittels Todos und einer Beschlussdatenbank nach verfolgt werden. Die eigenen offenen Todos werden auf der <a href="{{url_for("index")}}">Startseite</a> angezeigt, alle Todos sind unter <a href="{{url_for("list_todos")}}">Todos</a> zu finden. Die Beschlüsse finden sich in der  <a href="{{url_for("list_decisions")}}">Beschlussdatenbank</a> zu finden.
+		Des weiteren wird können die Sitzungen mittels Todos und einer Beschlussdatenbank nach verfolgt werden. Die eigenen offenen Todos werden auf der <a href="{{url_for('index')}}">Startseite</a> angezeigt, alle Todos sind unter <a href="{{url_for('list_todos')}}">Todos</a> zu finden. Die Beschlüsse finden sich in der  <a href="{{url_for('list_decisions')}}">Beschlussdatenbank</a> zu finden.
 		</p>
 		<h3>Dokumentation</h3>
 		Dieser Dokumentation können Beschreibungen zu nahezu allen wichtigen Systemfunktionen entnommen werden. Gegliedert sind die Themen wie folgt:
@@ -37,7 +37,7 @@
         <h3 id="fehler">Fehlerbehandlung</h3>
         <ul>
             <li>Typische Web-Fehler (404, 500, etc.) sollten nicht auftreten. Wenn sie es doch tun, wende dich bitte an die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a></li>
-            <li>Wenn beim Parsen, Kompilieren, versenden, hochladen, … Fehler auftreten, werden sie aufgelistet. Die Fehler aller Protokolle findest du unter <a href="{{url_for("list_errors")}}">Fehler</a>. Bei sehr langen Beschreibungen (z.B. LaTeX-Kompilierfehlern) solltest du den einzelnen Fehler anklicken, um die ganze Beschreibung zu erhalten.</li>
+            <li>Wenn beim Parsen, Kompilieren, versenden, hochladen, … Fehler auftreten, werden sie aufgelistet. Die Fehler aller Protokolle findest du unter <a href="{{url_for('list_errors')}}">Fehler</a>. Bei sehr langen Beschreibungen (z.B. LaTeX-Kompilierfehlern) solltest du den einzelnen Fehler anklicken, um die ganze Beschreibung zu erhalten.</li>
             <li>Wenn die Fehlerbeschreibung dir nicht ausreicht, um den Fehler zu beheben, wende dich an jemand erfahreneren und lass dir helfen.</li>
         </ul>
         
