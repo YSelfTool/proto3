@@ -2,7 +2,7 @@
 {% from "macros.html" import render_table, render_form %}
 {% block title %}Beschlüsse{% endblock %}
 
-{% macro page_link(text, _page=None, _page_length=None) %}
+{#{% macro page_link(text, _page=None, _page_length=None) %}
 	{% if _page is none %}
 		{% set _page = page %}
 	{% endif %}
@@ -10,7 +10,7 @@
 		{% set _page_length = page_length %}
 	{% endif %}
     <a href="{{url_for(request.endpoint, page=_page, protocoltype_id=protocoltype_id, search=search_term, decisioncategory_id=decisioncategory_id, page_length=_page_length)}}">{{text}}</a>
-{% endmacro %}
+{% endmacro %}#}
 
 {% block content %}
 <div class="container">
