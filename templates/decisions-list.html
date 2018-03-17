@@ -2,16 +2,6 @@
 {% from "macros.html" import render_table, render_form %}
 {% block title %}Beschlüsse{% endblock %}
 
-{#{% macro page_link(text, _page=None, _page_length=None) %}
-	{% if _page is none %}
-		{% set _page = page %}
-	{% endif %}
-	{% if _page_length is none %}
-		{% set _page_length = page_length %}
-	{% endif %}
-    <a href="{{url_for(request.endpoint, page=_page, protocoltype_id=protocoltype_id, search=search_term, decisioncategory_id=decisioncategory_id, page_length=_page_length)}}">{{text}}</a>
-{% endmacro %}#}
-
 {% block content %}
 <div class="container">
     {{render_form(search_form, class_="form-inline", action_url=url_for("list_decisions"), action_text="Suchen", labels_visible=False, method="GET")}}
