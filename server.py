@@ -75,7 +75,7 @@ try:
             "release": get_git_revision(),
         }
     sentry.get_user_info = get_user_info
-except ModuleNotFoundError:
+except ImportError:
     print("Raven not installed. Not sending issues to Sentry.")
 except AttributeError:
     print("DSN not configured. Not sending issues to Sentry.")
@@ -91,7 +91,7 @@ def make_celery(app, config):
         raven_client = RavenClient(config.SENTRY_DSN)
         register_logger_signal(raven_client)
         register_signal(raven_client)
-    except ModuleNotFoundError:
+    except ImportError:
         print("Raven not installed. Not sending celery issues to Sentry.")
     except AttributeError:
         print("DSN not configured. Not sending celery issues to Sentry.")
