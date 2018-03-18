@@ -10,7 +10,7 @@
 	
     <h4 id="decisions">Beschlüsse</h4>
 	<p>
-	Alle in den Protollen festgehaltenen Beschlüsse werden in der <a href="{{url_for('list_decisions')}}">Beschlussübersicht</a> angezeigt. Neben dem Beschlusstext beinhaltet die Übersicht die zu den Beschlüssen gehörenden Protokoll sowie die Beschlusskategorie. In den einzelnen Protokollen werdend die Beschlüsse ebenfalls zusammengefasst dargestellt, um einen Überbrlick über alle Beschlüsse der betrefenden Sitzung zu erhalten.
+	Alle in den Protollen festgehaltenen Beschlüsse werden in der <a href="{{url_for('list_decisions')}}">Beschlussübersicht</a> angezeigt. Neben dem Beschlusstext beinhaltet die Übersicht die zu den Beschlüssen gehörenden Protokoll sowie die <a href="/documentation/configuration/types#decision_categories">Beschlusskategorie</a>. In den einzelnen Protokollen werdend die Beschlüsse ebenfalls zusammengefasst dargestellt, um einen Überbrlick über alle Beschlüsse der betrefenden Sitzung zu erhalten.
 	</p>
 	{% if config.PRINTING_ACTIVE %}
 	<p>
