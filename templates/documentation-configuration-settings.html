@@ -1,6 +1,61 @@
 {% extends "documentation-base.html" %}
 {% set active_page = "settings_configuration_documentation" %}
+{% block title %}Einrichtung: Systemeinstellungen{% endblock %}
 
 {% block documentation_content %}
-    <h3>Einstellungen</h3>
+    <h3>Einrichtung: Systemeinstellungen</h3>
+	<p>
+	Einige Features des Protokollsystem müssen bei der Installation und Einrichtung durch die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a> aktiviert werden. Eine Übersicht über die mit diesen Systemeinstellungen verbundenen Features soll hier gegeben werden. Sollten einige der angegeben Funktionalitäten aktiviert werden, so wende dich an die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a>. Bedenke vor deiner Anfrage, dass einige Features eventuell aus wichtigen Gründen bisher noch nicht aktiviert wurden.
+	</p>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Feature</th>
+				<th>Aktiviert</th>
+				<th>Kurzbeschreibung</th>
+			</tr>
+		</thead>
+        <tbody>
+			<tr>
+				<td>E-Mailversand</td>
+				<td><span class="glyphicon glyphicon-{% if config.MAIL_ACTIVE %}ok{% else %}remove{% endif %}" aria-hidden="true"></span></td>
+				<td>Das System kann selbstständig E-Mails versenden, um über nächste Sitzungen, neue Protokolle oder Todos zu informieren.</td>
+			</tr>
+			<tr>
+				<td>Druckeranbindung</td>
+				<td><span class="glyphicon glyphicon-{% if config.PRINTING_ACTIVE %}ok{% else %}remove{% endif %}" aria-hidden="true"></span></td>
+				<td>Das System kann Druckaufträge starten, um Beschlüsse oder Protokolle direkt über das Webinterface zu drucken.</td>
+			</tr>
+			<tr>
+				<td>Etherpadanbindung</td>
+				<td><span class="glyphicon glyphicon-{% if config.ETHERPAD_ACTIVE %}ok{% else %}remove{% endif %}" aria-hidden="true"></span></td>
+				<td>Das System kann mit einem Etherpad interagieren, um das Schreiben von Protokollen dort zu ermöglichen.</td>
+			</tr>
+			<tr>
+				<td>Wikianbindung</td>
+				<td><span class="glyphicon glyphicon-{% if config.WIKI_ACTIVE %}ok{% else %}remove{% endif %}" aria-hidden="true"></span></td>
+				<td>Das System kann veröffentlichte Protokolle in ein Wiki übertragen.</td>
+			</tr>
+			<tr>
+				<td>Kalenderanbindung</td>
+				<td><span class="glyphicon glyphicon-{% if config.CALENDAR_ACTIVE %}ok{% else %}remove{% endif %}" aria-hidden="true"></span></td>
+				<td>Das System kann eingetragene Sitzungstermine in einen Kalender übertragen.</td>
+			</tr>
+			<tr>
+				<td>Angepasste Standardvorlage</td>
+				<td><span class="glyphicon glyphicon-{% if (config.LATEX_LOCAL_TEMPLATES and config.LATEX_LOGO_TEMPLATE) or config.LATEX_GEOMETRY or config.LATEX_PAGESTYLE or config.LATEX_ADDITIONAL_PACKAGES or config.LATEX_HEADER_FOOTER %}ok{% else %}remove{% endif %}" aria-hidden="true"></span></td>
+				<td>Das System nutzt die Standardprotokollvorlage in einer angepassten Form.</td>
+			</tr>
+			<tr>
+				<td>Individuelle Protokollvorlagen</td>
+				<td><span class="glyphicon glyphicon-{% if config.LATEX_LOCAL_TEMPLATES and config.LATEX_TEMPLATES %}ok{% else %}remove{% endif %}" aria-hidden="true"></span></td>
+				<td>Das System stellt zusätzlich zur Standardvorlage individuelle Protokollvorlagen zur Verfügung.</td>
+			</tr>
+		</tbody>
+	</table>
+	{% if system_administrator and git_revision %}
+	<p>
+	Eine Beschreibung der Einrichtung des einzelnen Features kann der Projektseite der Software <a href="{{git_revision.url}}">„Protokollsystem 3“</a> entnommen werden. Bitte lies dir die <code>README.md</code> aufmerksam durch und entnimm bei Bedarf Konfigurationsbeispiele aus <code>config.py.example</code>. Bei schwerwiegenden Problemen kontaktiere die <a href="{{git_revision.url}}/project_members">Entwickler</a>.
+	</p>
+	{% endif %}
 {% endblock %}

@@ -352,8 +352,10 @@ def todomails_configuration_documentation():
 @back.anchor
 @login_required
 def settings_configuration_documentation():
-    return render_template(
-        "documentation-configuration-settings.html")
+	user = current_user()
+	return render_template(
+        "documentation-configuration-settings.html",
+		system_administrator=(user is not None and config.ADMIN_GROUP in user.groups))
 
 @app.route("/types/list")
 @back.anchor
