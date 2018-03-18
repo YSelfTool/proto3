@@ -265,6 +265,9 @@
 	<p>
 	Mit der Einstellung der Nutzerrechte kann der Zugriff auf Protokolle nur nach der erfolgreichen Authentifikation gesteuert werden. Soll der Zugriff auf öffentliche Protokolle weiter reduziert werden, so kann auf das Computernetzwerkes, dem der Zugriff gewährt werden soll, eingeschrängt werden. Dies erfolgt durch die Angabe einzelner oder mehrerer Netzwerkbereiche (vergl. <a href="https://de.wikipedia.org/wiki/Netzmaske" target="_blank">Wikipedia</a>). Bei der Angabe mehrerer Bereiche werden diese durch ein Komma voneinander getrennt.
 	</p>
+	<p>
+	Soll nur die Tagesordnung öffentlich gemacht werden, so muss die Option „Netzwerke einschränken“ ohne die Angabe eines Netzwerkbereiches aktiviert und der Protokolltyp als <code>öffentlich</code> gekennzeichnet werden.
+	</p>
 	
 	{% if config.MAIL_ACTIVE %}
 	<h4 id="mails">E-Maileinstellungen</h4>
