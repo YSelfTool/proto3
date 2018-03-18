@@ -25,6 +25,9 @@ CELERY_BROKER_URL = "redis://localhost:6379/0" # change this if you do not use r
 CELERY_TASK_SERIALIZER = "pickle" # do not change
 CELERY_ACCEPT_CONTENT = ["pickle"] # do not change
 
+# Send exceptions to sentry (optional)
+# SENTRY_DSN = "https://********:********@sentry.example.com//1"
+
 # CUPS printserver (optional)
 PRINTING_ACTIVE = True
 PRINTING_SERVER = "printsrv.example.com:631"

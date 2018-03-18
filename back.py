@@ -19,9 +19,17 @@ def anchor(func, cookie=cookie):
     return result
 
 
+def default_url(default, **url_args):
+    return url_for(default, **url_args)
+
+
 def url(default=default_view, cookie=cookie, **url_args):
-    return session.get(cookie, url_for(default, **url_args))
+    return session.get(cookie, default_url(default, **url_args))
 
 
 def redirect(default=default_view, cookie=cookie, **url_args):
-    return flask_redirect(url(default, cookie, **url_args))
+    print(request.url, request.url_rule, default, session.get(cookie))
+    target = url(default, cookie, **url_args)
+    if target == request.url:
+        target = default_url(default, **url_args)
+    return flask_redirect(target)

@@ -376,7 +376,6 @@ class Protocol(DatabaseModel):
         candidates = [
             document for document in self.documents
             if document.is_compiled
-            and (private is None or document.is_private == private)
         ]
         private_candidates = [
             document for document in candidates
@@ -386,10 +385,14 @@ class Protocol(DatabaseModel):
             document for document in candidates
             if not document.is_private
         ]
-        if len(private_candidates) > 0:
-            return private_candidates[0]
-        elif len(public_candidates) > 0:
-            return public_candidates[0]
+
+        def _get_candidates():
+            if private is None or private:
+                return private_candidates + public_candidates
+            return public_candidates
+        candidates = _get_candidates()
+        if candidates:
+            return candidates[0]
         return None
 
     def get_template(self):

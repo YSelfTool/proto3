@@ -1,6 +1,7 @@
 from flask import request, flash, abort
 
 from functools import wraps
+from hmac import compare_digest
 
 from models.database import ALL_MODELS
 from shared import current_user
@@ -97,8 +98,8 @@ def protect_csrf(function):
     @wraps(function)
     def _decorated_function(*args, **kwargs):
         token = request.args.get("csrf_token")
-        if token != get_csrf_token():
-            print(token, get_csrf_token())
+        true_token = get_csrf_token()
+        if token is None or not compare_digest(token, true_token):
             abort(400)
         return function(*args, **kwargs)
     return _decorated_function

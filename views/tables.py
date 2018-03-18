@@ -144,7 +144,9 @@ class ProtocolsTable(Table):
 
         if protocol.protocoltype.has_admin_right(user):
             buttons.append(Table.button(
-                url_for("delete_protocol", protocol_id=protocol.id),
+                url_for(
+                    "delete_protocol", protocol_id=protocol.id,
+                    csrf_token=get_csrf_token()),
                 icon="trash",
                 style="danger",
                 confirm="Bist du dir sicher, dass du das Protokoll {} "

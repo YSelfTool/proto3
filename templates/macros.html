@@ -165,6 +165,18 @@ to not render a label for the CRSFTokenField -->
     </table>
 {%- endmacro %}
 
+{% macro page_link(text, _page=None, _page_length=None) -%}
+    {% set args = request.view_args.copy() %}
+    {% set _ = args.update(request.args) %}
+    {% if _page is not none %}
+        {% set _ = args.update({"page": _page}) %}
+    {% endif %}
+    {% if _page_length is not none %}
+        {% set _ = args.update({"page_length": _page_length}) %}
+    {% endif %}
+    <a href="{{url_for(request.endpoint, **args)}}">{{text}}</a>
+{%- endmacro %}
+
 {% macro render_likes(likes) -%}
     {% set timestamp = now() %}
     {% if timestamp.month == 4 and timestamp.day == 1 %}
