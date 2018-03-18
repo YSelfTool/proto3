@@ -18,7 +18,7 @@
 					<h5 class="panel-title">Syntax eines Tags</h5>
 				</div>
 				<figure class="panel-body">
-					<pre class="highlight"><code><span class="nt">[Name</span>;<span class="sx">Argument 1</span>;<span class="sx">Argument 2</span>;…<span class="nt">]</span></code></pre>
+					<pre class="highlight"><code><span class="nt">[Typ</span>;<span class="sx">Argument 1</span>;<span class="sx">Argument 2</span>;…<span class="nt">]</span></code></pre>
 				</figure>
 			</div>
         </div>
@@ -120,12 +120,44 @@
 		{% endfor %}
 		</tbody>
 	</table>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h5 class="panel-title"><a data-toggle="collapse" href="#example_todo">Beispiele - Todo-Tag</a></h5>
+		</div>
+		<figure id="example_todo" class="panel-body panel-collapse collapse">
+			<pre class="highlight"><code><span class="nt">[todo</span>;<span class="sx">mmustermann</span>;<span class="sx">Planung für die ESA beginnen</span>;<span class="kr">ab</span>;<span class="mi">01.03.2018</span><span class="nt">]</span>
+<span class="nt">[todo</span>;<span class="sx">mmustermann</span>;<span class="sx">Mit der Fakultät treffen</span><span class="nt">]</span>
+<span class="nt">[todo</span>;<span class="sx">kmusterfrau</span>;<span class="sx">Organisiation des nächsten Events</span>;<span class="kr">in Bearbeitung</span>;<span class="kr">id</span> <span class="mi">1</span><span class="nt">]</span></code></pre>
+		</figure>
+	</div>
 	
 	<h4 id="footnote">Fußnoten-Tag</h4>
-	Fußnoten können im Protokoll mit <code>[footnote;Inhalt]</code> geschrieben werden.
+	<p>
+	Ist es erforderlich, dass Informationen als Fußnote im Protokoll aufgeführt werden sollen, so können diese im Protokoll mit dem Tag des Types <code class="highlight" style="color: inherit;"><span class="nt">footnote</span></code> geschrieben werden. Als einziges Argument wird der Inhalt der Fußnote übergeben.
+	</p>
+	<figure>
+		<pre class="highlight"><code><span class="nt">[footnote</span>;<span class="sx">Inhalt</span><span class="nt">]</span></code></pre>
+	</figure>
 	
 	<h4 id="session">Sitzungs-Tag</h4>
-	Aus dem Protokoll können neue Sitzungen desselben Typs mit dem Tag <code>[sitzung;Datum]</code>, z.B. <code>[sitzung;24.12.2017]</code> angelegt werden.
-	Optional kann zusätzlich eine Uhrzeit angegeben werden: <code>[sitzung;Datum;Uhrzeit]</code> (z.B. <code>[sitzung;01.01.2018;9:00]</code>).
+	<div class="row">
+        <div class="col-sm-9">
+			<p>
+			Werden während einer Sitzung bereits Termine für zukünfigt Sitzungen desselben Typs festgelegt, so können diese direkt aus dem Protokoll heraus angelegt und im Protokoll entsprechend hervorgehoben werden. Es wird der Tag des Types <code class="highlight" style="color: inherit;"><span class="nt">sitzung</span></code> genutzt. Als Argument muss mindestens das Datum übergeben werden und es hat die Form: <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="mi">dd.mm.yyyy</span>;…<span class="nt">]</span></code>. Optional kann zusätzlich eine Uhrzeit in folgender Form angegeben werden: <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="mi">h:mm</span><span class="nt">]</span></code>.
+			</p>
+			<figure>
+				<pre class="highlight"><code><span class="nt">[sitzung</span>;<span class="mi">Datum</span>;<span class="mi">Uhrzeit</span><span class="nt">]</span></code></pre>
+			</figure>
+		</div>
+        <div class="col-sm-3">
+			<div class="panel panel-danger">
+				<div class="panel-heading">
+					<h5 class="panel-title">Experimentell</h5>
+				</div>
+				<div class="panel-body">Dieser Tag legt der Zeit bei jeder Neuerstellung des Protokolls den angegeben Termin neu an.</div>
+            </div>
+        </div>
+    </div>
+	
 	
 {% endblock %}
