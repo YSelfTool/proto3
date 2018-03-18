@@ -4,7 +4,7 @@
 
 {% block documentation_content %}
     <h3>Syntax: Interne Abschnitte</h3>
-	{% if config.PRIVATE_KEYWORDS|length > 0  %}
+	{% if config.PRIVATE_KEYWORDS %}
 	<p>
 	Das Protokollsystem unterstützt in einem öffentlichen Protokoll bestimmte Abschnitte als nicht-öffentlich/intern zu kennzeichnen. Diese internen Abschnitte werden nur Personen mit dem entsprechendem Recht angezeigt und auch nur in der internen pdf-Datei gedruckt. Die öffentliche Version des Protokolls enthält an dieser Stelle einen Hinweis, auf einen internen Abschnitt. Aus Gründen der Transparenz bietet es sich an vor oder nach dem internen Protokollieren dessen Inhalt zusammenzufassen.
 	</p>
@@ -55,7 +55,7 @@
         </div>
         <div class="panel-body ">
 			<p>
-			Die Verwendung von internen Abschnitte ist hier bisher noch nicht vorgesehen. Um interne Abschnitte nutzen zu können, wende dich bitte an die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a> und lasse die Konfiguration durch sie entsprechend anpassen.
+			Die Verwendung von internen Abschnitte ist hier bisher noch nicht vorgesehen. Um interne Abschnitte nutzen zu können, wende dich bitte an die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a> und lasse die <a href="/documentation/configuration/settings">Konfiguration</a> durch sie entsprechend anpassen.
 			</p>
 		</div>
 	</div>
