@@ -492,8 +492,9 @@ def parse_protocol_async_inner(protocol):
         if len(protocol_tag.values) > 1:
             new_protocol_time = datetime.strptime(
                 protocol_tag.values[1], "%H:%M")
-        Protocol.create_new_protocol(
-            protocol.protocoltype, new_protocol_date, new_protocol_time)
+        if not protocol.protocoltype.get_protocols_on_date(new_protocol_date):
+            Protocol.create_new_protocol(
+                protocol.protocoltype, new_protocol_date, new_protocol_time)
 
     # TOPs
     old_tops = list(protocol.tops)
