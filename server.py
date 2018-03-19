@@ -930,7 +930,7 @@ def send_protocol_reminder(protocol):
     if not config.MAIL_ACTIVE:
         flash("Die Mailfunktion ist nicht aktiviert.", "alert-error")
         return back.redirect("show_protocol", protocol_id=protocol.id)
-    meetingreminders = protocol.reminders
+    meetingreminders = protocol.protocoltype.reminders
     if len(meetingreminders) == 0:
         flash("Für diesen Protokolltyp sind keine Einladungsmails "
               "konfiguriert.", "alert-error")
