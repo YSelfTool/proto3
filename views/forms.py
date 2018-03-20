@@ -82,7 +82,7 @@ def get_latex_template_choices():
 
 def get_group_choices():
     user = current_user()
-    groups = sorted(user.groups)
+    groups = sorted(user.all_groups)
     choices = list(zip(groups, groups))
     choices.insert(0, ("", "Keine Gruppe"))
     return choices
