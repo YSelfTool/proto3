@@ -583,17 +583,18 @@ def push_to_wiki(protocol, content, infobox_content, summary):
 
 @celery.task
 def push_to_wiki_async(protocol_id, content, infobox_content, summary):
-    with WikiClient() as wiki_client, app.app_context():
+    with app.app_context():
         protocol = Protocol.query.filter_by(id=protocol_id).first()
         try:
-            wiki_client.edit_page(
-                title=protocol.protocoltype.get_wiki_infobox_title(),
-                content=infobox_content,
-                summary=summary)
-            wiki_client.edit_page(
-                title=protocol.get_wiki_title(),
-                content=content,
-                summary=summary)
+            with WikiClient() as wiki_client:
+                wiki_client.edit_page(
+                    title=protocol.protocoltype.get_wiki_infobox_title(),
+                    content=infobox_content,
+                    summary=summary)
+                wiki_client.edit_page(
+                    title=protocol.get_wiki_title(),
+                    content=content,
+                    summary=summary)
         except WikiException as exc:
             return _make_error(
                 protocol, "Pushing to Wiki", "Pushing to Wiki failed.",
