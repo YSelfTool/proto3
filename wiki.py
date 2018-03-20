@@ -1,4 +1,5 @@
 import requests
+from json import JSONDecodeError
 
 import config
 
@@ -117,7 +118,10 @@ class WikiClient:
                 "HTTP status code {} on action {}.".format(
                     req.status_code, action))
         self.cookies.update(req.cookies)
-        return req.json()
+        try:
+            return req.json()
+        except JSONDecodeError:
+            raise WikiException("Server did not return valid JSON.")
 
 
 def main():
