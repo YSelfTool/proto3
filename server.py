@@ -1825,7 +1825,8 @@ def check_and_send_reminders():
     with app.app_context():
         current_time = datetime.now()
         current_day = current_time.date()
-        for protocol in Protocol.query.filter(not Protocol.done).all():
+        query = Protocol.query.filter(Protocol.done == False)  # noqa: E712
+        for protocol in query.all():
             day_difference = (protocol.date - current_day).days
             usual_time = protocol.get_time()
             protocol_time = datetime(
