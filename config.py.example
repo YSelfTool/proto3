@@ -80,7 +80,7 @@ AUTH_BACKENDS = [
         user_dn="uid={},ou=users,dc=example,dc=com",
         group_dn="dc=example,dc=com"),
     ADManager(
-        host="ad.example.com",
+        host="ad.example.com", # pass multiple hosts for replication
         domain="EXAMPLE",
         user_dn="cn=users,dc=example,dc=com",
         group_dn="dc=example,dc=com",
