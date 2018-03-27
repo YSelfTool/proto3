@@ -6,7 +6,7 @@ from hmac import compare_digest
 from models.database import ALL_MODELS
 from shared import current_user
 from utils import get_csrf_token
-import back
+from common import back
 
 ID_KEY = "id"
 KEY_NOT_PRESENT_MESSAGE = "Missing {}_id."

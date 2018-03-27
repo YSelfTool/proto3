@@ -55,7 +55,7 @@ from views.tables import (
     TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable,
     TodoMailsTable, DefaultMetasTable, DecisionCategoriesTable)
 from legacy import import_old_todos, import_old_protocols, import_old_todomails
-import back
+from common import back
 
 app = Flask(__name__)
 app.config.from_object(config)
