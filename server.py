@@ -31,9 +31,8 @@ from shared import (
 from utils import (
     get_first_unused_int, get_etherpad_text, split_terms, optional_int_arg,
     fancy_join, footnote_hash, get_git_revision, get_max_page_length_exp,
-    get_internal_filename, get_csrf_token, get_current_ip)
+    get_internal_filename, get_current_ip)
 from decorators import (
-    db_lookup, protect_csrf,
     require_private_view_right, require_modify_right, require_publish_right,
     require_admin_right)
 from models.database import (
@@ -56,6 +55,9 @@ from views.tables import (
     TodoMailsTable, DefaultMetasTable, DecisionCategoriesTable)
 from legacy import import_old_todos, import_old_protocols, import_old_todomails
 from common import back
+from common.csrf import protect_csrf, get_csrf_token
+from common.database import db_lookup
+
 
 app = Flask(__name__)
 app.config.from_object(config)

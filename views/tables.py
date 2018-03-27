@@ -1,6 +1,6 @@
 from flask import Markup, url_for
 from shared import date_filter, datetime_filter, time_filter, current_user
-from utils import get_csrf_token
+from common.csrf import get_csrf_token
 
 import config
 
