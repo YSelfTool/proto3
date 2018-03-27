@@ -124,7 +124,7 @@ def code_filter(text):
     return "<code>{}</code>".format(text)
 
 
-from auth.auth import UserManager, SecurityManager, User
+from common.auth import UserManager, SecurityManager, User
 max_duration = getattr(config, "AUTH_MAX_DURATION")
 user_manager = UserManager(backends=config.AUTH_BACKENDS)
 security_manager = SecurityManager(config.SECURITY_KEY, max_duration)

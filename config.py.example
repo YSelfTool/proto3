@@ -73,7 +73,7 @@ SESSION_PROTECTION = "strong" # do not change
 # authentication
 SECURITY_KEY = "some other random string" # change this
 AUTH_MAX_DURATION = 300
-from auth.auth import LdapManager, ADManager, StaticUserManager
+from common.auth import LdapManager, ADManager, StaticUserManager
 AUTH_BACKENDS = [
     LdapManager(
         host="ldap.example.com",
