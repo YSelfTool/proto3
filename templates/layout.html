@@ -68,11 +68,6 @@
 {% endfor %}
 {% endif %}
 {% endwith %}
-{% if current_user().obsolete %}
-    <div class="alert alert-error">
-        {{config.OBSOLETION_WARNING|safe}}
-    </div>
-{% endif %}
 {% block content %}
 Diese Seite ist leer.
 {% endblock %}
