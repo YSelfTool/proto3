@@ -6,7 +6,7 @@ from enum import Enum
 from shared import escape_tex
 from utils import footnote_hash
 
-import config
+from shared import config
 
 INDENT_LETTER = "-"
 

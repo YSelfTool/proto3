@@ -2,7 +2,7 @@ from flask import Markup, url_for
 from shared import date_filter, datetime_filter, time_filter, current_user
 from common.csrf import get_csrf_token
 
-import config
+from shared import config
 
 
 class Table:

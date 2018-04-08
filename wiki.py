@@ -1,7 +1,7 @@
 import requests
 from json import JSONDecodeError
 
-import config
+from shared import config
 
 HTTP_STATUS_OK = 200
 HTTP_STATUS_AUTHENTICATE = 401

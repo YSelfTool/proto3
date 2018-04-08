@@ -21,9 +21,8 @@ from datetime import datetime, timedelta
 import math
 import mimetypes
 
-import config
 from shared import (
-    db, date_filter, datetime_filter, date_filter_long,
+    config, db, date_filter, datetime_filter, date_filter_long,
     date_filter_short, time_filter, time_filter_short, user_manager,
     security_manager, current_user, check_login, login_required,
     class_filter, needs_date_test, todostate_name_filter,
@@ -178,6 +177,19 @@ def merge_duplicate_todos():
             todo_by_id[todo_id] = todo1
         else:
             todo_by_id[todo_id] = todo
+
+
+@manager.command
+def check_config():
+    #  TODO: check how to set return codes
+    import configproxy
+    return configproxy.check_config()
+
+
+@manager.command
+def create_example_config(filename):
+    import configproxy
+    return configproxy.write_example_config(filename=filename)
 
 
 @manager.command

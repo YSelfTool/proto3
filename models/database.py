@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from shared import (
     db, date_filter_short, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY,
-    current_user)
+    current_user, config)
 from utils import get_etherpad_url, split_terms, check_ip_in_networks
 from models.errors import DateNotMatchingException
 from dateutil import tz
@@ -17,7 +17,6 @@ import os
 from sqlalchemy import event
 from sqlalchemy.orm import relationship, backref
 
-import config
 from todostates import make_states
 
 

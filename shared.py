@@ -7,7 +7,12 @@ from enum import Enum
 
 from common import back
 
-import config
+try:
+    import configproxy
+    config, public_config = configproxy.import_config()
+except ImportError as error:
+    print(error)
+    raise
 
 db = SQLAlchemy()
 

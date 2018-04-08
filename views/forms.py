@@ -11,7 +11,7 @@ from models.database import TodoState
 from validators import CheckTodoDateByState
 from shared import current_user
 
-import config
+from shared import config
 
 
 def get_protocoltype_choices(protocoltypes, add_all=True):
