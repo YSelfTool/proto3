@@ -136,11 +136,13 @@ security_manager = SecurityManager(config.SECURITY_KEY, max_duration)
 
 
 def check_login():
-    return "auth" in session and security_manager.check_user(session["auth"])
+    return current_user() is not None
 
 
 def current_user():
-    if not check_login():
+    if "auth" not in session:
+        return None
+    if not security_manager.check_user(session["auth"]):
         return None
     return User.from_hashstring(session["auth"])
 
