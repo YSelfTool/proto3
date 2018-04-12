@@ -704,7 +704,8 @@ CONFIG_SECTIONS = [
                 description="template to include at the top of protocols"),
             ConfigEntry(
                 name="LATEX_GEOMETRY",
-                default=None,
+                default="vmargin=1.5cm,hmargin={1.5cm,1.2cm},"
+                        "bindingoffset=8mm",
                 required=False, internal=False,
                 description="custom latex page geometry"),
             ConfigEntry(
