@@ -5,9 +5,9 @@ locale.setlocale(locale.LC_TIME, "de_DE.utf8")
 from flask import (
     Flask, request, session, flash, redirect,
     url_for, abort, render_template, Response, Markup)
+import click
 from werkzeug.utils import secure_filename
-from flask_script import Manager, prompt
-from flask_migrate import Migrate, MigrateCommand
+from flask_migrate import Migrate
 from celery import Celery
 from sqlalchemy import or_
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -62,8 +62,6 @@ app = Flask(__name__)
 app.config.from_object(config)
 db.init_app(app)
 migrate = Migrate(app, db)
-manager = Manager(app)
-manager.add_command("db", MigrateCommand)
 
 try:
     from raven.contrib.flask import Sentry
@@ -137,7 +135,7 @@ app.jinja_env.globals.update(now=datetime.now)
 app.jinja_env.globals["git_revision"] = get_git_revision()
 
 
-@manager.command
+@app.cli.command()
 def import_legacy():
     """Import the old todos and protocols from an sql dump"""
     filename = prompt("SQL-file")
@@ -148,7 +146,7 @@ def import_legacy():
         import_old_todomails(content)
 
 
-@manager.command
+@app.cli.command()
 def recompile_all():
     for protocol in sorted(Protocol.query.all(), key=lambda p: p.date):
         if protocol.is_done():
@@ -156,7 +154,7 @@ def recompile_all():
             tasks.parse_protocol(protocol)
 
 
-@manager.command
+@app.cli.command()
 def merge_duplicate_todos():
     todo_by_id = {}
     todos = Todo.query.all()
@@ -179,23 +177,18 @@ def merge_duplicate_todos():
             todo_by_id[todo_id] = todo
 
 
-@manager.command
+@app.cli.command()
 def check_config():
     #  TODO: check how to set return codes
     import configproxy
     return configproxy.check_config()
 
 
-@manager.command
+@app.cli.command()
+@click.argument("filename")
 def create_example_config(filename):
     import configproxy
     return configproxy.write_example_config(filename=filename)
-
-
-@manager.command
-def runserver():
-    app.run()
-    make_scheduler()
 
 
 def send_file(file_like, cache_timeout, as_attachment, attachment_filename):
@@ -1858,6 +1851,4 @@ def check_and_send_reminders():
                     protocol, -day_difference,
                     config.MAX_PAST_INDEX_DAYS_BEFORE_REMINDER)
 
-
-if __name__ == "__main__":
-    manager.run()
+make_scheduler()
