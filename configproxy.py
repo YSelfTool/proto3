@@ -256,7 +256,8 @@ def check_parser(PARSER_LAZY, FUZZY_MIN_SCORE, PRIVATE_KEYWORDS):
 def check_rendering(
         FONTS, DOCUMENTS_PATH, LATEX_BULLETPOINTS, HTML_LEVEL_OFFSET,
         LATEX_LOCAL_TEMPLATES, LATEX_LOGO_TEMPLATE, LATEX_GEOMETRY,
-        LATEX_PAGESTYLE, LATEX_HEADER_FOOTER, LATEX_TEMPLATES):
+        LATEX_PAGESTYLE, LATEX_HEADER_FOOTER, LATEX_ADDITIONAL_PACKAGES,
+        LATEX_TEMPLATES):
     for key in ("main", "roman", "sans", "mono"):
         if key not in FONTS:
             raise ValueError("No font for type {} given!".format(key))
