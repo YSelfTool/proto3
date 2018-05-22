@@ -719,6 +719,11 @@ CONFIG_SECTIONS = [
                 required=False, internal=False,
                 description="Include a header and footer in protocols"),
             ConfigEntry(
+                name="LATEX_ADDITIONAL_PACKAGES",
+                default=None,
+                required=False, internal=False,
+                description="Include additional latex packages in protocols"),
+            ConfigEntry(
                 name="LATEX_TEMPLATES",
                 default=None,
                 required=False, internal=False,
