@@ -151,9 +151,9 @@ def get_etherpad_text(pad):
 
 def set_etherpad_text(pad, text, only_if_default=True):
     if only_if_default:
-        current_text = get_etherpad_text(pad)
-        if (current_text != config.EMPTY_ETHERPAD
-                and len(current_text.strip()) > 0):
+        current_text = get_etherpad_text(pad).strip()
+        if (current_text != config.EMPTY_ETHERPAD.strip()
+                and len(current_text) > 0):
             return False
     file_like = BytesIO(text.encode("utf-8"))
     files = {"file": file_like}
