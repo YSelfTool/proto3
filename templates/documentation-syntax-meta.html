@@ -5,7 +5,7 @@
 {% block documentation_content %}
     <h3>Syntax: Metadaten</h3>
 	<p>
-	In einem Protokoll repräsentieren die Metadaten allgemeine Informationen rund um eine Sitzung. Die Metadaten stehen immer am Anfang eines Protokolls. Zu den Metadaten zählen das Datum der Sitzung, der Beginn und das Ende sowie weitere pro <a href="/documentation/configuration/types">Protokolltyp</a> konfigurierte <a href="/documentation/configuration/types#meta">Metadatenfelder</a>, wie beispielsweise der Ort, die Anwesenden oder die Protokollführung. Alle <a href="/documentation/configuration/types#meta">Metadatenfelder</a> werden beim Erzeugen der Protokollvorlage durch das System automatisch in das Protokoll übertragen. Dies schließt auch den Inhalt der Felder ein, so weit dieser vor <a href="/documentation/sessionmanagement/plan">Beginn der Sitzung</a> eingegeben wurde.
+	In einem Protokoll repräsentieren die Metadaten allgemeine Informationen rund um eine Sitzung. Die Metadaten stehen immer am Anfang eines Protokolls. Zu den Metadaten zählen das Datum der Sitzung, der Beginn und das Ende sowie weitere pro <a href="{{url_for("types_configuration_documentation")}}">Protokolltyp</a> konfigurierte <a href="{{url_for("types_configuration_documentation")}}#meta">Metadatenfelder</a>, wie beispielsweise der Ort, die Anwesenden oder die Protokollführung. Alle <a href="{{url_for("types_configuration_documentation")}}#meta">Metadatenfelder</a> werden beim Erzeugen der Protokollvorlage durch das System automatisch in das Protokoll übertragen. Dies schließt auch den Inhalt der Felder ein, so weit dieser vor <a href="{{url_for("plan_sessionmanagement_documentation")}}">Beginn der Sitzung</a> eingegeben wurde.
 	</p>
 	<h4>Definition</h4>
 	<p>
@@ -17,6 +17,6 @@
         <li><code class="highlight" style="color: inherit;"><span class="nc">#Ende</span>;<span class="mi">21:42</span></code> Ende der Sitzung</li>
     </ul>
 	<p>
-	Wurden <a href="/documentation/configuration/types#meta">Metadatenfelder</a> im <a href="/documentation/configuration/types">Protokolltyp</a> konfigurierte so muss als <code class="highlight" style="color: inherit;"><span class="nc">Name</span></code> der festgelegte Key verwendet werden. Dabei muss die Groß- und Kleinschreibung beachtet werden.
+	Wurden <a href="{{url_for("types_configuration_documentation")}}#meta">Metadatenfelder</a> im <a href="{{url_for("types_configuration_documentation")}}">Protokolltyp</a> konfigurierte so muss als <code class="highlight" style="color: inherit;"><span class="nc">Name</span></code> der festgelegte Key verwendet werden. Dabei muss die Groß- und Kleinschreibung beachtet werden.
 	</p>
 {% endblock %}

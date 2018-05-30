@@ -5,16 +5,16 @@
 {% block documentation_content %}
     <h3>Sitzungsverwaltung</h3>
 	<p>
-    Ein wesentlicher Bestandteil des Protokollsystems ist das Sitzungsmanagement. Neben dem <a href="/documentation/sessionmanagement/plan">Planen und Anlegen</a> verschiedener Sitzungstermine kann zu jeder Sitzung ein <a href="/documentation/sessionmanagement/write">Protokoll</a> verfasst und anschließend durch das System ausgegeben werden. Die <a href="/documentation/sessionmanagement/tracking">Nachverfolgung</a> von Ergebnissen ist im System in Form von Beschlüssen und Todos möglich.
+    Ein wesentlicher Bestandteil des Protokollsystems ist das Sitzungsmanagement. Neben dem <a href="{{url_for("plan_sessionmanagement_documentation")}}">Planen und Anlegen</a> verschiedener Sitzungstermine kann zu jeder Sitzung ein <a href="{{url_for("write_sessionmanagement_documentation")}}">Protokoll</a> verfasst und anschließend durch das System ausgegeben werden. Die <a href="{{url_for("tracking_sessionmanagement_documentation")}}">Nachverfolgung</a> von Ergebnissen ist im System in Form von Beschlüssen und Todos möglich.
 	</p>
 	<h4>Verwaltung im Detail</h4>
 	<p>
 	Die einzelnen Funktionen des Sitzungsmanagements werden jeweils auf Unterseiten erläutert. Auch werden die Arbeitsabläufe, wie sie im System vorgesehen sind, vorgestellt.
 	</p>
 	<ul>
-		<li><a href="/documentation/sessionmanagement/plan">Planung</a></li>
-		<li><a href="/documentation/sessionmanagement/write">Protokollieren</a></li>
-		<li><a href="/documentation/sessionmanagement/tracking">Nachverfolgung</a></li>
+		<li><a href="{{url_for("plan_sessionmanagement_documentation")}}">Planung</a></li>
+		<li><a href="{{url_for("write_sessionmanagement_documentation")}}">Protokollieren</a></li>
+		<li><a href="{{url_for("tracking_sessionmanagement_documentation")}}">Nachverfolgung</a></li>
 	</ul>
 	<p>
 	Sollten die genannten Arbeitsabläufe nicht nachvollziehbar oder fehlerhaft sein, dann kontaktiere bitte das Entwicklungsteam der Software. Als Tipp: Je genauer du ein Problem beschreiben kannst, desto einfacher machst du es den betroffenen Personen selbiges zu fixen und desto schneller hast du eine Lösung.

@@ -72,7 +72,7 @@
     </div>
 	{% endif %}
 	<p>
-	Ein Beschluss kann mit <a href="/documentation/configuration/types#decision_categories">Beschlusskategorien</a> versehen werden, um Beschlüsse zu einzelnen Themen zusammenfassen zu können. Des Versehen mit Kategorien ist jedoch kein muss. <a href="/documentation/configuration/types#decision_categories">Kategorien</a> müssen vor der Verwendung in den Einstellungen des Protokolltyps definiert werden. Danach können Beschlüsse durch die Angabe der Kategorie entsprechend zugeordnet werden, z.B. <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="sx">finanzwirksam</span>;…<span class="nt">]</span></code>.
+	Ein Beschluss kann mit <a href="{{url_for("types_configuration_documentation")}}#decision_categories">Beschlusskategorien</a> versehen werden, um Beschlüsse zu einzelnen Themen zusammenfassen zu können. Des Versehen mit Kategorien ist jedoch kein muss. <a href="{{url_for("types_configuration_documentation")}}#decision_categories">Kategorien</a> müssen vor der Verwendung in den Einstellungen des Protokolltyps definiert werden. Danach können Beschlüsse durch die Angabe der Kategorie entsprechend zugeordnet werden, z.B. <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="sx">finanzwirksam</span>;…<span class="nt">]</span></code>.
 	</p>
 	<p>
 	Es empfiehlt sich Beschlüsse klar, einfach, eindeutig und auch kontextlos verständlich zu formulieren. Sind die Beschlüsse im Rahmen einer Abstimmung ergangen, so empfiehlt es sich das Abstimmungsergebnis am Ende des Beschlusses in der Form (Ja/Nein/Enthaltung) anzugeben.
@@ -88,7 +88,7 @@
 	
 	<h4 id="todo">Todo-Tag</h4>
 	<p>
-	Soll in einer Sitzung die Vergebene einer <a href="/documentation/sessionmanagement/tracking#todos">Aufgabe</a> an eine oder mehrere Personen (oder AG, AK, …) festgehalten werden, so kann mittels des Tags <code class="highlight" style="color: inherit;"><span class="nt">todo</span></code> diese Aufgabe im Protokoll festgehalten werden. Neben dem Namen der Person, welche die Aufgabe erledigen möchte, wird die Aufgabe innerhalb des Tags festgehalten. Die Aufgabe ist nach der Sitzung in der <a href="{{url_for('list_todos')}}">Todo-Übersicht</a> und nur im internen Protokoll einsehbar.
+	Soll in einer Sitzung die Vergabe einer <a href="{{url_for("tracking_sessionmanagement_documentation")}}#todos">Aufgabe</a> an eine oder mehrere Personen (oder AG, AK, …) festgehalten werden, so kann mittels des Tags <code class="highlight" style="color: inherit;"><span class="nt">todo</span></code> diese Aufgabe im Protokoll festgehalten werden. Neben dem Namen der Person, welche die Aufgabe erledigen möchte, wird die Aufgabe innerhalb des Tags festgehalten. Die Aufgabe ist nach der Sitzung in der <a href="{{url_for('list_todos')}}">Todo-Übersicht</a> und nur im internen Protokoll einsehbar.
 	</p>
 	<figure>
 		<pre class="highlight"><code><span class="nt">[todo</span>;<span class="sx">Name</span>;<span class="sx">Aufgabe</span>;<span class="sx">Argument 1</span>;<span class="sx">Argument 2</span>;…<span class="nt">]</span></code></pre>
@@ -100,7 +100,7 @@
 	Eine bereits bestehende und noch offene Aufgabe wird automatisch in ein neues Protokoll eingefügt, wenn der TOP „Todos“ auf der Tagesordnung steht (der TOP also im Protokoll enthalten ist). Zusätzlich erhält die Aufgabe dann als optionales Argument eine ID: <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="kr">id</span> <span class="mi">1338</span><span class="nt">]</span></code>. Wird dieser Todo dann während des Protokollierens geändert, passiert das auch im Protokollsystem.
 	</p>
 	<p>
-	In einem weiteren optionalen Argument kann außerdem der Status einer Aufgabe, z.B. <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="kr">done</span>;…<span class="nt">]</span></code> angegeben werden. Die Groß- und Kleinschreibung spielen bei der Verwendung keine Rolle. Wenn der Status ein Datum benötigt, muss dieser immer mit angegeben und hat die Form: <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="mi">dd.mm.yyyy</span>;…<span class="nt">]</span></code>. Bei der Angabe des Datums ist es unerheblich, an welcher Stelle innerhalb des Tags es auftacht. Eine Auflistung der verwendbaren Status-Begriffe und ob Status ein Datum benötigt, ist in der folgenden Tabelle angegeben.
+	In einem weiteren optionalen Argument kann außerdem der Status einer Aufgabe, z.B. <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="kr">done</span>;…<span class="nt">]</span></code> angegeben werden. Die Groß- und Kleinschreibung spielen bei der Verwendung keine Rolle. Wenn der Status ein Datum benötigt, muss dieses immer mit angegeben werden und hat die Form: <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="mi">dd.mm.yyyy</span>;…<span class="nt">]</span></code>. Bei der Angabe des Datums ist es unerheblich, an welcher Stelle innerhalb des Tags es auftaucht. Eine Auflistung der verwendbaren Status-Begriffe und ob Status ein Datum benötigt, ist in der folgenden Tabelle angegeben.
 	</p>
 	<table class="table table-striped">
 		<thead>
@@ -111,11 +111,11 @@
 			</tr>
 		</thead>
         <tbody>
-		{% for state, posibilities in states.items() %}
+		{% for state, possibilities in states.items() %}
 			<tr>
 				<td>{{state.get_name()}}</td>
 				<td><span class="glyphicon glyphicon-{% if state.needs_date() %}ok{% else %}remove{% endif %}" aria-hidden="true"></span></td>
-				<td>{{posibilities|map("code_key")|join(", ")|safe}}</td>
+				<td>{{possibilities|map("code_key")|join(", ")|safe}}</td>
 			</tr>
 		{% endfor %}
 		</tbody>
@@ -141,7 +141,7 @@
 	
 	<h4 id="session">Sitzungs-Tag</h4>
 	<p>
-	Werden während einer Sitzung bereits Termine für zukünfigt Sitzungen desselben Typs festgelegt, so können diese direkt aus dem Protokoll heraus angelegt und im Protokoll entsprechend hervorgehoben werden. Es wird der Tag des Types <code class="highlight" style="color: inherit;"><span class="nt">sitzung</span></code> genutzt. Als Argument muss mindestens das Datum übergeben werden und es hat die Form: <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="mi">dd.mm.yyyy</span>;…<span class="nt">]</span></code>. Optional kann zusätzlich eine Uhrzeit in folgender Form angegeben werden: <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="mi">h:mm</span><span class="nt">]</span></code>.
+	Werden während einer Sitzung bereits Termine für zukünfige Sitzungen desselben Typs festgelegt, so können diese direkt aus dem Protokoll heraus angelegt und im Protokoll entsprechend hervorgehoben werden. Es wird der Tag des Types <code class="highlight" style="color: inherit;"><span class="nt">sitzung</span></code> genutzt. Als Argument muss mindestens das Datum übergeben werden und es hat die Form: <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="mi">dd.mm.yyyy</span>;…<span class="nt">]</span></code>. Optional kann zusätzlich eine Uhrzeit in folgender Form angegeben werden: <code class="highlight" style="color: inherit;"><span class="nt">[</span>…;<span class="mi">h:mm</span><span class="nt">]</span></code>.
 	</p>
 	<figure>
 		<pre class="highlight"><code><span class="nt">[sitzung</span>;<span class="mi">Datum</span>;<span class="mi">Uhrzeit</span><span class="nt">]</span></code></pre>

@@ -18,7 +18,7 @@
 	
 	<h4 id="session_start">Mit Beginn einer Sitzung</h4>
 	<p>
-	Kurz bevor die Sitzung los geht oder mit dem Beginn der Sitzung wird das Protokoll erzeugt und die offenen <a href="/documentation/syntax/meta">Metadaten</a> ausgefüllt. Um dies zu erreichen werden die folgenden Schritte durchgeführt.
+	Kurz bevor die Sitzung los geht oder mit dem Beginn der Sitzung wird das Protokoll erzeugt und die offenen <a href="{{url_for("meta_syntax_documentation")}}">Metadaten</a> ausgefüllt. Um dies zu erreichen werden die folgenden Schritte durchgeführt.
 	</p>
 	<ol>
 		<li>Stelle sicher, dass alle mit dem Vorprotokollieren fertig sind.</li>
@@ -58,10 +58,10 @@
 		{% if config.ETHERPAD_ACTIVE %}
 		<li>Schreibe das Protokoll im Etherpad.</li>
 		{% endif %}
-		<li>Fülle alle benötigten <a href="/documentation/syntax/meta">Metadatenfelder</a>.</li>
-		<li>Falls <a href="/documentation/syntax/tags#todo">Todos</a> erledigt sind, markiere diese als erledigt.</li>
-		<li>Erfasse Beschlüsse die während einer Sitzung getroffen werden mit dem <a href="/documentation/syntax/tags#decision">Beschluss-Tag</a>.</li>
-		<li>Nutze auch die anderen <a href="/documentation/syntax/tags">Tags</a>, wo diese erforderlich sind.</li>
+		<li>Fülle alle benötigten <a href="{{url_for("meta_syntax_documentation")}}">Metadatenfelder</a>.</li>
+		<li>Falls <a href="{{url_for("tags_syntax_documentation")}}#todo">Todos</a> erledigt sind, markiere diese als erledigt.</li>
+		<li>Erfasse Beschlüsse die während einer Sitzung getroffen werden mit dem <a href="{{url_for("tags_syntax_documentation")}}#decision">Beschluss-Tag</a>.</li>
+		<li>Nutze auch die anderen <a href="{{url_for("tags_syntax_documentation")}}">Tags</a>, wo diese erforderlich sind.</li>
 	</ul>
 	<div class="panel panel-default">
         <div class="panel-heading">
