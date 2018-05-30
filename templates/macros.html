@@ -71,7 +71,7 @@ to not render a label for the CRSFTokenField -->
     {% endfor %}
 {%- endmacro %}
 
-{% macro render_form_inner(field, labels_visible) -%}
+{% macro render_form_inner(field, labels_visible, method) -%}
     {% if field.type == 'BooleanField' %}
         {{ render_checkbox_field(field) }}
     {% elif field.type == 'RadioField' %}
@@ -82,6 +82,10 @@ to not render a label for the CRSFTokenField -->
         {% for f in field %}
             {{render_form_inner(f, labels_visible=labels_visible)}}
         {% endfor %}
+    {% elif field.type == 'CSRFTokenField' %}
+        {% if method != "GET" %}
+          {{ render_field(field, label_visible=labels_visible) }}
+        {% endif %}
     {% else %}
         {{ render_field(field, label_visible=labels_visible) }}
     {% endif %}
@@ -111,7 +115,7 @@ to not render a label for the CRSFTokenField -->
             {{ caller() }}
         {% else %}
             {% for f in form %}
-                {{render_form_inner(f, labels_visible=labels_visible, textarea_rows=textarea_rows, **kwargs)}}
+                {{render_form_inner(f, labels_visible=labels_visible, textarea_rows=textarea_rows, method=method, **kwargs)}}
             {% endfor %}
         {% endif %}
         <button type="submit" class="{{btn_class}}">{{action_text}}</button>

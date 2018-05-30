@@ -4,7 +4,7 @@ from fuzzywuzzy import process
 from models.database import OldTodo, Protocol, ProtocolType, TodoMail
 from shared import db
 
-import config
+from shared import config
 
 
 def lookup_todo_id(old_candidates, new_who, new_description):

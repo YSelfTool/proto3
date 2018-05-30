@@ -5,9 +5,14 @@ import re
 from functools import wraps
 from enum import Enum
 
-import back
+from common import back
 
-import config
+try:
+    import configproxy
+    config, public_config = configproxy.import_config()
+except ImportError as error:
+    print(error)
+    raise
 
 db = SQLAlchemy()
 
@@ -126,18 +131,20 @@ def code_filter(text):
 def code_key_filter(text):
     return '<code class="highlight" style="color: inherit;"><span class="kr">{}</span></code>'.format(text)
 
-from auth import UserManager, SecurityManager, User
+from common.auth import UserManager, SecurityManager, User
 max_duration = getattr(config, "AUTH_MAX_DURATION")
 user_manager = UserManager(backends=config.AUTH_BACKENDS)
 security_manager = SecurityManager(config.SECURITY_KEY, max_duration)
 
 
 def check_login():
-    return "auth" in session and security_manager.check_user(session["auth"])
+    return current_user() is not None
 
 
 def current_user():
-    if not check_login():
+    if "auth" not in session:
+        return None
+    if not security_manager.check_user(session["auth"]):
         return None
     return User.from_hashstring(session["auth"])
 

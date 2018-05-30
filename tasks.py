@@ -16,7 +16,7 @@ from models.errors import DateNotMatchingException
 from server import celery, app
 from shared import (
     db, escape_tex, unhyphen, date_filter, datetime_filter, date_filter_long,
-    date_filter_short, time_filter, class_filter, KNOWN_KEYS, WikiType)
+    date_filter_short, time_filter, class_filter, KNOWN_KEYS, WikiType, config)
 from utils import (
     mail_manager, add_line_numbers,
     set_etherpad_text, parse_datetime_from_string)
@@ -24,8 +24,6 @@ from protoparser import parse, ParserException, Tag, Remark, Fork, RenderType
 from wiki import WikiClient, WikiException
 from calendarpush import Client as CalendarClient, CalendarException
 from legacy import lookup_todo_id
-
-import config
 
 texenv = app.create_jinja_environment()
 texenv.block_start_string = r"\ENV{"
@@ -498,13 +496,20 @@ def parse_protocol_async_inner(protocol):
 
     # TOPs
     old_tops = list(protocol.tops)
-    for top in old_tops:
-        protocol.tops.remove(top)
+    tops = []
     for index, fork in enumerate(
             (child for child in tree.children if isinstance(child, Fork))):
         top = TOP(
             protocol_id=protocol.id, name=fork.name, number=index,
             planned=False)
+        if top.name is None:
+            return _make_error(
+                protocol, "Parsing", "TOP-Name fehlt",
+                "'{Name' sollte '{TOP Name' lauten.")
+        tops.append(top)
+    for top in old_tops:
+        protocol.tops.remove(top)
+    for top in tops:
         db.session.add(top)
     db.session.commit()
 

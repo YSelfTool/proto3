@@ -1,4 +1,4 @@
-from flask import request, session
+from flask import request
 
 import random
 import string
@@ -14,10 +14,9 @@ import ipaddress
 from socket import getfqdn
 from uuid import uuid4
 import subprocess
-import os
-import hashlib
+import contextlib
 
-import config
+from shared import config
 
 
 def random_string(length):
@@ -66,6 +65,20 @@ class MailManager:
             return smtplib.SMTP_SSL
         return smtplib.SMTP
 
+    def connect(self):
+        server = self._get_smtp()(self.hostname)
+        if self.use_starttls:
+            server.starttls()
+        if self.username not in [None, ""] and self.password not in [None, ""]:
+            server.login(self.username, self.password)
+        return server
+
+    @contextlib.contextmanager
+    def session(self):
+        server = self.connect()
+        yield server
+        server.quit()
+
     def send(self, to_addr, subject, content, appendix=None, reply_to=None):
         if (not self.active
                 or not self.hostname
@@ -85,13 +98,20 @@ class MailManager:
                 part["Content-Disposition"] = (
                     'attachment; filename="{}"'.format(name))
                 msg.attach(part)
-        server = self._get_smtp()(self.hostname)
-        if self.use_starttls:
-            server.starttls()
-        if self.username not in [None, ""] and self.password not in [None, ""]:
-            server.login(self.username, self.password)
-        server.sendmail(self.from_addr, to_addr.split(","), msg.as_string())
-        server.quit()
+        with self.session() as server:
+            server.sendmail(
+                self.from_addr,
+                to_addr.split(","),
+                msg.as_string())
+
+    def check(self):
+        if not self.active:
+            return True
+        if not self.hostname or not self.from_addr:
+            return False
+        with self.session():
+            pass
+        return True
 
 
 mail_manager = MailManager(config)
@@ -130,16 +150,14 @@ def get_etherpad_text(pad):
 
 
 def set_etherpad_text(pad, text, only_if_default=True):
-    print(pad)
     if only_if_default:
-        current_text = get_etherpad_text(pad)
-        if (current_text != config.EMPTY_ETHERPAD
-                and len(current_text.strip()) > 0):
+        current_text = get_etherpad_text(pad).strip()
+        if (current_text != config.EMPTY_ETHERPAD.strip()
+                and len(current_text) > 0):
             return False
     file_like = BytesIO(text.encode("utf-8"))
     files = {"file": file_like}
     url = get_etherpad_import_url(pad)
-    print(url)
     req = requests.post(url, files=files)
     return req.status_code == 200
 
@@ -265,9 +283,3 @@ def get_max_page_length_exp(objects):
 
 def get_internal_filename(protocol, document, filename):
     return "{}-{}-{}".format(protocol.id, document.id, filename)
-
-
-def get_csrf_token():
-    if "_csrf" not in session:
-        session["_csrf"] = hashlib.sha1(os.urandom(64)).hexdigest()
-    return session["_csrf"]

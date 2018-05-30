@@ -5,7 +5,7 @@ import quopri
 from caldav import DAVClient
 from vobject.base import ContentLine
 
-import config
+from shared import config
 
 
 class CalendarException(Exception):

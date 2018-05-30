@@ -5,9 +5,9 @@ locale.setlocale(locale.LC_TIME, "de_DE.utf8")
 from flask import (
     Flask, request, session, flash, redirect,
     url_for, abort, render_template, Response, Markup)
+import click
 from werkzeug.utils import secure_filename
-from flask_script import Manager, prompt
-from flask_migrate import Migrate, MigrateCommand
+from flask_migrate import Migrate
 from celery import Celery
 from sqlalchemy import or_
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -21,9 +21,8 @@ from datetime import datetime, timedelta
 import math
 import mimetypes
 
-import config
 from shared import (
-    db, date_filter, datetime_filter, date_filter_long,
+    config, db, date_filter, datetime_filter, date_filter_long,
     date_filter_short, time_filter, time_filter_short, user_manager,
     security_manager, current_user, check_login, login_required,
     class_filter, needs_date_test, todostate_name_filter,
@@ -31,9 +30,8 @@ from shared import (
 from utils import (
     get_first_unused_int, get_etherpad_text, split_terms, optional_int_arg,
     fancy_join, footnote_hash, get_git_revision, get_max_page_length_exp,
-    get_internal_filename, get_csrf_token, get_current_ip)
+    get_internal_filename, get_current_ip)
 from decorators import (
-    db_lookup, protect_csrf,
     require_private_view_right, require_modify_right, require_publish_right,
     require_admin_right)
 from models.database import (
@@ -55,14 +53,15 @@ from views.tables import (
     TodosTable, DocumentsTable, DecisionsTable, TodoTable, ErrorTable,
     TodoMailsTable, DefaultMetasTable, DecisionCategoriesTable)
 from legacy import import_old_todos, import_old_protocols, import_old_todomails
-import back
+from common import back
+from common.csrf import protect_csrf, get_csrf_token
+from common.database import db_lookup
+
 
 app = Flask(__name__)
 app.config.from_object(config)
 db.init_app(app)
 migrate = Migrate(app, db)
-manager = Manager(app)
-manager.add_command("db", MigrateCommand)
 
 try:
     from raven.contrib.flask import Sentry
@@ -137,7 +136,7 @@ app.jinja_env.globals.update(now=datetime.now)
 app.jinja_env.globals["git_revision"] = get_git_revision()
 
 
-@manager.command
+@app.cli.command()
 def import_legacy():
     """Import the old todos and protocols from an sql dump"""
     filename = prompt("SQL-file")
@@ -148,7 +147,7 @@ def import_legacy():
         import_old_todomails(content)
 
 
-@manager.command
+@app.cli.command()
 def recompile_all():
     for protocol in sorted(Protocol.query.all(), key=lambda p: p.date):
         if protocol.is_done():
@@ -156,7 +155,7 @@ def recompile_all():
             tasks.parse_protocol(protocol)
 
 
-@manager.command
+@app.cli.command()
 def merge_duplicate_todos():
     todo_by_id = {}
     todos = Todo.query.all()
@@ -179,10 +178,18 @@ def merge_duplicate_todos():
             todo_by_id[todo_id] = todo
 
 
-@manager.command
-def runserver():
-    app.run()
-    make_scheduler()
+@app.cli.command()
+def check_config():
+    #  TODO: check how to set return codes
+    import configproxy
+    return configproxy.check_config()
+
+
+@app.cli.command()
+@click.argument("filename")
+def create_example_config(filename):
+    import configproxy
+    return configproxy.write_example_config(filename=filename)
 
 
 def send_file(file_like, cache_timeout, as_attachment, attachment_filename):
@@ -1943,6 +1950,4 @@ def check_and_send_reminders():
                     protocol, -day_difference,
                     config.MAX_PAST_INDEX_DAYS_BEFORE_REMINDER)
 
-
-if __name__ == "__main__":
-    manager.run()
+make_scheduler()
