@@ -6,7 +6,7 @@
     <h3>Einrichtung: Todo Mails</h3>
 	{% if config.MAIL_ACTIVE %}
 	<p>
-	Werden im Protokollsystem im Rahmen einer Sitzung Aufgaben verwaltet, so kann es ermöglicht werden, dass die mit der Aufgabe betraute Person eine Benachrichtigung erhält. Damit diese Personen eine Benachrichtigung erhalten kann, sollten zu jedem genutzten Personenkürzel eine E-Mailadresse hinterlegt werden. Diese Konfiguration erfolgt zentral auf der Übersicht der <a href="{{url_for('list_todomails')}}">Todo-Mail-Zuordnungen</a>.
+	Werden im Protokollsystem im Rahmen einer Sitzung Aufgaben verwaltet, so kann eingestellt werden, dass die mit der Aufgabe betrauten Personen eine Benachrichtigung erhalten können. Damit diese Personen eine Benachrichtigung erhalten kann, sollten zu jedem genutzten Personenkürzel eine E-Mailadresse hinterlegt werden. Diese Konfiguration erfolgt zentral auf der Übersicht der <a href="{{url_for('list_todomails')}}">Todo-Mail-Zuordnungen</a>.
 	</p>
 	<div class="panel panel-default">
         <div class="panel-heading">
@@ -38,7 +38,7 @@
         </div>
     </div>
 	<p>
-	Auf der <a href="{{url_for('list_todomails')}}">Zuordnungsübersicht</a> kann über die Schaltfläche „neu“ eine entsprechende Todo-Mail-Zuordnungen angelegt werden. Bereits bestehende Zuordnungen können jederzeit angepasst oder gelöscht werden. Beim Anlegen bzw. der Bearbeitung einer Zuordnungen müssen stets das genutzten Personenkürzel (Name) sowie die korresspondierende E-Mailadresse angegeben werden.
+	Auf der <a href="{{url_for('list_todomails')}}">Übersicht</a> kann über die Schaltfläche „neu“ eine entsprechende Todo-Mail-Zuordnungen angelegt werden. Bereits bestehende Belegungen können jederzeit angepasst oder gelöscht werden. Beim Anlegen bzw. der Bearbeitung müssen stets das genutzten Personenkürzel (Name) sowie die korresspondierende E-Mailadresse angegeben werden.
 	</p>
 	<div class="panel panel-default">
         <div class="panel-heading">

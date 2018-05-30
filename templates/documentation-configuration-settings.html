@@ -5,7 +5,7 @@
 {% block documentation_content %}
     <h3>Einrichtung: Systemeinstellungen</h3>
 	<p>
-	Einige Features des Protokollsystem müssen bei der Installation und Einrichtung durch die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a> aktiviert werden. Eine Übersicht über die mit diesen Systemeinstellungen verbundenen Features soll hier gegeben werden. Sollten einige der angegeben Funktionalitäten aktiviert werden, so wende dich an die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a>. Bedenke vor deiner Anfrage, dass einige Features eventuell aus wichtigen Gründen bisher noch nicht aktiviert wurden.
+	Einige Features des Protokollsystems müssen bei der Installation und Einrichtung durch die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a> aktiviert werden. Dies ist eine Übersicht über die mit diesen Systemeinstellungen verbundenen Features. Sollten einige der angegeben Funktionalitäten aktiviert werden, so wende dich an die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a>. Bedenke vor deiner Anfrage, dass einige Features eventuell aus wichtigen Gründen bisher noch nicht aktiviert wurden.
 	</p>
 	<table class="table table-striped">
 		<thead>
@@ -19,7 +19,7 @@
 			<tr>
 				<td>E-Mailversand</td>
 				<td><span class="glyphicon glyphicon-{% if config.MAIL_ACTIVE %}ok{% else %}remove{% endif %}" aria-hidden="true"></span></td>
-				<td>Das System kann selbstständig E-Mails versenden, um über nächste Sitzungen, neue Protokolle oder Todos zu informieren.</td>
+				<td>Das System kann selbstständig E-Mails versenden, um über anstehende Sitzungen, neue Protokolle oder Todos zu informieren.</td>
 			</tr>
 			<tr>
 				<td>Druckeranbindung</td>
@@ -49,12 +49,12 @@
 			<tr>
 				<td>Angepasste Standardvorlage</td>
 				<td><span class="glyphicon glyphicon-{% if (config.LATEX_LOCAL_TEMPLATES and config.LATEX_LOGO_TEMPLATE) or config.LATEX_GEOMETRY or config.LATEX_PAGESTYLE or config.LATEX_ADDITIONAL_PACKAGES or config.LATEX_HEADER_FOOTER %}ok{% else %}remove{% endif %}" aria-hidden="true"></span></td>
-				<td>Das System nutzt die Standardprotokollvorlage in einer angepassten Form.</td>
+				<td>Das System nutzt die Standardprotokollvorlage in einer angepassten Form - ggf. mit Logo, Kopf-/Fußzeile oder anderen Seitenformaten bzw. -abständen</td>
 			</tr>
 			<tr>
 				<td>Individuelle Protokollvorlagen</td>
 				<td><span class="glyphicon glyphicon-{% if config.LATEX_LOCAL_TEMPLATES and config.LATEX_TEMPLATES %}ok{% else %}remove{% endif %}" aria-hidden="true"></span></td>
-				<td>Das System stellt zusätzlich zur Standardvorlage individuelle Protokollvorlagen zur Verfügung.</td>
+				<td>Das System stellt zusätzlich zur Standardvorlage individuelle Protokollvorlagen zur Verfügung, die zuvor erstellt und durch die Administratoren eingespielt wurden.</td>
 			</tr>
 		</tbody>
 	</table>

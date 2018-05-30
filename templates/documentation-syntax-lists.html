@@ -5,7 +5,7 @@
 {% block documentation_content %}
     <h3>Syntax: Listen</h3>
     <p>
-    Das Protokollsystem sieht vor, dass Diskussionen in einem Tagesordnungspunkt strukturiert und in Unterpunkte aufgeteilt werden können. Dies wird durch sogenannte Listen umgesetzt. Mit jedem Zeilenumbruch erzeugt das Protokollsystem beim Kompilieren (Übersetzten des Syntax in ein PDF oder die Webseitenanzeige) einen neue Zeile im fertigen Protokoll, welchem ggf. ein Auszählungszeichen besitzt.
+    Das Protokollsystem sieht vor, dass Diskussionen in einem Tagesordnungspunkt strukturiert und in Unterpunkte aufgeteilt werden können. Dies wird durch sogenannte Listen umgesetzt. Mit jedem Zeilenumbruch erzeugt das Protokollsystem beim Kompilieren (Übersetzten des Syntax in ein PDF oder die Webseitenanzeige) einen neue Zeile im fertigen Protokoll und setzt ggf. ein Auszählungszeichen an den Anfang der Zeile.
     </p>
     <p>
     Zusätzlich gibt es im Protokollsystem spezielle Listen, die es ermöglichen hinsichtlich der Ausgabe oder des Titels Unterscheidungen vornehmen zu können. {% if config.PRIVATE_KEYWORDS|length > 0  %}Diese Listen sind{% else %}Eine solche Liste ist{% endif %} der <a href="top">Tagesordnungspunkt</a>{% if config.PRIVATE_KEYWORDS|length > 0  %} und der <a href="internal">interne Abschnitt</a>{% endif %}.
