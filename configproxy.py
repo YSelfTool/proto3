@@ -730,7 +730,7 @@ CONFIG_SECTIONS = [
                 required=False, internal=False,
                 description=(
                     "define multiple LaTeX-templates to use with a each "
-                    "protocol type individually overiding the general LATEX "
+                    "protocol type individually overriding the general LATEX "
                     "options the LATEX_LOCAL_TEMPLATES parameter is need to "
                     "provide the path for the templates each template must "
                     "be placed in an individual folder named by its ID in "
