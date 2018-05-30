@@ -105,6 +105,12 @@ class ProtocolType(DatabaseModel):
             return None
         return candidates[0]
 
+    def get_protocols_on_date(self, protocol_date):
+        return [
+            protocol for protocol in self.protocols
+            if protocol.date == protocol_date
+        ]
+
     def has_public_view_right(self, user, check_networks=True):
         return (
             self.has_public_anonymous_view_right(check_networks=check_networks)
@@ -423,7 +429,12 @@ class Protocol(DatabaseModel):
             tzinfo=tz.tzlocal())
 
     @staticmethod
-    def create_new_protocol(protocoltype, date, start_time=None):
+    def create_new_protocol(
+            protocoltype, date, start_time=None, allow_duplicate=False):
+        if not allow_duplicate:
+            duplicate_candidates = protocoltype.get_protocols_on_date(date)
+            if duplicate_candidates:
+                return duplicate_candidates[0]
         if start_time is None:
             start_time = protocoltype.usual_time
         protocol = Protocol(

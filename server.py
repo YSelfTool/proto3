@@ -75,7 +75,7 @@ try:
             "release": get_git_revision(),
         }
     sentry.get_user_info = get_user_info
-except ModuleNotFoundError:
+except ImportError:
     print("Raven not installed. Not sending issues to Sentry.")
 except AttributeError:
     print("DSN not configured. Not sending issues to Sentry.")
@@ -91,7 +91,7 @@ def make_celery(app, config):
         raven_client = RavenClient(config.SENTRY_DSN)
         register_logger_signal(raven_client)
         register_signal(raven_client)
-    except ModuleNotFoundError:
+    except ImportError:
         print("Raven not installed. Not sending celery issues to Sentry.")
     except AttributeError:
         print("DSN not configured. Not sending celery issues to Sentry.")
@@ -1029,7 +1029,7 @@ def send_protocol_reminder(protocol):
     if not config.MAIL_ACTIVE:
         flash("Die Mailfunktion ist nicht aktiviert.", "alert-error")
         return back.redirect("show_protocol", protocol_id=protocol.id)
-    meetingreminders = protocol.reminders
+    meetingreminders = protocol.protocoltype.reminders
     if len(meetingreminders) == 0:
         flash("Für diesen Protokolltyp sind keine Einladungsmails "
               "konfiguriert.", "alert-error")
@@ -1924,7 +1924,8 @@ def check_and_send_reminders():
     with app.app_context():
         current_time = datetime.now()
         current_day = current_time.date()
-        for protocol in Protocol.query.filter(not Protocol.done).all():
+        query = Protocol.query.filter(Protocol.done == False)  # noqa: E712
+        for protocol in query.all():
             day_difference = (protocol.date - current_day).days
             usual_time = protocol.get_time()
             protocol_time = datetime(
