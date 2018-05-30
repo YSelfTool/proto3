@@ -1,0 +1,73 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "todomails_configuration_documentation" %}
+{% block title %}Einrichtung: Todo Mails{% endblock %}
+
+{% block documentation_content %}
+    <h3>Einrichtung: Todo Mails</h3>
+	{% if config.MAIL_ACTIVE %}
+	<p>
+	Werden im Protokollsystem im Rahmen einer Sitzung Aufgaben verwaltet, so kann eingestellt werden, dass die mit der Aufgabe betrauten Personen eine Benachrichtigung erhalten können. Damit diese Personen eine Benachrichtigung erhalten kann, sollten zu jedem genutzten Personenkürzel eine E-Mailadresse hinterlegt werden. Diese Konfiguration erfolgt zentral auf der Übersicht der <a href="{{url_for('list_todomails')}}">Todo-Mail-Zuordnungen</a>.
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_todomails_overview">Beispiel - Übersicht Todo-Mail-Zuordnungen</a></h5>
+        </div>
+        <div id="example_todomails_overview" class="panel-body panel-collapse collapse">
+            <h3>Todo-Mail-Zuordnungen <a href="#example_todomails_overview">Neu</a></h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+						<th>Name</th>
+						<th>Mail</th>
+						<th></th>
+					</tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>mmustermann</td>
+                        <td>mmustermann@domain.example</td>
+                        <td><a href="#example_todomails_overview">Ändern</a>, <a href="#example_todomails_overview" onclick="return confirm('Bist du dir sicher, dass du die Todomailzuordnung mmustermann zu mmustermann@domain.example löschen willst?');">Löschen</a></td>
+					</tr>
+					<tr>
+                        <td>kmusterfrau</td>
+                        <td>kmusterfrau@domain.example</td>
+                        <td><a href="#example_todomails_overview">Ändern</a>, <a href="#example_todomails_overview" onclick="return confirm('Bist du dir sicher, dass du die Todomailzuordnung kmusterfrau zu kmusterfrau@domain.example löschen willst?');">Löschen</a></td>
+					</tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+	<p>
+	Auf der <a href="{{url_for('list_todomails')}}">Übersicht</a> kann über die Schaltfläche „neu“ eine entsprechende Todo-Mail-Zuordnungen angelegt werden. Bereits bestehende Belegungen können jederzeit angepasst oder gelöscht werden. Beim Anlegen bzw. der Bearbeitung müssen stets das genutzten Personenkürzel (Name) sowie die korresspondierende E-Mailadresse angegeben werden.
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_new_todomail">Beispiel - Todo-Mail anlegen bzw. bearbeiten</a></h5>
+        </div>
+        <div id="example_new_todomail" class="panel-body panel-collapse collapse">
+			<form role="form" class="">
+				<div class="form-group  ">
+					<label for="name" class="control-label"><label for="name">Name</label></label>
+					<input class="form-control" id="name" name="name" placeholder="Name" title="" value="" type="text">
+				</div>
+				<div class="form-group  ">
+					<label for="mail" class="control-label"><label for="mail">Mail</label></label>
+					<input class="form-control" id="mail" name="mail" placeholder="Mail" title="" value="" type="text">
+				</div>
+				<button type="button" class="btn btn-default">Ändern</button>
+			</form>
+		</div>
+	</div>
+	{% else %}
+	<div class="panel panel-warning">
+        <div class="panel-heading">
+            <h5 class="panel-title">Nutzung nicht vorgesehen</h5>
+        </div>
+        <div class="panel-body ">
+			<p>
+			Das Versenden von E-Mails zu offenen Aufgaben ist hier bisher noch nicht vorgesehen. Um den automatischen E-Mailversand nutzen zu können, wende dich bitte an die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a> und lasse die <a href="/documentation/configuration/settings">Konfiguration</a> durch sie entsprechend anpassen.
+			</p>
+		</div>
+	</div>
+	{% endif %}
+{% endblock %}

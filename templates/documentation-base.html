@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% block additional_js %}
+<link rel="stylesheet" href="{{url_for('static', filename='css/pygments-manni.css')}}" />
+{% endblock %}
+{% set navigation_bar = [
+    ('sessionmanagement_documentation', '/documentation/sessionmanagement', 'Sitzungsverwaltung', [
+        ('plan_sessionmanagement_documentation', '/documentation/sessionmanagement/plan', 'Planung'),
+        ('write_sessionmanagement_documentation', '/documentation/sessionmanagement/write', 'Protokollieren'),
+        ('tracking_sessionmanagement_documentation', '/documentation/sessionmanagement/tracking', 'Nachverfolgung')
+    ]),
+    ('syntax_documentation', '/documentation/syntax', 'Syntax', [
+        ('meta_syntax_documentation', '/documentation/syntax/meta', 'Metadaten'),
+        ('top_syntax_documentation', '/documentation/syntax/top', 'Tagesordnungspunkte'),
+        ('lists_syntax_documentation', '/documentation/syntax/lists', 'Listen'),
+        ('internal_syntax_documentation', '/documentation/syntax/internal', 'Interne Abschnitte'),
+        ('tags_syntax_documentation', '/documentation/syntax/tags', 'Tags')
+    ]),
+    ('configuration_documentation', '/documentation/configuration', 'Einrichtung', [
+        ('types_configuration_documentation', '/documentation/configuration/types', 'Typen'),
+        ('todomails_configuration_documentation', '/documentation/configuration/todomails', 'Todo Mails'),
+        ('settings_configuration_documentation', '/documentation/configuration/settings', 'Systemeinstellungen')
+    ])
+] -%}
+{% set active_page = active_page|default('documentation') -%}
+
+{% block content %}
+<div class="row">
+    <div id="left-column", class="col-lg-3">
+		<nav class="navbar navbar-default" style="border: none; background-color:white">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#documentation-navigation" aria-expanded="false">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="/documentation">Dokumentation</a>
+				</div>
+				<div class="collapse navbar-collapse" id="documentation-navigation">
+					<ul class="nav navbar-nav" style="width:100%">
+					{% for id, url, caption, children in navigation_bar %}
+						<li{% if id == active_page %} class="active"{% endif %} style="width:100%">
+							<div class="btn-group" style="width:100%">
+								<a class="btn btn-{% if id == active_page %}primary{% else %}default{% endif %}{% if children %} col-xs-10{% endif %}" href="{{url|e}}" role="button" style="font-weight: bold; text-align:left; border: none; padding: 10px 15px">{{caption|e}}</a>
+								{% if children %}
+								<button class="btn btn-{% if id == active_page %}primary{% else %}default{% endif %} col-xs-2" type="button" data-toggle="collapse" role="button" data-target="#{{id}}-collapse" aria-expanded="true" style="float:right; border:none; padding: 10px 15px">
+									<span class="caret"></span>
+									<span class="sr-only">Toggle Dropdown</span>
+								</button>
+								{% endif %}
+							</div>
+							{% if children %}
+								<ul class="collapse{% if active_page.endswith(id) %}.in{% endif %} nav nav-pills nav-stacked" id="{{id}}-collapse">
+								{% for child_id, child_url, child_caption in children %}
+								<li{% if child_id == active_page %} class="active"{% endif %}>
+									<a href="{{child_url|e}}" style="padding-left: 30px">{{child_caption|e}}</a>
+								</li>
+								{% endfor %}
+								</ul>
+							{% endif %}
+						</li>
+					{% endfor %}
+					</ul>
+				</div>
+			</div>
+		</nav>
+    </div>
+    <div id="right-column", class="col-lg-9">
+    {% block documentation_content %}
+        Diese Seite ist leer.
+    {% endblock %}
+    </div>
+</div>
+{% endblock %}

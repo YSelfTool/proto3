@@ -1,0 +1,72 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "lists_syntax_documentation" %}
+{% block title %}Syntax: Listen{% endblock %}
+
+{% block documentation_content %}
+    <h3>Syntax: Listen</h3>
+    <p>
+    Das Protokollsystem sieht vor, dass Diskussionen in einem Tagesordnungspunkt strukturiert und in Unterpunkte aufgeteilt werden können. Dies wird durch sogenannte Listen umgesetzt. Mit jedem Zeilenumbruch erzeugt das Protokollsystem beim Kompilieren (Übersetzten des Syntax in ein PDF oder die Webseitenanzeige) einen neue Zeile im fertigen Protokoll und setzt ggf. ein Auszählungszeichen an den Anfang der Zeile.
+    </p>
+    <p>
+    Zusätzlich gibt es im Protokollsystem spezielle Listen, die es ermöglichen hinsichtlich der Ausgabe oder des Titels Unterscheidungen vornehmen zu können. {% if config.PRIVATE_KEYWORDS|length > 0  %}Diese Listen sind{% else %}Eine solche Liste ist{% endif %} der <a href="top">Tagesordnungspunkt</a>{% if config.PRIVATE_KEYWORDS|length > 0  %} und der <a href="internal">interne Abschnitt</a>{% endif %}.
+    </p>
+    <h4>Definition</h4>
+	<div class="row">
+        <div class="col-sm-9">
+            <p>
+            Die Liste ist im Protokoll das strukturierende Element. Es beginnt und endet mit einer geschweiften Klammer. Die Elemente der Liste werden durch das Zeilenende getrennt. Es ist möglich Listen beliebig ineinander zuschachteln. Zusätzlich kann eine Liste einen Titel haben, der vor der öffnenden Klammer <code>{</code> steht.
+            </p>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h5 class="panel-title">Syntax einer Liste</h5>
+				</div>
+				<figure class="panel-body">
+					<pre class="highlight"><code><span class="sx">Titel der Liste</span> {
+    <span class="c1">Details zu diesem Punkt.</span>
+    <span class="c1">Mehr Details zu diesen Punkt in einer neuen Zeile.</span>
+}</code></pre>
+				</figure>
+			</div>     
+        </div>
+        <div class="col-sm-3">
+			<div class="panel panel-warning">
+				<div class="panel-heading">
+					<h5 class="panel-title">Zu beachten</h5>
+				</div>
+				<ul class="list-group">
+					<li class="list-group-item">Spezielle Listen weisen hinsichtlich des Titels ein anders Verhalten auf.</li>
+					<li class="list-group-item">Listen in der höchsten Ebene müssen <a href="top">TOPs</a> sein.</li>
+				</ul>
+            </div>
+        </div>
+    </div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h5 class="panel-title"><a data-toggle="collapse" href="#example_lists">Beispiel - Verschachtelte Listen</a></h5>
+		</div>
+		<figure id="example_lists" class="panel-body panel-collapse collapse">
+			<pre class="highlight"><code>{<span class="kr">TOP</span> <span class="sx">Bericht</span>
+	Es wird über die Aktivitäten seit der letzten Sitzung berichtet.
+	<span class="sx">Erstsemesterarbeit</span>{
+		Die Vorbereitung für die nächste Erstsemesterwoche laufen. Ab dieser Woche werden auch wieder regelmäßige Planungstreffen stattfinden.
+	}
+	<span class="sx">Infrastruktur</span>{
+		Es fand ein Treffen statt auf dem aktuelle Projekte besprochen wurden. 
+		<span class="sx">Wasserspender</span>{
+			Es wurden Vorschläge für Aufstellorte von weiteren Wasserspendern gemacht.
+			Weiteres wird geprüft.
+		}
+		<span class="sx">Luftpumpen</span>{
+			Es sollen Luftpumpen angeschafft werden.
+			Ein Angebot wird eingeholt
+		}
+		<span class="sx">Renovierung</span>{
+			Eine Renovierung ist geplant.
+			Anforderungen sollen gesammelt werden.
+		}
+	}
+}</code></pre>
+		</figure>
+	</div>
+
+{% endblock %}

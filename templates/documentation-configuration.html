@@ -1,0 +1,17 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "configuration_documentation" %}
+{% block title %}Einrichtung{% endblock %}
+
+{% block documentation_content %}
+    <h3>Einrichtung</h3>
+	<p>
+	Eine wichtige Eigenschaft des Protokollsystems ist die Konfigurierbarkeit. Das System lässt sich individuell auf die Bedürfnisse der eigenen Organisationseinheit anpassen. Einige Einstellungen können direkt über die Weboberfläche vorgenommen werden und stehen allen Benutzern zur Verfügung. Dazu gehören:
+	</p>
+	<ul>
+		<li><a href="configuration/types">Protokolltypen</a></li>
+		<li><a href="configuration/todomails">Todo-Mails</a></li>
+	</ul>
+	<p>
+	Andere Einstellungen werden direkt bei der Installation und Einrichtung des Protokollsystems durch die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a> vorgenommen. Zu diesen <a href="configuration/settings">Systemeinstellungen</a> zählen unter anderem Features wie das automatische Versenden von E-Mails oder die Nutzung eines Etherpads zum Schreiben von Protokollen.
+	</p>
+{% endblock %}

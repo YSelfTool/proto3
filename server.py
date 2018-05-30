@@ -26,7 +26,7 @@ from shared import (
     date_filter_short, time_filter, time_filter_short, user_manager,
     security_manager, current_user, check_login, login_required,
     class_filter, needs_date_test, todostate_name_filter,
-    code_filter, indent_tab_filter)
+    code_filter, code_key_filter, indent_tab_filter)
 from utils import (
     get_first_unused_int, get_etherpad_text, split_terms, optional_int_arg,
     fancy_join, footnote_hash, get_git_revision, get_max_page_length_exp,
@@ -110,6 +110,7 @@ app.jinja_env.filters["datify_long"] = date_filter_long
 app.jinja_env.filters["class"] = class_filter
 app.jinja_env.filters["todo_get_name"] = todostate_name_filter
 app.jinja_env.filters["code"] = code_filter
+app.jinja_env.filters["code_key"] = code_key_filter
 app.jinja_env.filters["indent_tab"] = indent_tab_filter
 app.jinja_env.filters["fancy_join"] = fancy_join
 app.jinja_env.filters["footnote_hash"] = footnote_hash
@@ -280,17 +281,115 @@ def index():
         protocol=protocol, todos=todos, show_private=show_private,
         has_public_view_right=has_public_view_right)
 
-
 @app.route("/documentation")
 @back.anchor
 @login_required
 def documentation():
-    todostates = list(TodoState)
-    name_to_state = TodoState.get_name_to_state()
     return render_template(
-        "documentation.html", todostates=todostates,
-        name_to_state=name_to_state)
+        "documentation.html")
 
+@app.route("/documentation/sessionmanagement")
+@back.anchor
+@login_required
+def sessionmanagement_documentation():
+    return render_template(
+        "documentation-sessionmanagement.html")
+
+@app.route("/documentation/sessionmanagement/plan")
+@back.anchor
+@login_required
+def plan_sessionmanagement_documentation():
+    return render_template(
+        "documentation-sessionmanagement-plan.html")
+
+@app.route("/documentation/sessionmanagement/write")
+@back.anchor
+@login_required
+def write_sessionmanagement_documentation():
+    return render_template(
+        "documentation-sessionmanagement-write.html")
+
+@app.route("/documentation/sessionmanagement/tracking")
+@back.anchor
+@login_required
+def tracking_sessionmanagement_documentation():
+    return render_template(
+        "documentation-sessionmanagement-tracking.html")
+
+@app.route("/documentation/syntax")
+@back.anchor
+@login_required
+def syntax_documentation():
+    return render_template(
+        "documentation-syntax.html")
+
+@app.route("/documentation/syntax/meta")
+@back.anchor
+@login_required
+def meta_syntax_documentation():
+    return render_template(
+        "documentation-syntax-meta.html")
+
+@app.route("/documentation/syntax/top")
+@back.anchor
+@login_required
+def top_syntax_documentation():
+    return render_template(
+        "documentation-syntax-top.html")
+
+@app.route("/documentation/syntax/lists")
+@back.anchor
+@login_required
+def lists_syntax_documentation():
+    return render_template("documentation-syntax-lists.html")
+
+@app.route("/documentation/syntax/internal")
+@back.anchor
+@login_required
+def internal_syntax_documentation():
+    return render_template(
+        "documentation-syntax-internal.html")
+
+@app.route("/documentation/syntax/tags")
+@back.anchor
+@login_required
+def tags_syntax_documentation():
+	states = {state:[] for state in list(TodoState)}
+	name_to_state = TodoState.get_name_to_state()
+	for state_name in name_to_state:
+		states[name_to_state[state_name]].append(state_name)
+	return render_template(
+		"documentation-syntax-tags.html", states=states)
+
+@app.route("/documentation/configuration")
+@back.anchor
+@login_required
+def configuration_documentation():
+    return render_template(
+        "documentation-configuration.html")
+
+@app.route("/documentation/configuration/types")
+@back.anchor
+@login_required
+def types_configuration_documentation():
+    return render_template(
+        "documentation-configuration-types.html")
+
+@app.route("/documentation/configuration/todomails")
+@back.anchor
+@login_required
+def todomails_configuration_documentation():
+    return render_template(
+        "documentation-configuration-todomails.html")
+
+@app.route("/documentation/configuration/settings")
+@back.anchor
+@login_required
+def settings_configuration_documentation():
+	user = current_user()
+	return render_template(
+        "documentation-configuration-settings.html",
+		system_administrator=(user is not None and config.ADMIN_GROUP in user.groups))
 
 @app.route("/types/list")
 @back.anchor

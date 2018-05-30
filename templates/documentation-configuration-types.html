@@ -1,0 +1,532 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "types_configuration_documentation" %}
+{% block title %}Einrichtung: Typen{% endblock %}
+
+{% block documentation_content %}
+    <h3>Einrichtung: Typen</h3>
+	<p>
+	Damit Protokolle im Protokollsystem überhaupt <a href="/documentation/sessionmanagement/write">geschrieben</a> und <a href="/documentation/sessionmanagement/plan">Sitzungen verwaltet</a> werden können, ist es unerlässlich entsprechende Protokolltypen anzulegen. Auf der <a href="{{url_for('list_types')}}">Protokolltypen-Übersichtsseite</a> werden die Typen aufgelistet, wobei nur die Typen angezeigt werden, deren Protokolle man sehen darf (weiteres hierzu unter <a href="#rechte">Rechtekonfiguration</a>).
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_types_overview">Beispiel - Übersicht Protokolltypen</a></h5>
+        </div>
+        <div id="example_types_overview" class="panel-body panel-collapse collapse">
+            <h3>Protokolltypen <a href="#example_types_overview">Neu</a></h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+						<th class="hidden-sm hidden-md hidden-lg">Typ</th>
+						<th class="hidden-sm hidden-md hidden-lg">Protokoll</th>
+						<th class="hidden-xs">Typ</th>
+						<th class="hidden-xs">Name</th>
+						<th class="hidden-xs">Neuestes Protokoll</th>
+						<th class="hidden-xs"></th>
+					</tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="hidden-sm hidden-md hidden-lg"><a href="#example_types_overview">Sitzung (sitzung)</a></td>
+                        <td class="hidden-sm hidden-md hidden-lg"><a href="#example_types_overview">sitzung-18-03-08</a><br><a href="#example_types_overview">Neues Protokoll</a></td>
+                        <td class="hidden-xs"><a href="#example_types_overview">sitzung</a></td>
+                        <td class="hidden-xs">Sitzung</td>
+                        <td class="hidden-xs"><a href="#example_types_overview">sitzung-18-03-08</a></td>
+                        <td class="hidden-xs"><a href="#example_types_overview">Neues Protokoll</a></td>
+					</tr>
+					<tr>
+						<td class="hidden-sm hidden-md hidden-lg"><a href="#example_types_overview">Versammlung (versammlung)</a></td>
+						<td class="hidden-sm hidden-md hidden-lg"><a href="#example_types_overview">versammlung-18-03-11</a><br><a href="#example_types_overview">Neues Protokoll</a></td>
+						<td class="hidden-xs"><a href="#example_types_overview">versammlung</a></td>
+						<td class="hidden-xs">Versammlung</td>
+						<td class="hidden-xs"><a href="#example_types_overview">versammlung-18-03-11</a></td>
+						<td class="hidden-xs"><a href="#example_types_overview">Neues Protokoll</a></td>
+					</tr>
+					<tr>
+						<td class="hidden-sm hidden-md hidden-lg"><a href="#example_types_overview">Arbeitsgruppe (arbeitsgruppe)</a></td>
+						<td class="hidden-sm hidden-md hidden-lg"><a href="#example_types_overview">arbeitsgruppe-18-02-03</a><br><a href="#example_types_overview">Neues Protokoll</a></td>
+						<td class="hidden-xs"><a href="#example_types_overview">arbeitsgruppe</a></td>
+						<td class="hidden-xs">Arbeitsgruppe</td>
+						<td class="hidden-xs"><a href="#example_types_overview">arbeitsgruppe-18-02-03</a></td>
+						<td class="hidden-xs"><a href="#example_types_overview">Neues Protokoll</a></td>
+					</tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+	
+	<h4 id="type">Protokolltyp</h4>
+	<p>
+	Auf der <a href="{{url_for('list_types')}}">Übersichtsseite</a> kann über die Schaltfläche „neu“ ein entsprechender Protokolltyp angelegt werden. Bereits bestehende Protokolltypen können abhängig von der Berechtigung angepasst werden. Der Protokolltyp beinhaltet Einstellung die vom Protokollsystem stets für diesen Typ verwendet werden. Dazu gehören der Anzeigename und die Abkürzung des Sitzungstyps, die sitzungsabhaltende Organisation, der Standardbeginn der Sitzung sowie die Vorlageneinstellung.
+	</p>
+	<p>
+	Zu beachten ist, dass der Anzeigename des Sitzungstyps nur im Protokolltyp angepasst werden kann und im Protokoll ein Teil der Überschrift ist.
+	{% if config.WIKI_ACTIVE %}
+		Je Typ kann angegeben werdem, ob das Protokoll im Status veröffentlicht in das Wiki exportiert werden soll, wobei eien Kategorie anzugeben ist.
+	{% endif %}
+	{% if config.PRINTING_ACTIVE %}
+		Auch kann der Standarddrucker festgelegt werden, der für den Protokolltyp genutzt werden soll.
+	{% endif %}
+	{% if config.CALENDAR_ACTIVE %}
+		Des weiteren kann bei Bedarf der externe Kalender ausgewählt werden, in den die Sitzungstermine des Protokolltyp geschrieben werden sollen.
+	{% endif %}
+	{% if config.LATEX_LOCAL_TEMPLATES and config.LATEX_TEMPLATES %}
+		Es kann pro Protokolltyp eine der konfigurierten Vorlagen ausgewählt werden, die bei der Erstellung der PDF genutzt wird.
+	{% endif %}
+	Weitere Einstellungen, auf die im folgenden genauer eingegangen wird, sind:
+	</p>
+	<ul>
+		<li><a href="#rechte">Rechtekonfiguration</a></li>
+		<li><a href="#access_control">Zugriffskonfiguration</a></li>
+		{% if config.MAIL_ACTIVE %}
+		<li><a href="#mails">E-Maileinstellungen</a></li>
+		{% endif %}
+		<li><a href="#tops">Standard-TOPs</a></li>
+		<li><a href="#meta">Metadatenfelder</a></li>
+		<li><a href="#decision_categories">Beschlusskategorien</a></li>
+	</ul>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_new_type">Beispiel - Protokolltyp anlegen</a></h5>
+        </div>
+        <div id="example_new_type" class="panel-body panel-collapse collapse">
+			<form role="form" class="">
+                <div class="form-group  ">
+					<label for="name" class="control-label"><label for="name">Name</label></label>
+					<input class="form-control" id="name" name="name" placeholder="Name" title="" value="" type="text">
+				</div>
+				<div class="form-group  ">
+					<label for="short_name" class="control-label"><label for="short_name">Abkürzung</label></label>
+					<input class="form-control" id="short_name" name="short_name" placeholder="Abkürzung" title="" value="" type="text">
+				</div>
+				<div class="form-group  ">
+					<label for="organization" class="control-label"><label for="organization">Organisation</label></label>
+					<input class="form-control" id="organization" name="organization" placeholder="Organisation" title="" value="" type="text">
+				</div>
+				<div class="form-group  ">
+					<label for="usual_time" class="control-label"><label for="usual_time">Üblicher Beginn</label></label>
+					<input class="form-control" id="usual_time" name="usual_time" placeholder="Üblicher Beginn" title="" value="" type="text">
+				</div>
+				<div class="checkbox ">
+					<label>
+						<input id="is_public" name="is_public" value="y" type="checkbox"> <label for="is_public">Öffentlich sichtbar</label> 
+					</label>
+				</div>
+				<div id="is_public-description" style="display:none" class="field-description"></div>
+				<div class="form-group  ">
+					<label for="publish_group" class="control-label"><label for="publish_group">Verwaltungsgruppe</label></label>
+					<select class="form-control" id="publish_group" name="publish_group" placeholder="Verwaltungsgruppe" title="">
+						<option value="">Keine Gruppe</option>
+						<option value="admin">admin</option>
+						<option value="fachschaft">fachschaft</option>
+					</select>
+				</div>
+				<div class="form-group  ">
+					<label for="modify_group" class="control-label"><label for="modify_group">Bearbeitungsgruppe</label></label>
+					<select class="form-control" id="modify_group" name="modify_group" placeholder="Bearbeitungsgruppe" title="">
+						<option value="">Keine Gruppe</option>
+						<option value="admin">admin</option>
+						<option value="fachschaft">fachschaft</option>
+					</select>
+				</div>
+				<div class="form-group  ">
+					<label for="private_group" class="control-label"><label for="private_group">Interne Gruppe</label></label>
+					<select class="form-control" id="private_group" name="private_group" placeholder="Interne Gruppe" title="">
+						<option value="">Keine Gruppe</option>
+						<option value="admin">admin</option>
+						<option value="fachschaft">fachschaft</option>
+					</select>
+				</div>
+				<div class="form-group  ">
+					<label for="public_group" class="control-label"><label for="public_group">Öffentliche Gruppe</label></label>
+					<select class="form-control" id="public_group" name="public_group" placeholder="Öffentliche Gruppe" title="">
+						<option value="">Keine Gruppe</option>
+						<option value="admin">admin</option>
+						<option value="fachschaft">fachschaft</option>
+					</select>
+				</div>
+				<div class="checkbox ">
+					<label>
+						<input id="non_reproducible_pad_links" name="non_reproducible_pad_links" value="y" type="checkbox"> <label for="non_reproducible_pad_links">nicht nachvollziehbare Etherpad-Links</label> 
+					</label>
+				</div>
+				<div id="non_reproducible_pad_links-description" style="display:none" class="field-description"></div>
+				<div class="form-group  ">
+					<label for="private_mail" class="control-label"><label for="private_mail">Interner Verteiler</label></label>
+					<input class="form-control" id="private_mail" name="private_mail" placeholder="Interner Verteiler" title="" value="" type="text">
+				</div>
+				<div class="form-group  ">
+					<label for="public_mail" class="control-label"><label for="public_mail">Öffentlicher Verteiler</label></label>
+					<input class="form-control" id="public_mail" name="public_mail" placeholder="Öffentlicher Verteiler" title="" value="" type="text">
+				</div>
+				<div class="form-group  ">
+					<label for="wiki_category" class="control-label"><label for="wiki_category">Wiki-Kategorie</label></label>
+					<input class="form-control" id="wiki_category" name="wiki_category" placeholder="Wiki-Kategorie" title="" value="" type="text">
+				</div>
+				<div class="checkbox ">
+					<label>
+						<input id="use_wiki" name="use_wiki" value="y" type="checkbox"> <label for="use_wiki">Wiki benutzen</label> 
+					</label>
+				</div>
+				<div id="use_wiki-description" style="display:none" class="field-description"></div>
+				<div class="checkbox ">
+					<label>
+						<input id="wiki_only_public" name="wiki_only_public" value="y" type="checkbox"> <label for="wiki_only_public">Wiki ist öffentlich</label> 
+					</label>
+				</div>
+				<div id="wiki_only_public-description" style="display:none" class="field-description"></div>
+				<div class="form-group  ">
+					<label for="printer" class="control-label"><label for="printer">Drucker</label></label>
+					<select class="form-control" id="printer" name="printer" placeholder="Drucker" title="">
+						<option value="">Nicht drucken</option>
+						<option value="fachschaftsdrucker">fachschaftsdrucker</option>
+					</select>
+				</div>
+				<div class="form-group  ">
+					<label for="calendar" class="control-label"><label for="calendar">Kalender</label></label>
+					<select class="form-control" id="calendar" name="calendar" placeholder="Kalender" title="">
+						<option value="">Kein Kalender</option>
+						<option value="Fachschaftsraum">Fachschaftsraum</option>
+					</select>
+				</div>
+                <div class="checkbox ">
+					<label>
+						<input id="restrict_networks" name="restrict_networks" value="y" type="checkbox"> <label for="restrict_networks">Netzwerke einschränken</label> 
+					</label>
+				</div>
+				<div id="restrict_networks-description" style="display:none" class="field-description"></div>
+                <div class="form-group  ">
+					<label for="allowed_networks" class="control-label"><label for="allowed_networks">Erlaubte Netzwerke</label></label>
+					<input class="form-control" id="allowed_networks" name="allowed_networks" placeholder="Erlaubte Netzwerke" title="" value="" type="text">
+				</div>
+                <div class="form-group  ">
+					<label for="latex_template" class="control-label"><label for="latex_template">LaTeX Vorlage</label></label>
+					<select class="form-control" id="latex_template" name="latex_template" placeholder="LaTeX Vorlage" title="">
+						<option value="">Standardvorlage</option>
+						<option value="yourtemplate">Deine Vorlage</option>
+					</select>
+				</div>
+				<button type="button" class="btn btn-default">Anlegen</button>
+			</form>
+		</div>
+	</div>
+	
+    <h4 id="rechte">Rechtekonfiguration</h4>
+	<div class="row">
+        <div class="col-sm-9">
+			<p>
+			Um zu ermöglichen, dass nur bestimmte Personengruppen auf Protokolle zugreifen können hat das Protokollsystem ein Konzept von Rechteverwaltung, dass auf den Benutzergruppen des konfigurierten Authentifizierungsdienstes (LDAP, Active-Directory oder sonstiges Auth-Backend) basiert. Die Einstellung der Rechte erfolgt pro Protokolltyp, in dem den Gruppen des Protokolltyps eine passende Benutzergruppe zugeordnet wird.
+			</p>
+			<p>
+			Jeder Protokolltyp verfügt über eine <code>öffentliche Gruppe</code>, eine <code>interne Gruppe</code>, eine <code>Bearbeitungsgruppe</code>, eine <code>Verwaltungsgruppe</code> und eine Einstellung, ob der Typ <code>öffentlich</code> ist. In der folgenden Tabelle werden die vorhandenen Rechte dargestellt und in Verbindung zu den Gruppen des Protokolltyps gesetzt.
+			</p>
+		</div>
+        <div class="col-sm-3">
+			<div class="panel panel-warning">
+				<div class="panel-heading">
+					<h5 class="panel-title">Zu beachten</h5>
+				</div>
+				<div class="panel-body ">
+					Ein Recht einer Gruppe kann nur ausgeübt werden, wenn eine Benutzergruppen zugeordnet wurde.
+				</div>
+            </div>
+        </div>
+    </div>
+	<table class="table table-striped">
+        <thead>
+            <tr>
+				<th>Recht</th>
+				<th>Berechtigte Gruppen</th>
+			</tr>
+        </thead>
+		<tbody>
+			<tr>
+				<td>darf öffentliche Version einsehen</td>
+				<td>jeder, wenn Protokolltyp als <code>öffentlich</code> gekennzeichnet und Protokoll veröffentlicht; <code>öffentliche Gruppe</code>; <code>interne Gruppe</code>; Benutzergruppe „{{config.ADMIN_GROUP}}“</td>
+			</tr>
+			<tr>
+				<td>darf interne Version einsehen</td>
+				<td><code>interne Gruppe</code>; Benutzergruppe „{{config.ADMIN_GROUP}}“</td>
+			</tr>
+			<tr>
+				<td>darf ändern</td>
+				<td><code>Bearbeitungsgruppe</code>; Benutzergruppe „{{config.ADMIN_GROUP}}“</td>
+			</tr>
+			<tr>
+				<td>darf Protokolltyp bearbeiten</td>
+				<td><code>Verwaltungsgruppe</code>; Benutzergruppe „{{config.ADMIN_GROUP}}“</td>
+			</tr>
+		</tbody>
+	</table>
+	<p>
+    Vom Protokoll wird eine interne und eine öffentliche Version generiert, falls es Inhalte gibt, die nur intern sind. Todos sind generell intern und Beschlüsse sind generell öffentlich, d.h. einsehbar, wenn man das Recht „darf öffentliche Version einsehen“ hat. Daher dürfen Beschlüsse nicht in einem internen Teil des Protokolls sein.
+	</p>
+	
+	<h4 id="access_control">Zugriffskonfiguration</h4>
+	<p>
+	Mit der Einstellung der Nutzerrechte kann der Zugriff auf Protokolle nur nach der erfolgreichen Authentifikation gesteuert werden. Soll der Zugriff auf öffentliche Protokolle weiter reduziert werden, so kann auf das Computernetzwerkes, dem der Zugriff gewährt werden soll, eingeschrängt werden. Dies erfolgt durch die Angabe einzelner oder mehrerer Netzwerkbereiche (vergl. <a href="https://de.wikipedia.org/wiki/Netzmaske" target="_blank">Wikipedia</a>). Bei der Angabe mehrerer Bereiche werden diese durch ein Komma voneinander getrennt.
+	</p>
+	<p>
+	Soll nur die Tagesordnung öffentlich gemacht werden, so muss die Option „Netzwerke einschränken“ ohne die Angabe eines Netzwerkbereiches aktiviert und der Protokolltyp als <code>öffentlich</code> gekennzeichnet werden.
+	</p>
+	
+	{% if config.MAIL_ACTIVE %}
+	<h4 id="mails">E-Maileinstellungen</h4>
+	<p>
+	Die Möglichkeit E-Mails direkt aus dem Protokollsystem zu versenden, kann sich auch bei der Einrichtung von Protokolltypen zunutzegemacht werden. Hierfür können zwei E-Mailadressen hinterlegt werden: Ein interner und ein öffentlicher Verteiler. Diese werden vom System beim Versenden des entsprechenden Protokolls verwendet. Beide Verteiler können auch für automatisierte Einladungsmails herangezogen werden. Diese Mails müssen für jeden Protokolltyp individuell erstellt werden und können in den Einstellung des Typs eingesehen werden.
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_mails_overview">Beispiel - Übersicht Einladungsmails</a></h5>
+        </div>
+        <div id="example_mails_overview" class="panel-body panel-collapse collapse">
+            <h3>Einladungsmails <a href="#example_mails_overview">Neu</a></h3>
+            <table class="table table-striped">
+				<thead>
+					<tr>
+						<th>Zeit</th>
+						<th>Einladen</th>
+						<th>Zusätzlicher Mailinhalt</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>1 Tage</td>
+						<td>Intern</td>
+						<td>Es ist mal wieder soweit und unsere Sitzung soll mit der angegeben TO statt finden.</td>
+						<td><a href="#example_mails_overview">Ändern</a>, <a onclick="return confirm('Bist du dir sicher, dass du die Einladungsmail 1 Tage vor der Sitzung löschen willst?');" href="#example_mails_overview">Löschen</a></td>
+					</tr>
+				</tbody>
+			</table>
+        </div>
+    </div>
+	<p>
+	Bei der Erstellung kann festgelegt werden wie viele Tage vor der Sitzung eingeladen werden soll. Ebenfalls wird angegeben, an welche Verteiler diese automatisierte Einladung geschickt wird. Zusätzlich zur Tagesordnung und dem Datum der Sitzung kann ein individueller Mailinhalt hinterlegt werden, der zusätzlich mit versendet wird.
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_mails_new">Beispiel - Einladungsmail anlegen</a></h5>
+        </div>
+        <div id="example_mails_new" class="panel-body panel-collapse collapse">
+            <form role="form" class="">
+                <div class="form-group  ">
+					<label for="days_before" class="control-label"><label for="days_before">Tage vor Sitzung</label></label>
+					<input class="form-control" id="days_before" name="days_before" placeholder="Tage vor Sitzung" title="" value="" type="text">
+				</div>
+				<div class="checkbox ">
+					<label>
+						<input id="send_public" name="send_public" value="y" type="checkbox"> <label for="send_public">Öffentlich einladen</label> 
+					</label>
+				</div>
+				<div id="send_public-description" style="display:none" class="field-description"></div>
+				<div class="checkbox ">
+					<label>
+						<input id="send_private" name="send_private" value="y" type="checkbox"> <label for="send_private">Intern einladen</label> 
+					</label>
+				</div>
+				<div id="send_private-description" style="display:none" class="field-description"></div>
+				<div class="form-group  ">
+					<label for="additional_text" class="control-label"><label for="additional_text">Zusätzlicher Mailinhalt</label></label>
+					<textarea class="form-control" id="additional_text" name="additional_text" placeholder="Zusätzlicher Mailinhalt" textarea_rows="5" title="" style="min-height: 69px; overflow: hidden;"></textarea>
+				</div>
+				<button type="button" class="btn btn-default">Anlegen</button>
+			</form>
+        </div>
+    </div>
+	{% endif %}
+	
+	<h4 id="tops">Standard-TOPs</h4>
+	<p>
+	Häufig werden für eine Sitzung immer wieder die gleichen Tagesordnungspunkte in einer immer gleichen Reihenfolge benötigt, teilweise ergibt sich dies aus den Ordnungen nach denen eine Sitzung stattfindet. Diese Standard-TOPs können pro Protokolltyp festgelegt und in den Einstellung des Typs eingesehen werden. Beim Anlegen einer Sitzung werden die Standard-TOPs des Protokolltyps eingefügt.
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_tops_overview">Beispiel - Übersicht Standard-TOPs</a></h5>
+        </div>
+        <div id="example_tops_overview" class="panel-body panel-collapse collapse">
+            <h3>Standard-TOPs <a href="#example_tops_overview">Neu</a></h3>
+            <table class="table table-striped">
+				<thead>
+					<tr>
+						<th>TOP</th>
+						<th>Sortierung</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+                        <td>Begrüßung, Beschluss der TO und Protokolle</td>
+                        <td>-100</td>
+                        <td><a href="#example_tops_overview">Runter</a>, <a href="#example_tops_overview">Hoch</a>, <a href="#example_tops_overview">Ändern</a>, <a onclick="return confirm('Bist du dir sicher, dass du den Standard-TOP Begrüßung, Beschluss der TO und Protokolle löschen willst?');" href="#example_tops_overview">Löschen</a></td>
+					</tr>
+					<tr>
+                        <td>Bericht</td>
+                        <td>-90</td>
+                        <td><a href="#example_tops_overview">Runter</a>, <a href="#example_tops_overview">Hoch</a>, <a href="#example_tops_overview">Ändern</a>, <a onclick="return confirm('Bist du dir sicher, dass du den Standard-TOP Bericht löschen willst?');" href="#example_tops_overview">Löschen</a></td>
+					</tr>
+					<tr>
+                        <td>Todos</td>
+                        <td>-80</td>
+                        <td><a href="#example_tops_overview">Runter</a>, <a href="#example_tops_overview">Hoch</a>, <a href="#example_tops_overview">Ändern</a>, <a onclick="return confirm('Bist du dir sicher, dass du den Standard-TOP Todos löschen willst?');" href="#example_tops_overview">Löschen</a></td>
+					</tr>
+					<tr>
+                        <td>Verschiedenes</td>
+                        <td>100</td>
+                        <td><a href="#example_tops_overview">Runter</a>, <a href="#example_tops_overview">Hoch</a>, <a href="#example_tops_overview">Ändern</a>, <a onclick="return confirm('Bist du dir sicher, dass du den Standard-TOP Verschiedenes löschen willst?');" href="#example_tops_overview">Löschen</a></td>
+					</tr>
+				</tbody>
+			</table>
+        </div>
+    </div>
+	<p>
+	Werden Standard-TOPs angelegt so muss der Name des Tagesordnungspunktes stets angegeben werden. Die Reihung der TOPs kann über die Priorität bzw. Sortierung gesteuert werden. Dabei gilt: Standard-TOPs mit negativer Priorität werden vor und die mit positiver Priorität nach den Tagesordnungspunkten eines Protokolls eingefügt. Einem Standard-TOP kann zusätzlich ein feststehender vorprotokollierter Inhalt mitgegeben werden.
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_tops_new">Beispiel - Standard-TOP anlegen</a></h5>
+        </div>
+        <div id="example_tops_new" class="panel-body panel-collapse collapse">
+            <form role="form" class="">
+                <div class="form-group  ">
+					<label for="name" class="control-label"><label for="name">Name</label></label>
+					<input class="form-control" id="name" name="name" placeholder="Name" title="" value="" type="text">
+				</div>
+				<div class="form-group  ">
+					<label for="number" class="control-label"><label for="number">Priorität</label></label>
+					<input class="form-control" id="number" name="number" placeholder="Priorität" title="" value="" type="text">
+				</div>
+				<div class="form-group  ">
+					<label for="description" class="control-label"><label for="description">Standardinhalt</label></label>
+					<textarea class="form-control" id="description" name="description" placeholder="Standardinhalt" textarea_rows="5" title="" style="min-height: 69px; overflow: hidden;"></textarea>
+				</div>
+				<button type="button" class="btn btn-default">Anlegen</button>
+			</form>
+        </div>
+    </div>
+	
+	<h4 id="meta">Metadatenfelder</h4>
+	<p>
+	In einem Protokoll repräsentieren die Metadaten allgemeine Informationen rund um eine Sitzung. Die zuerfassenden Metadaten können für jeden Protokolltyp unterschiedlich sein und werden dementsprechend pro Typ verwaltet. Nur die im Protokolltyp angegeben Metadaten können überhaupt - müssen dann aber auch - beim Protokollieren erfasst werden. Ausgenommen von der Verwaltbarkeit sind die im Protokollsystem als Standard festgelegten Felder: Datum, Beginn und Ende.
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_meta_overview">Beispiel - Übersicht Metadatenfelder</a></h5>
+        </div>
+        <div id="example_meta_overview" class="panel-body panel-collapse collapse">
+            <h3>Metadatenfelder <a href="#example_meta_overview">Neu</a></h3>
+            <table class="table table-striped">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Key</th>
+						<th>Standardwert</th>
+						<th>Intern</th>
+						<th>Vorher</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+                        <td>Ort</td>
+                        <td>Ort</td>
+                        <td>Fachschaftsraum</td>
+                        <td>Nein</td>
+                        <td>Nein</td>
+                        <td><a href="#example_meta_overview">Ändern</a>, <a onclick="return confirm('Bist du dir sicher, dass du das Metadatenfeld Ort löschen willst?');" href="#example_meta_overview">Löschen</a></td>
+					</tr>
+					<tr>
+                        <td>Anwesend</td>
+                        <td>Anwesend</td>
+                        <td></td>
+                        <td>Nein</td>
+                        <td>Nein</td>
+                        <td><a href="#example_meta_overview">Ändern</a>, <a onclick="return confirm('Bist du dir sicher, dass du das Metadatenfeld Anwesend löschen willst?');" href="#example_meta_overview">Löschen</a></td>
+					</tr>
+					<tr>
+                        <td>Protokoll</td>
+                        <td>Protokoll</td>
+                        <td></td>
+                        <td>Nein</td>
+                        <td>Nein</td>
+                        <td><a href="#example_meta_overview">Ändern</a>, <a onclick="return confirm('Bist du dir sicher, dass du das Metadatenfeld Protokoll löschen willst?');" href="#example_meta_overview">Löschen</a></td>
+					</tr>
+				</tbody>
+			</table>
+        </div>
+    </div>
+	<p>
+	Die Konfiguration eines Metadatenfeldes beinhaltet immer den Anzeigenamen (Name) und den beim <a href="/documentation/syntax/meta">Protokollieren zu verwendenden Namen</a> des Feldes (Key). Des weiteren ist es möglich einen Standardwert für das Metadatenfelder zu hinterlegen, welcher beim Erstellen einer neuen Sitzung in das Feld geschrieben wird, so fern es als Planungsrelevant (vorher) markiert wurde. Zudem ist es möglich Metadaten nur in der internen Version eines Protokolls anzuzeigen, wenn das entsprechende Feld als intern festgelegt wurde. 
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_meta_new">Beispiel - Metadatenfeld anlegen</a></h5>
+        </div>
+        <div id="example_meta_new" class="panel-body panel-collapse collapse">
+            <form role="form" class="">
+                <div class="form-group  ">
+					<label for="key" class="control-label"><label for="key">Key</label></label>
+					<input class="form-control" id="key" name="key" placeholder="Key" title="" value="" type="text">
+				</div>
+				<div class="form-group  ">
+					<label for="name" class="control-label"><label for="name">Name</label></label>
+					<input class="form-control" id="name" name="name" placeholder="Name" title="" value="" type="text">
+				</div>
+				<div class="form-group  ">
+					<label for="value" class="control-label"><label for="value">Standardwert</label></label>
+					<input class="form-control" id="value" name="value" placeholder="Standardwert" title="" value="" type="text">
+				</div>
+				<div class="checkbox ">
+					<label>
+						<input id="internal" name="internal" value="y" type="checkbox"> <label for="internal">Intern</label> 
+					</label>
+				</div>
+				<div id="internal-description" style="display:none" class="field-description"></div>
+				<div class="checkbox ">
+					<label>
+						<input id="prior" name="prior" value="y" type="checkbox"> <label for="prior">Planungsrelevant</label> 
+					</label>
+				</div>
+				<div id="prior-description" style="display:none" class="field-description"></div>
+				<button type="button" class="btn btn-default">Anlegen</button>
+			</form>
+        </div>
+    </div>
+	
+	<h4 id="decision_categories">Beschlusskategorien</h4>
+	<p>
+	Um Beschlüsse zu einzelnen Themen bzw. Kategorien zusammenfassen zu können, werden je Protokolltyp die benötigten Beschlusskategorien angelegt und verwaltet. Die verfügbaren Kategorien lassen sich im Beschluss-Tag verwenden. Fehlende Kategorien lassen sich jeder Zeit durch Angabe des Kategorienames ergänzen. Bisher nicht verwendete Kategorien können gefahrlos gelöscht werden.
+	</p>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h5 class="panel-title"><a data-toggle="collapse" href="#example_decision_categories">Beispiel - Beschlusskategorien verwalten</a></h5>
+        </div>
+        <ul id="example_decision_categories" class="list-group panel-collapse collapse">
+			<li class="list-group-item">
+				<h3>Beschlusskategorien <a href="#example_decision_categories">Neu</a></h3>
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>finanzwirksam</td>
+							<td><a href="#example_decision_categories">Ändern</a>, <a href="#example_decision_categories" onclick="return confirm('Bist du dir sicher, dass du die Beschlusskategorie finanzwirksam löschen willst?');">Löschen</a></td>
+						</tr>
+					</tbody>
+				</table>
+			</li>
+			<li class="list-group-item">
+				<form role="form" class="">
+                    <div class="form-group  ">
+						<label for="name" class="control-label"><label for="name">Name</label></label>
+						<input class="form-control" id="name" name="name" placeholder="Name" title="" value="" type="text">
+					</div>
+					<button type="button" class="btn btn-default">Anlegen</button>
+				</form>
+			</li>
+		</ul>
+	</div>
+{% endblock %}

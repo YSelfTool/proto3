@@ -1,0 +1,43 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "top_syntax_documentation" %}
+{% block title %}Syntax: Tagesordnungspunkte{% endblock %}
+
+{% block documentation_content %}
+    <h3>Syntax: Tagesordnungspunkte</h3>
+    <p>
+    Ein wichtiges Elements in jedem Protokoll sind Tagesordnungspunkte. Sie sind in einem Protokoll stehts die oberste Gliederungsebene. In den meisten Fällen stehen diese Punkte bereits vor Beginn der Sitzung fest und wurden entsprechend vorher <a href="/documentation/sessionmanagement/plan#prepare">eingepflegt</a>.
+    </p>
+    <p>
+    Beim Erstellen der Protokollvorlage durch das System werden die bereits <a href="/documentation/sessionmanagement/plan#prepare">angelegten TOPs</a> mit dem vorprotokollierten Inhalt in der Tagesordnung festgelegten Reihenfolge übertragen. Während des Schreibens des Protokolls können jeder Zeit Tagesordnungspunkte hinzugefügt oder entfernt werden.
+    </p>
+    <h4>Definition</h4>
+    <div class="row">
+        <div class="col-sm-9">
+            <p>
+            In Protokollsystax wird ein Tagesordnungspunkt stets von geschweiften Klammern eingeschlossen. An die öffnende Klammer schließt sich das Schlüsselwort <code>TOP</code> an. Abgesetzt mit einem Leerzeichen folgt der Titel des TOPs. Nach einem Zeilenumbruach als in einer neuen Zeile beginnt dann der Inhalt des Tagesordnungspunkts. Durch die Verwendung von sogenannten <a href="lists">Listen</a> kann die Mitschrift in einem Tagesordnungspunkt strukturiert werden.
+            </p>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h5 class="panel-title">Syntax eines Tagesordnungspunkts</a></h5>
+				</div>
+				<figure class="panel-body">
+					<pre class="highlight"><code>{<span class="kr">TOP</span> <span class="sx">Titel des Tagesordnungspunkts</span>
+    <span class="c1">Hier steht der Inhalt des Tagesordnungspunkts</span>
+}</code></pre>
+				</figure>
+			</div>
+        </div>
+        <div class="col-sm-3">
+			<div class="panel panel-warning">
+				<div class="panel-heading">
+					<h5 class="panel-title">Zu beachten</h5>
+				</div>
+				<div class="panel-body ">
+					<p>
+					Innerhalb eines Tagesordnungspunkts kann es keinen weiteren Tagesordnungspunkt geben.
+					</p>
+				</div>
+			</div>
+        </div>
+    </div>
+{% endblock %}

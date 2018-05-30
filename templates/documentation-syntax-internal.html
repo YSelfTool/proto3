@@ -1,0 +1,63 @@
+{% extends "documentation-base.html" %}
+{% set active_page = "internal_syntax_documentation" %}
+{% block title %}Syntax: Interne Abschnitte{% endblock %}
+
+{% block documentation_content %}
+    <h3>Syntax: Interne Abschnitte</h3>
+	{% if config.PRIVATE_KEYWORDS %}
+	<p>
+	Das Protokollsystem ermöglicht es, in einem Protokoll bestimmte Abschnitte als nicht-öffentlich/intern zu kennzeichnen. Diese Abschnitte werden nur in der internen pdf-Datei gedruckt und nur internen Personen angezeigt - wer das ist lässt sich im System explizit festlegen. Die öffentliche Version des Protokolls enthält dann an betroffenen Stellen einen Hinweis, dass es hier einen internen Abschnitt gibt. Aus Gründen der Transparenz bietet es sich an, vor oder nach dem internen Protokollieren dessen Inhalt zusammenzufassen.
+	</p>
+	<p>
+	Beschlüsse sind im Protokollsystem immer öffentlich, daher ergibt es keinen Sinn diese in einem internen Abschnitt zu protokollieren.
+	</p>
+	<h4>Definition</h4>
+	<div class="row">
+        <div class="col-sm-9">
+			<p>
+			Der interne Abschnitt wird eingeleitet mit einem der folgenden Wörter ({{config.PRIVATE_KEYWORDS|map("code_key")|join(" ")|safe}}) gefolgt von den üblichen geschweiften Klammern <code>{ ... }</code> einer Liste. Zwischen den Klammern wird wie gewöhnlich protokolliert.
+			</p>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h5 class="panel-title">Beispiel - Interner Bereich</h5>
+				</div>
+				<figure id="example_internal" class="panel-body">
+					<pre class="highlight"><code>{<span class="kr">TOP</span> <span class="sx">Tagesordnungspunkt</span>
+	<span class="nv">Dieser Punkt ist öffentlich.</span>
+	<span class="kr">{{config.PRIVATE_KEYWORDS[0]}}</span> {
+		<span class="nv">Dieser Punkt ist intern.</span>
+		<span class="nv">Dieser auch, wir diskutieren Kritik an einem namentlich genannten Professor und seiner Vorlesung.</span>
+		<span class="nv">Hier entwickeln wir eine Strategie.</span>
+	}
+	<span class="nv">Dieser ist wieder öffentlich.</span>
+	<span class="nv">Es wurde die Kritik an einer Vorlesung kritisiert.</span>
+}</code></pre>
+				</figure>
+			</div>
+		</div>
+        <div class="col-sm-3">
+			<div class="panel panel-warning">
+				<div class="panel-heading">
+					<h5 class="panel-title">Zu beachten</h5>
+				</div>
+				<div class="panel-body ">
+					<p>
+					Ein interner Abschnitt kann keinen Titel haben. Stattdessen wird der Titel durch das entsprechende Schlüsselwort ersetzt.
+					</p>
+				</div>
+            </div>
+        </div>
+    </div>
+	{% else %}
+	<div class="panel panel-warning">
+        <div class="panel-heading">
+            <h5 class="panel-title">Nutzung nicht vorgesehen</h5>
+        </div>
+        <div class="panel-body ">
+			<p>
+			Die Verwendung von internen Abschnitte ist hier bisher noch nicht vorgesehen. Um interne Abschnitte nutzen zu können, wende dich bitte an die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a> und lasse die <a href="/documentation/configuration/settings">Konfiguration</a> durch sie entsprechend anpassen.
+			</p>
+		</div>
+	</div>
+	{% endif %}
+{% endblock %}

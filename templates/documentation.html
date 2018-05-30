@@ -1,224 +1,51 @@
-{% extends "layout.html" %}
-{% from "macros.html" import render_table %}
+{% extends "documentation-base.html" %}
+{% set active_page = "documentation" %}
 {% block title %}Dokumentation{% endblock %}
 
-{% block content %}
-<div class="row">
-    <div id="left-column", class="col-lg-6">
-        <h3>Protokollsystem</h3>
-        Das Protokollsystem dient der Planung von Sitzungen und Verwaltung von Protokollen. Die anstehenden Sitzungen der nächsten Woche sind auf der <a href="{{url_for("index")}}">Startseite</a>, alle Protokolle unter <a href="{{url_for("list_protocols")}}">Protokolle</a> zu finden.
-        <h4 id="planung">Sitzungsplanung</h4>
-        Sollte das Protokoll noch nicht existieren:
-        <ol>
-            <li>Gehe auf <a href="{{url_for("new_protocol")}}">Neu</a></li>
-            <li>Wähle bei „Typ“ den Typ der Sitzung aus.</li>
-            <li>Gib das Datum der Sitzung ein.</li>
-            <li>Anlegen</li>
-        </ol>
-        Wenn es existiert:
-        <ol>
-            <li>Gehe auf <a href="{{url_for("list_protocols")}}">Protokolle</a></li>
-            <li>Wähle die Sitzung aus. Noch ausstehende Sitzungen sind ganz oben.</a>
-        </ol>
-        Auf der Seite der Sitzung siehst du die Tagesordnung.
-        <ul>
-            <li>Die ersten und letztes TOPs sind Standard-TOPs, die jede Sitzung hat. Die kannst du nur über beim Protokolltyp ändern, nicht beim Protokoll selbst.</li>
-            <li>Die mittleren TOPs gehören nur zu dieser Sitzung. Du kannst welche hinzufügen oder sie umsortieren.</li>
-            <li>Möchtest du zu einem TOP vorprotokollieren, so klicke auf ändern und füge unter "Beschreibung" deinen Inhalt ein (hier gilt die gleiche Syntax, wie im normalen Protokoll).</li>
-            <li>Jedes selbstständige Thema oder jeder Antrag sollte in einen eigenen TOP geschrieben werden. Sammel-TOPs, oder TOPs mit allen finanzwirksamen Anträgen sorgen für wenig Übersichtlichkeit.</li>
-            <li>Wir wünschen uns, dass TOPs so früh wie möglich auf die Tagesordnung geschrieben werden und unter "Beschreibung" kurz erläutert weird, worum es gehen soll. Sollte es in dem TOP darum gehen, dass Geld beantragt wird, sollte der TOP im Namen durch ein "(€)" gekennzeichnet werden."</li>
-            <li>Solltest du die TOPs nicht bearbeiten können, handelt es sich um ein Protokoll, das du lesen, aber nicht bearbeiten kannst. Mehr dazu bei <a href="#rechte">Rechteverwaltung</a>.</li>
-        </ul>
-        <h4 id="wie">Wie schreibe ich eine Protokoll?</h4>
-        Die folgenden Schritte werden erst ein paar Minuten vor der Sitzung ausgeführt. Vorher werden Inhalte und TOPs wie oben beschrieben vorprotokolliert.
-        <ol>
-            <li>Protokoll auswählen (s.o.)</li>
-            <li>mit „In Etherpad“ die Vorlage in das Etherpad schreiben.</li>
-            <li>mit „Etherpad“ das Etherpad öffnen</li>
-            <li>verlese Tagesordnung und Todos</li>
-            <li>falls Todo erledigt, markiere als erledigt (Details siehe <a href="#Todos">Todos</a></li>
-            <li>schreibe das Protokoll im Etherpad</li>
-            <li>Importiere das Protokoll am Ende mit „Aus Etherpad“</li>
-            <li>Falls Fehler auftreten, behebe sie (siehe <a href="#fehler">Fehler</a></li>
-            <li>Wenn keine Fehler mehr auftreten, drucke das Protokoll mit „Löschen” (unten beim Anhang) aus.</li>
-            <li>Korrekturlesen lassen und im Etherpad korrigieren, dann nochmal „aus Etherpad“</li>
-            <li>Drucken und abheften</li>
-            <li>Intern per Mail versenden</li>
-            <li>Korrekturen abwarten (z.B. die Genehmigung auf der nächsten Sitzung)</li>
-            <li>Veröffentlichen (und ggf. öffentlich versenden)</li>
-        </ol>
-        <h5>Höchst interne Protokolle</h5>
-        Falls das Protokoll Daten beinhaltet, die auf keinen Fall öffentlich sein sollten (z.B. personenbezogene Daten bei einem Sozialausschuss), kann anstelle des Editierens im Etherpad auch mit „Vorlage“ die leere Protokollvorlage heruntergeladen werden. Darin kann lokal mit einem beliebigen Texteditor die Sitzung protokolliert werden, um sie dann am Ende lokal zu speichern und mit „Quellcode hochladen“ hochzuladen.
-        <h4 id="fehler">Was, wenn etwas nicht funktioniert?</h4>
+{% block documentation_content %}
+        <h3>Protokollsystem 3 - Das Protokollsystem</h3>
+		<p>
+        Das Protokollsystem dient der Planung von Sitzungen und Verwaltung von Protokollen. Die anstehenden Sitzungen der nächsten Woche sind auf der <a href="{{url_for('index')}}">Startseite</a>, alle Protokolle unter <a href="{{url_for('list_protocols')}}">Protokolle</a> zu finden.
+		</p>
+		<p>
+		Des weiteren können die Sitzungen mittels Todos und einer Beschlussdatenbank nach verfolgt werden. Die eigenen offenen Todos werden auf der <a href="{{url_for('index')}}">Startseite</a> angezeigt, alle Todos sind unter <a href="{{url_for('list_todos')}}">Todos</a> zu finden. Die Beschlüsse finden sich in der  <a href="{{url_for('list_decisions')}}">Beschlussdatenbank</a>.
+		</p>
+		<h3>Dokumentation</h3>
+		Dieser Dokumentation können Beschreibungen zu nahezu allen wichtigen Systemfunktionen entnommen werden. Gegliedert sind die Themen wie folgt:
+		<ul>
+			<li><a href="/documentation/sessionmanagement">Sitzungsverwaltung</a><ul>
+				<li><a href="/documentation/sessionmanagement/plan">Planung</a></li>
+				<li><a href="/documentation/sessionmanagement/write">Protokollieren</a></li>
+				<li><a href="/documentation/sessionmanagement/tracking">Nachverfolgung</a></li>
+			</ul></li>
+			<li><a href="/documentation/syntax">Syntax</a><ul>
+				<li><a href="/documentation/syntax/meta">Metadaten</a></li>
+				<li><a href="/documentation/syntax/top">Tagesordnungspunkte</a></li>
+				<li><a href="/documentation/syntax/lists">Listen</a></li>
+				<li><a href="/documentation/syntax/internal">Interne Abschnitte</a></li>
+				<li><a href="/documentation/syntax/tags">Tags</a></li>
+			</ul></li>
+			<li><a href="/documentation/configuration">Einrichtung</a><ul>
+				<li><a href="/documentation/configuration/types">Typen</a></li>
+				<li><a href="/documentation/configuration/todomails">Todo Mails</a></li>
+				<li><a href="/documentation/configuration/settings">Systemeinstellungen</a></li>
+			</ul></li>
+		</ul>
+		<p>
+		Sollten deine Fragen nach dem Studium der Dokumentation noch offen sein, wende dich an jemand erfahreneren oder die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a>. Offene Punkte innerhalb der Dokumentation können dann durch die Admins zur Behebung auch an die Entwickler der Software weitergegeben werden.
+		</p>
+        <h3 id="fehler">Fehlerbehandlung</h3>
         <ul>
             <li>Typische Web-Fehler (404, 500, etc.) sollten nicht auftreten. Wenn sie es doch tun, wende dich bitte an die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a></li>
-            <li>Wenn beim Parsen, Kompilieren, versenden, hochladen, … Fehler auftreten, werden sie aufgelistet. Die Fehler aller Protokolle findest du unter <a href="{{url_for("list_errors")}}">Fehler</a>. Bei sehr langen Beschreibungen (z.B. LaTeX-Kompilierfehlern) solltest du den einzelnen Fehler anklicken, um die ganze Beschreibung zu erhalten.</li>
+            <li>Wenn beim Parsen, Kompilieren, versenden, hochladen, … Fehler auftreten, werden sie aufgelistet. Die Fehler aller Protokolle findest du unter <a href="{{url_for('list_errors')}}">Fehler</a>. Bei sehr langen Beschreibungen (z.B. LaTeX-Kompilierfehlern) solltest du den einzelnen Fehler anklicken, um die ganze Beschreibung zu erhalten.</li>
             <li>Wenn die Fehlerbeschreibung dir nicht ausreicht, um den Fehler zu beheben, wende dich an jemand erfahreneren und lass dir helfen.</li>
         </ul>
-        <h4 id="todos">Todosystem</h4>
-        Das Protokollsystem verwaltet Todos über mehrere Protokolle hinweg. Offene Todos werden in die Protokollvorlage eingefügt, falls diese einen TOP „Todos“ beinhaltet.
-        <ul>
-            <li>Jedes Todo hat eine (oder durch Kommata oder Leerzeichen getrennt mehrere) Personen, die es erledigen sollen.</li>
-            <li>Todos haben auch einen Zustand, in dem sie sich befinden. Es gibt:
-                <ul>
-                    <li>offen: Das Todo muss noch erledigt werden</li>
-                    <li>wartet auf Rückmeldung: Jemand kümmert sich um das Todo, wartet allerdings gerade darauf, dass jemand anderes (intern oder extern) sich zurückmeldet.</li>
-                    <li>in Bearbeitung: Jemand kümmert sich gerade um das Todo.</li>
-                    <li>ab: Das Todo wird erst ab dem Datum relevant.</li>
-                    <li>vor: Das Todo muss vor dem Datum erledigt werden.</li>
-                    <li>verwaist: Das Todo hat niemanden, der es erledigen wird.</li>
-                    <li>erledigt: Das Todo ist erledigt.</li>
-                    <li>abgewiesen: Das Todo ist nicht und wird nicht mehr erledigt.</li>
-                    <li>obsolet: Das Todo wurde nicht erledigt und nun ist es zu spät, das noch zu tun.</li>
-                </ul>
-            </li>
-            <li>Alle Todos findest du unter <a href="{{url_for("list_todos")}}">Todos</a>.</li>
-        </ul>
-
-        <h4 id="suche">Suche</h4>
-        <a href="{{url_for("list_protocols")}}">Protokolle</a>, <a href="{{url_for("list_todos")}}">Todos</a> und <a href="{{url_for("list_decisions")}}">Beschlüsse</a> können durchsucht werden.
-        Im Suchfeld können mehrere durch Leerzeichen getrennte Suchbegriffe angegeben werden: <code>Begriff1 Begriff2</code>.
-        Angezeigt werden alle Ergebnisse, die jeden der Suchbegriffe (unabhängig von Groß- oder Kleinschreibung) enthalten.
-        Wenn ein Suchbegriff ein Leerzeichen beinhaltet, muss er mit Anführungszeichen umrandet werden: <code>"Begriff1 mit Leerzeichen" Begriff2</code>.
-
-        <h4 id="rechte">Rechteverwaltung</h4>
-        Das Protokollsystem hat ein Konzept von Rechteverwaltung, dass auf den Benutzergruppen im LDAP basiert.
-        Rechte werden pro Protokolltyp eingestellt.
-        Die vorhandenen Rechtestufen sind „Darf öffentliche Version einsehen“, „Darf interne Version einsehen“, „Darf Ändern“ und „Darf Protokolltyp bearbeiten“.
-        Jedes Protokoll hat eine öffentliche Gruppe, eine interne Gruppe, eine Bearbeitungsgruppe, eine Verwaltungsgruppe und eine Einstellung, ob es öffentlich ist.<br>
-
-        Die öffentliche Version einsehen dürfen:
-        <ul>
-            <li>
-                Nicht authentifizierte Nutzer, wenn für den Protokolltyp „Öffentlich“ eingestellt ist, sobald das Protokoll veröffentlicht ist.
-                <ul>
-                    <li>Die Tagesordnung und Metadaten sind auch vor Veröffentlichung einsehbar.</li>
-                </ul>
-            </li>
-            <li>Authentifizierte Nutzer auch dann, wenn der Protokolltyp nicht „Öffentlich“ ist, aber sie die „Öffentliche Gruppe“ oder die „Interne Gruppe” des Protokolltyps haben. Wenn keine Gruppe eingestellt ist, kann auch kein Nutzer diese haben.</li>
-        </ul>
-        Die interne Version einsehen dürfen:
-        <ul>
-            <li>Authentifizierte Nutzer, wenn sie die „Interne Gruppe” des Protokolltyps haben.</li>
-        </ul>
-        Das Protokoll bearbeiten dürfen:
-        <ul>
-            <li>Authentifizierte Benutzer, wenn sie die „Bearbeitungsgruppe“ des Protokolltyps haben.</li>
-        </ul>
-        Die Einstellungen des Protokolltyps bearbeiten und das Protokoll veröffentlichen dürfen:
-        <ul>
-            <li>Authentifizierte Benutzer, wenn sie die „Verwaltungsgruppe“ des Protokolltyps haben.</li>
-        </ul>
-
-        Vom Protokoll wird eine interne und eine öffentliche Version generiert, falls es Inhalte gibt, die nur intern sind.
-        Todos sind generell intern, Beschlüsse sind generell öffentlich (d.h. einsehbar, wenn man das Recht „Darf öffentliche Version sehen“ hat).
-        Daher dürfen Beschlüsse nicht in einem internen Teil des Protokolls sein.
-    </div>
-    <div id="right-column", class="col-lg-6">
-        <h3 id="syntax">Syntax</h3>
-        Ein Dokument beginn mit einigen Metadaten, danach kommen nacheinander die Tagesordnungspunkte, die durch Listen strukturiert sind.
-        Darüberhinaus gibt es Tags, mit denen URLs, Beschlüsse oder ToDos markiert werden können.
-
-        <h4 id="metadaten">Metadaten</h4>
-        Die Syntax der Metadaten ist <code>#Name;Wert</code> und die einzelnen Einträge werden durch Zeilenumbrüche getrennt. Folgende Metadaten müssen immer in diesem Format angegeben werden:
-        <ul>
-            <li><code>#Datum;01.01.2017</code> Das Datum der Sitzung</li>
-            <li><code>#Beginn;19:00</code> Beginn der Sitzung</li>
-            <li><code>#Ende;21:42</code> Ende der Sitzung</li>
-        </ul>
-    Zusätzlich können pro Protokolltyp weitere Metadatenfelder konfiguriert werden, beispielsweise der Ort, die Anwesenden Teilnehmer, die Protokollführung, …. Diese haben als Wert beliebigen Text.
-        <h4 id="tops">Tagesordnungspunkte</h4>
-        Ein TOP besteht aus einem Titel und beliebigem Inhalt.
-        Ein TOP ist eine besondere Liste (s.u.) und kann somit wie diese verwendet werden.
-<pre>
-{TOP Tagesordnungspunkt
-    Inhalt:
-}
-</pre>
-        <h4 id="liste">Liste</h4>
-        Die Liste ist das einzige strukturierende Element.
-        Listen können beliebig geschachtelt werden.
-        Die Elemente der Liste werden durch das Zeilenende getrennt.
-<pre>
-{TOP Tagesordnungspunkt
-    Zeile mit Text drin
-    Hier eine geschachtelte Liste: {
-        Details zu diesem Punkt.
-        Mehr Details zu diesen Punkt.
-    }
-}
-</pre>
-
-        Text, der vor der öffnenden Klammer <code>{</code> steht, wird als Name der Liste angesehen, nur TOPs können Text hinter der öffnenden Klammer haben.
-        Listen in der höchsten Ebene müssen TOPs sein.
-{% if config.PRIVATE_KEYWORDS|length > 0 %}
-        <h4 id="intern">Interne Abschnitte</h4>
-        Wenn der Name einer Liste (bis auf Leerzeichen und einen optionalen <code>:</code>) eins aus
-        {{config.PRIVATE_KEYWORDS|map("code")|join(" ")|safe}}
-        ist, ist diese Liste intern.
-        Daher wird sie nur in der internen Version des Protokolls angezeigt.
-        In der öffentlichen Version steht stattdessen nur ein Hinweis auf diese interne Stelle.
-        Es bietet sich beim Protokollieren an, wenn nach dem internen Bereich kurz dessen Inhalt zusammengefasst wird (natürlich nur sofern dies geht ohne die Interna zu verraten), oder begründet wird, warum dies intern ist.
-<pre>
-{TOP Tagesordnungspunkt
-    Dieser Punkt ist öffentlich.
-    {{config.PRIVATE_KEYWORDS[0]}}: {
-        Dieser Punkt ist intern.
-        Dieser auch, wir diskutieren Kritik an einem namentlich genannten Professor und seiner Vorlesung.
-        Hier entwickeln wir eine Strategie.
-    }
-    Dieser ist wieder öffentlich.
-    Es wurde die Krtik an einer Vorlesung kritsiert.
-}
-</pre>
         
-        <h4 id="tag">Tags</h4>
-        Tags können Text besonders hervorheben oder bestimmte Aktionen ausführen.
-        Die grundsätzliche Syntax ist <code>[Name;Arg1;Arg2;…]</code>, wobei theoretisch beliebig viele Argumente angegeben werden können, allerdings je nach Typ nur endlich viele eine Bedeutung haben.
-        <h5>URL-Tag</h5>
-        Mittels <code>[url;https://protokolle.fsmpi.rwth-aachen.de ]</code> kann ein entsprechend formatierter Link eingebunden werden.
-        Das Leerzeichen am Ende ist nicht notwendig für das Protokollsystem, erleichtert aber das Anklicken im Etherpad.
-        <h5>Beschluss-Tag</h5>
-        <code>[beschluss;Wir beschließen etwas tolles.]</code> erzeugt einen Beschluss im Protokoll.
-        Ein Beschluss wird zusätzlich am Anfang des Protokoll angezeigt.
-        Die Beschlüsse sind online durchsuchbar.
-        Beschluss-Tags dürfen nicht in internen Abschnitten stehen.
-        Falls für den Protokolltyp <b>Beschlusskategorien</b> definiert sind, können Beschlüsse mit <code>[…;finanzwirksam;…]</code> diesen zugeordnet werden.
-        Beschlüsse können nach Beschlusskategorien gefiltert werden.
-        Es empfiehlt sich Beschlüsse klar, einfach, eindeutig und auch kontextlos verständlich zu formulieren.
-        Sind die Beschlüsse im Rahmen einer Abstimmung ergangen, so empfiehlt es sich das Abstimmungsergebnis am Ende des Beschlusses in der Form (JA/NEIN/ENTHALTUNG) anzugeben.         <code>[beschluss;Wir beschaffen für bis zu 100,00 € einen Stuhl.(9/1/3);finanzwirksam;Inventar]</code>
-        <h5>Todo-Tag</h5>
-        In den Protokollen können <a href="#todos">Todos</a> verwaltet werden.
-        Ein neuer Todo wird mit <code>[todo;Name;Aufgabe]</code> angelegt.
-        Dieser ist dann online und in den Mails sichtbar.
-        Falls der Name einer Mail <a href="{{url_for("list_todomails")}}">zugeordnet</a> ist, wird diese Person (oder AG, AK, …) per Mail über ihre offenen Todos informiert.
-        Mehrere Personen können durch Leerzeichen oder Kommata getrennt angegeben werden.
-
-        Ein bereits bestehender Todo wird mit der zusätzlichen Option <code>[…;id 1338]</code> in ein neues Protokoll eingefügt, falls es den TOP „Todos“ beinhaltet.. Wird dieser Todo dann geändert, passiert das auch im Protokollsystem.
-        Außerdem kann der Status des Todos, z.B. <code>[…;done;…]</code> angegeben werden.
-        Wenn der Status ein Datum benötigt 
-        ({{todostates|select("needs_date")|map("todo_get_name")|join(", ")}})
-        muss dies als <code>[…;dd.mm.yyyy;…]</code> angegeben werden.
-        <br>
-        Folgende Begriffe werden vom Protokollsystem verstanden (Groß- und Kleinschreibung spielt keine Rolle):
-        <ul>
-            {% for name in name_to_state %}
-                {% set state = name_to_state[name] %}
-                <li><code>{{name}}{% if state.needs_date() %};dd.mm.yyyy{% endif %}</code>: {{state.get_name()}}</li>
-            {% endfor %}
-        </ul>
-        <h5>Fußnoten-Tag</h5>
-        Fußnoten können im Protokoll mit <code>[footnote;Inhalt]</code> geschrieben werden.
-        <h5>Sitzungs-Tag</h5>
-        Aus dem Protokoll können neue Sitzungen desselben Typs mit dem Tag <code>[sitzung;Datum]</code>, z.B. <code>[sitzung;24.12.2017]</code> angelegt werden.
-        Optional kann zusätzlich eine Uhrzeit angegeben werden: <code>[sitzung;Datum;Uhrzeit]</code> (z.B. <code>[sitzung;01.01.2018;9:00]</code>).
-
-{% endif %}
         {% if git_revision %}
         <h3 id="version">Version</h4>
-        Dieses Protokollsystem nutzt die Software <a href="{{git_revision.url}}">„Protokollsystem 3“</a> in der Version vom <a href="{{git_revision.url}}/commit/{{git_revision.hash}}">{{git_revision.date|datify}}</a>.
+		<p>
+        Dieses Protokollsystem nutzt die Software <a href="{{git_revision.url}}">„Protokollsystem 3“</a> in der Version vom <a href="{{git_revision.url}}/commit/{{git_revision.hash}}">{{git_revision.date|datify}}</a>.<br/>
         Alle Änderungen, die seitdem hinzugekommen sind, kannst du <a href="{{git_revision.url}}/compare/{{git_revision.hash}}...master">hier</a> sehen.
+		</p>
         {% endif %}
-    </div>
-</div>
 {% endblock %}
