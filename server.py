@@ -354,12 +354,12 @@ def internal_syntax_documentation():
 @back.anchor
 @login_required
 def tags_syntax_documentation():
-	states = {state:[] for state in list(TodoState)}
-	name_to_state = TodoState.get_name_to_state()
-	for state_name in name_to_state:
-		states[name_to_state[state_name]].append(state_name)
-	return render_template(
-		"documentation-syntax-tags.html", states=states)
+    states = {state:[] for state in list(TodoState)}
+    name_to_state = TodoState.get_name_to_state()
+    for state_name in name_to_state:
+        states[name_to_state[state_name]].append(state_name)
+    return render_template(
+        "documentation-syntax-tags.html", states=states)
 
 @app.route("/documentation/configuration")
 @back.anchor
@@ -386,10 +386,10 @@ def todomails_configuration_documentation():
 @back.anchor
 @login_required
 def settings_configuration_documentation():
-	user = current_user()
-	return render_template(
+    user = current_user()
+    return render_template(
         "documentation-configuration-settings.html",
-		system_administrator=(user is not None and config.ADMIN_GROUP in user.groups))
+        system_administrator=(user is not None and config.ADMIN_GROUP in user.groups))
 
 @app.route("/types/list")
 @back.anchor
