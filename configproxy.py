@@ -402,8 +402,7 @@ def check_wiki(
 
 
 def check_calendar(
-        CALENDAR_URL, CALENDAR_DEFAULT_DURATION, CALENDAR_MAX_REQUESTS,
-        CALENDAR_TIMEZONE_MAP):
+        CALENDAR_URL, CALENDAR_DEFAULT_DURATION, CALENDAR_MAX_REQUESTS):
     from calendarpush import Client, CalendarException
     try:
         client = Client(url=CALENDAR_URL)
@@ -411,6 +410,10 @@ def check_calendar(
     except (KeyError, CalendarException) as error:
         raise ValueError("Cannot connect to the calendar at {}!".format(
             CALENDAR_URL))
+
+
+def check_timezone(CALENDAR_TIMEZONE_MAP):
+    pass
 
 
 CONFIG_SECTIONS = [
@@ -897,6 +900,13 @@ CONFIG_SECTIONS = [
                 description=(
                     "Number of retries before giving a connection attempt up. "
                     "Some CalDAV servers reply randomly with errors.")),
+        ],
+        check=check_calendar,
+        deactivatable=True,
+        description="CalDAV settings"),
+    ConfigSection(
+        name="TIMEZONE",
+        entries=[
             ConfigEntry(
                 name="CALENDAR_TIMEZONE_MAP",
                 default={
@@ -906,9 +916,8 @@ CONFIG_SECTIONS = [
                 required=False, internal=False,
                 description="Timezone abbreviation map. Add as needed."),
         ],
-        check=check_calendar,
-        deactivatable=True,
-        description="CalDAV settings"),
+        check=check_timezone,
+        description="Settings for translating timezone information."),
 ]
 
 
