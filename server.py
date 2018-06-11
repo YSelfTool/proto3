@@ -1824,7 +1824,7 @@ def make_calendar_from_protocols(protocols, summary):
         event["dtend"] = to_datetime(start + timedelta(hours=3))
         event["summary"] = protocol.protocoltype.short_name
         event["description"] = "\n".join(
-            top.name for top in protocol.get_tops())
+            top.name for top in protocol.get_tops() if top.name is not None
         calendar.add_component(event)
     content = calendar.to_ical().decode("utf-8")
     for key in config.CALENDAR_TIMEZONE_MAP:
