@@ -10,11 +10,11 @@
 	
     <h4 id="decisions">Beschlüsse</h4>
 	<p>
-	Alle in den Protollen festgehaltenen Beschlüsse werden in der <a href="{{url_for('list_decisions')}}">Beschlussübersicht</a> angezeigt. Neben dem Beschlusstext beinhaltet die Übersicht die zu den Beschlüssen gehörenden Protokoll sowie die <a href="/documentation/configuration/types#decision_categories">Beschlusskategorie</a>. In den einzelnen Protokollen werdend die Beschlüsse ebenfalls zusammengefasst dargestellt, um einen Überbrlick über alle Beschlüsse der betrefenden Sitzung zu erhalten.
+	Alle in den Protollen festgehaltenen Beschlüsse werden in der <a href="{{url_for('list_decisions')}}">Beschlussübersicht</a> angezeigt. Neben dem Beschlusstext beinhaltet die Übersicht die zu den Beschlüssen gehörenden Protokoll sowie die <a href="{{url_for("types_configuration_documentation")}}#decision_categories">Beschlusskategorie</a>. In den einzelnen Protokollen werdend die Beschlüsse ebenfalls zusammengefasst dargestellt, um einen Überbrlick über alle Beschlüsse der betrefenden Sitzung zu erhalten.
 	</p>
 	{% if config.PRINTING_ACTIVE %}
 	<p>
-	Beschlüsse können direkt aus dem Protokollsystem an den im <a href="/documentation/configuration/types">Protokolltyp</a> hinterlegten Drucker durch klicken auf „Drucken“ zum Drucken gesendet werden, so dass gedruckte Beschlüsse beispielsweise mit Kassenanweisungen abgeheftet werden können.
+	Beschlüsse können direkt aus dem Protokollsystem an den im <a href="{{url_for("types_configuration_documentation")}}">Protokolltyp</a> hinterlegten Drucker durch klicken auf „Drucken“ zum Drucken gesendet werden, so dass gedruckte Beschlüsse beispielsweise mit Kassenanweisungen abgeheftet werden können.
 	</p>
 	{% endif %}
 	<div class="panel panel-default">
@@ -79,7 +79,7 @@
 	
     <h4 id="todos">Aufgaben (Todos)</h4>
 	<p>
-	Einzelne Aufgaben, die während oder außerhalb einer Sitzung vergeben werden, können mit dem Protokollsystem über mehrere Protokolle hinweg verwaltet werden. Offene Todos werden dabei automatisch in die Protokollvorlage eingefügt, falls diese einen <a href="/documentation/configuration/types">Standard-TOP</a> „Todos“ beinhaltet. Darüberhinaus können alle Todos auf der entsprechenden <a href="{{url_for('list_todos')}}">Übersichtsseite</a> eingesehen werden.
+	Einzelne Aufgaben, die während oder außerhalb einer Sitzung vergeben werden, können mit dem Protokollsystem über mehrere Protokolle hinweg verwaltet werden. Offene Todos werden dabei automatisch in die Protokollvorlage eingefügt, falls diese einen <a href="{{url_for("types_configuration_documentation")}}">Standard-TOP</a> „Todos“ beinhaltet. Darüberhinaus können alle Todos auf der entsprechenden <a href="{{url_for('list_todos')}}">Übersichtsseite</a> eingesehen werden.
 	</p>
 	<div class="panel panel-default">
         <div class="panel-heading">
@@ -152,7 +152,7 @@
         </div>
     </div>
 	<p>
-	Aufgaben können im Protokollsystem auch außerhalb eines Protokolls direkt auf der <a href="{{url_for('list_todos')}}">Übersichtsseite</a> über die Schaltfläche „neu“ angelegt werden. Zu jeder Aufgabe sollte mindestens eine Person zugeordnet werden, die das Todo erledigt. Werden mehrere Personen angegeben, so sind diese durch Kommata oder Leerzeichen zu trennen. In aller Regel wird für jede Person ein internes Personenkürzel für die Zuweisung einer Aufgabe genutzt. Damit diese Personen eine Benachrichtigung über das neue Todo erhalten, sollten zu jedem internen Personenkürzel eine <a href="/documentation/configuration/todomails">E-Mailadresse</a> hinterlegt werden.
+	Aufgaben können im Protokollsystem auch außerhalb eines Protokolls direkt auf der <a href="{{url_for('list_todos')}}">Übersichtsseite</a> über die Schaltfläche „neu“ angelegt werden. Zu jeder Aufgabe sollte mindestens eine Person zugeordnet werden, die das Todo erledigt. Werden mehrere Personen angegeben, so sind diese durch Kommata oder Leerzeichen zu trennen. In aller Regel wird für jede Person ein internes Personenkürzel für die Zuweisung einer Aufgabe genutzt. Damit diese Personen eine Benachrichtigung über das neue Todo erhalten, sollten zu jedem internen Personenkürzel eine <a href="{{url_for("todomails_configuration_documentation")}}">E-Mailadresse</a> hinterlegt werden.
 	</p>
 	<div class="panel panel-default">
         <div class="panel-heading">

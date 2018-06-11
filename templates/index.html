@@ -11,6 +11,9 @@
             {% if check_login() %}
                 <a href="{{url_for("new_protocol")}}">Neu</a>
             {% endif %}
+            <a href="{{url_for("feed_all_appointments_ical")}}">
+              <img src="{{url_for("static", filename="images/feed-icon.svg")}}" width="18px"></img>
+            </a>
         </h3>
         <ul>
             {% if open_protocols|length > 0 %}

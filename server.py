@@ -354,12 +354,12 @@ def internal_syntax_documentation():
 @back.anchor
 @login_required
 def tags_syntax_documentation():
-	states = {state:[] for state in list(TodoState)}
-	name_to_state = TodoState.get_name_to_state()
-	for state_name in name_to_state:
-		states[name_to_state[state_name]].append(state_name)
-	return render_template(
-		"documentation-syntax-tags.html", states=states)
+    states = {state:[] for state in list(TodoState)}
+    name_to_state = TodoState.get_name_to_state()
+    for state_name in name_to_state:
+        states[name_to_state[state_name]].append(state_name)
+    return render_template(
+        "documentation-syntax-tags.html", states=states)
 
 @app.route("/documentation/configuration")
 @back.anchor
@@ -386,10 +386,10 @@ def todomails_configuration_documentation():
 @back.anchor
 @login_required
 def settings_configuration_documentation():
-	user = current_user()
-	return render_template(
+    user = current_user()
+    return render_template(
         "documentation-configuration-settings.html",
-		system_administrator=(user is not None and config.ADMIN_GROUP in user.groups))
+        system_administrator=(user is not None and config.ADMIN_GROUP in user.groups))
 
 @app.route("/types/list")
 @back.anchor
@@ -1809,17 +1809,9 @@ def feed_appointments_atom(protocoltype):
         mimetype="application/atom+xml")
 
 
-@app.route("/feed/appointments/ical/<int:protocoltype_id>")
-@db_lookup(ProtocolType)
-def feed_appointments_ical(protocoltype):
-    if not protocoltype.has_public_anonymous_view_right():
-        abort(403)
-    protocols = [
-        protocol for protocol in protocoltype.protocols
-        if not protocol.is_done()
-    ]
+def make_calendar_from_protocols(protocols, summary):
     calendar = icalendar.Calendar()
-    calendar["summary"] = protocoltype.short_name
+    calendar["summary"] = summary
     calendar["prodid"] = "Protokollsystem 3"
     calendar["version"] = "2.0"
     for protocol in protocols:
@@ -1830,9 +1822,9 @@ def feed_appointments_ical(protocoltype):
         event["dtstamp"] = to_datetime(start)
         event["dtstart"] = to_datetime(start)
         event["dtend"] = to_datetime(start + timedelta(hours=3))
-        event["summary"] = protocoltype.short_name
+        event["summary"] = protocol.protocoltype.short_name
         event["description"] = "\n".join(
-            top.name for top in protocol.get_tops())
+            top.name for top in protocol.get_tops() if top.name is not None)
         calendar.add_component(event)
     content = calendar.to_ical().decode("utf-8")
     for key in config.CALENDAR_TIMEZONE_MAP:
@@ -1840,6 +1832,34 @@ def feed_appointments_ical(protocoltype):
             "TZID={}:".format(key),
             "TZID={}:".format(config.CALENDAR_TIMEZONE_MAP[key]))
     return Response(content.encode("utf-8"), mimetype="text/calendar")
+
+
+@app.route("/feed/appointments/ical/<int:protocoltype_id>")
+@db_lookup(ProtocolType)
+def feed_appointments_ical(protocoltype):
+    if not protocoltype.has_public_anonymous_view_right():
+        abort(403)
+    protocols = [
+        protocol for protocol in protocoltype.protocols
+        if not protocol.is_done()
+    ]
+    return make_calendar_from_protocols(protocols, protocoltype.short_name)
+
+
+@app.route("/feed/appointments/ical/")
+def feed_all_appointments_ical():
+    user = current_user()
+    types = [
+        protocoltype for protocoltype in ProtocolType.query.all()
+        if (protocoltype.has_private_view_right(user)
+            or protocoltype.has_public_view_right(user)
+            or protocoltype.is_public)]
+    protocols = [
+        protocol
+        for protocoltype in types
+        for protocol in protocoltype.protocols
+    ]
+    return make_calendar_from_protocols(protocols, "Sitzungskalender")
 
 
 @app.route("/like/new")

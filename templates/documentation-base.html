@@ -3,22 +3,22 @@
 <link rel="stylesheet" href="{{url_for('static', filename='css/pygments-manni.css')}}" />
 {% endblock %}
 {% set navigation_bar = [
-    ('sessionmanagement_documentation', '/documentation/sessionmanagement', 'Sitzungsverwaltung', [
-        ('plan_sessionmanagement_documentation', '/documentation/sessionmanagement/plan', 'Planung'),
-        ('write_sessionmanagement_documentation', '/documentation/sessionmanagement/write', 'Protokollieren'),
-        ('tracking_sessionmanagement_documentation', '/documentation/sessionmanagement/tracking', 'Nachverfolgung')
+    ('sessionmanagement_documentation', 'Sitzungsverwaltung', [
+        ('plan_sessionmanagement_documentation', 'Planung'),
+        ('write_sessionmanagement_documentation', 'Protokollieren'),
+        ('tracking_sessionmanagement_documentation', 'Nachverfolgung')
     ]),
-    ('syntax_documentation', '/documentation/syntax', 'Syntax', [
-        ('meta_syntax_documentation', '/documentation/syntax/meta', 'Metadaten'),
-        ('top_syntax_documentation', '/documentation/syntax/top', 'Tagesordnungspunkte'),
-        ('lists_syntax_documentation', '/documentation/syntax/lists', 'Listen'),
-        ('internal_syntax_documentation', '/documentation/syntax/internal', 'Interne Abschnitte'),
-        ('tags_syntax_documentation', '/documentation/syntax/tags', 'Tags')
+    ('syntax_documentation', 'Syntax', [
+        ('meta_syntax_documentation', 'Metadaten'),
+        ('top_syntax_documentation', 'Tagesordnungspunkte'),
+        ('lists_syntax_documentation', 'Listen'),
+        ('internal_syntax_documentation', 'Interne Abschnitte'),
+        ('tags_syntax_documentation', 'Tags')
     ]),
-    ('configuration_documentation', '/documentation/configuration', 'Einrichtung', [
-        ('types_configuration_documentation', '/documentation/configuration/types', 'Typen'),
-        ('todomails_configuration_documentation', '/documentation/configuration/todomails', 'Todo Mails'),
-        ('settings_configuration_documentation', '/documentation/configuration/settings', 'Systemeinstellungen')
+    ('configuration_documentation', 'Einrichtung', [
+        ('types_configuration_documentation', 'Typen'),
+        ('todomails_configuration_documentation', 'Todo Mails'),
+        ('settings_configuration_documentation', 'Systemeinstellungen')
     ])
 ] -%}
 {% set active_page = active_page|default('documentation') -%}
@@ -35,14 +35,14 @@
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-					<a class="navbar-brand" href="/documentation">Dokumentation</a>
+					<a class="navbar-brand" href="{{url_for("documentation")}}">Dokumentation</a>
 				</div>
 				<div class="collapse navbar-collapse" id="documentation-navigation">
 					<ul class="nav navbar-nav" style="width:100%">
-					{% for id, url, caption, children in navigation_bar %}
+					{% for id, caption, children in navigation_bar %}
 						<li{% if id == active_page %} class="active"{% endif %} style="width:100%">
 							<div class="btn-group" style="width:100%">
-								<a class="btn btn-{% if id == active_page %}primary{% else %}default{% endif %}{% if children %} col-xs-10{% endif %}" href="{{url|e}}" role="button" style="font-weight: bold; text-align:left; border: none; padding: 10px 15px">{{caption|e}}</a>
+								<a class="btn btn-{% if id == active_page %}primary{% else %}default{% endif %}{% if children %} col-xs-10{% endif %}" href="{{url_for(id)}}" role="button" style="font-weight: bold; text-align:left; border: none; padding: 10px 15px">{{caption|e}}</a>
 								{% if children %}
 								<button class="btn btn-{% if id == active_page %}primary{% else %}default{% endif %} col-xs-2" type="button" data-toggle="collapse" role="button" data-target="#{{id}}-collapse" aria-expanded="true" style="float:right; border:none; padding: 10px 15px">
 									<span class="caret"></span>
@@ -52,9 +52,9 @@
 							</div>
 							{% if children %}
 								<ul class="collapse{% if active_page.endswith(id) %}.in{% endif %} nav nav-pills nav-stacked" id="{{id}}-collapse">
-								{% for child_id, child_url, child_caption in children %}
+								{% for child_id, child_caption in children %}
 								<li{% if child_id == active_page %} class="active"{% endif %}>
-									<a href="{{child_url|e}}" style="padding-left: 30px">{{child_caption|e}}</a>
+									<a href="{{url_for(child_id)}}" style="padding-left: 30px">{{child_caption|e}}</a>
 								</li>
 								{% endfor %}
 								</ul>

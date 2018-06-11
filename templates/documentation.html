@@ -3,37 +3,37 @@
 {% block title %}Dokumentation{% endblock %}
 
 {% block documentation_content %}
-        <h3>Protokollsystem 3 - Das Protokollsystem</h3>
-		<p>
+    <h3>Protokollsystem 3 - Das Protokollsystem</h3>
+    <p>
         Das Protokollsystem dient der Planung von Sitzungen und Verwaltung von Protokollen. Die anstehenden Sitzungen der nächsten Woche sind auf der <a href="{{url_for('index')}}">Startseite</a>, alle Protokolle unter <a href="{{url_for('list_protocols')}}">Protokolle</a> zu finden.
-		</p>
-		<p>
-		Des weiteren können die Sitzungen mittels Todos und einer Beschlussdatenbank nach verfolgt werden. Die eigenen offenen Todos werden auf der <a href="{{url_for('index')}}">Startseite</a> angezeigt, alle Todos sind unter <a href="{{url_for('list_todos')}}">Todos</a> zu finden. Die Beschlüsse finden sich in der  <a href="{{url_for('list_decisions')}}">Beschlussdatenbank</a>.
-		</p>
-		<h3>Dokumentation</h3>
-		Dieser Dokumentation können Beschreibungen zu nahezu allen wichtigen Systemfunktionen entnommen werden. Gegliedert sind die Themen wie folgt:
-		<ul>
-			<li><a href="/documentation/sessionmanagement">Sitzungsverwaltung</a><ul>
-				<li><a href="/documentation/sessionmanagement/plan">Planung</a></li>
-				<li><a href="/documentation/sessionmanagement/write">Protokollieren</a></li>
-				<li><a href="/documentation/sessionmanagement/tracking">Nachverfolgung</a></li>
-			</ul></li>
-			<li><a href="/documentation/syntax">Syntax</a><ul>
-				<li><a href="/documentation/syntax/meta">Metadaten</a></li>
-				<li><a href="/documentation/syntax/top">Tagesordnungspunkte</a></li>
-				<li><a href="/documentation/syntax/lists">Listen</a></li>
-				<li><a href="/documentation/syntax/internal">Interne Abschnitte</a></li>
-				<li><a href="/documentation/syntax/tags">Tags</a></li>
-			</ul></li>
-			<li><a href="/documentation/configuration">Einrichtung</a><ul>
-				<li><a href="/documentation/configuration/types">Typen</a></li>
-				<li><a href="/documentation/configuration/todomails">Todo Mails</a></li>
-				<li><a href="/documentation/configuration/settings">Systemeinstellungen</a></li>
-			</ul></li>
-		</ul>
-		<p>
-		Sollten deine Fragen nach dem Studium der Dokumentation noch offen sein, wende dich an jemand erfahreneren oder die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a>. Offene Punkte innerhalb der Dokumentation können dann durch die Admins zur Behebung auch an die Entwickler der Software weitergegeben werden.
-		</p>
+    </p>
+    <p>
+    Des weiteren können die Sitzungen mittels Todos und einer Beschlussdatenbank nach verfolgt werden. Die eigenen offenen Todos werden auf der <a href="{{url_for('index')}}">Startseite</a> angezeigt, alle Todos sind unter <a href="{{url_for('list_todos')}}">Todos</a> zu finden. Die Beschlüsse finden sich in der  <a href="{{url_for('list_decisions')}}">Beschlussdatenbank</a>.
+    </p>
+    <h3>Dokumentation</h3>
+    Dieser Dokumentation können Beschreibungen zu nahezu allen wichtigen Systemfunktionen entnommen werden. Gegliedert sind die Themen wie folgt:
+    <ul>
+      <li><a href="{{url_for("sessionmanagement_documentation")}}">Sitzungsverwaltung</a><ul>
+        <li><a href="{{url_for("plan_sessionmanagement_documentation")}}">Planung</a></li>
+        <li><a href="{{url_for("write_sessionmanagement_documentation")}}">Protokollieren</a></li>
+        <li><a href="{{url_for("tracking_sessionmanagement_documentation")}}">Nachverfolgung</a></li>
+      </ul></li>
+      <li><a href="{{url_for("syntax_documentation")}}">Syntax</a><ul>
+        <li><a href="{{url_for("meta_syntax_documentation")}}">Metadaten</a></li>
+        <li><a href="{{url_for("top_syntax_documentation")}}">Tagesordnungspunkte</a></li>
+        <li><a href="{{url_for("lists_syntax_documentation")}}">Listen</a></li>
+        <li><a href="{{url_for("internal_syntax_documentation")}}">Interne Abschnitte</a></li>
+        <li><a href="{{url_for("tags_syntax_documentation")}}">Tags</a></li>
+      </ul></li>
+      <li><a href="{{url_for("configuration_documentation")}}">Einrichtung</a><ul>
+        <li><a href="{{url_for("types_configuration_documentation")}}">Typen</a></li>
+        <li><a href="{{url_for("todomails_configuration_documentation")}}">Todo Mails</a></li>
+        <li><a href="{{url_for("settings_configuration_documentation")}}">Systemeinstellungen</a></li>
+      </ul></li>
+    </ul>
+    <p>
+    Sollten deine Fragen nach dem Studium der Dokumentation noch offen sein, wende dich an jemand erfahreneren oder die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a>. Offene Punkte innerhalb der Dokumentation können dann durch die Admins zur Behebung auch an die Entwickler der Software weitergegeben werden.
+    </p>
         <h3 id="fehler">Fehlerbehandlung</h3>
         <ul>
             <li>Typische Web-Fehler (404, 500, etc.) sollten nicht auftreten. Wenn sie es doch tun, wende dich bitte an die <a href="mailto:{{config.ADMIN_MAIL}}">Admins</a></li>
@@ -43,9 +43,9 @@
         
         {% if git_revision %}
         <h3 id="version">Version</h4>
-		<p>
+    <p>
         Dieses Protokollsystem nutzt die Software <a href="{{git_revision.url}}">„Protokollsystem 3“</a> in der Version vom <a href="{{git_revision.url}}/commit/{{git_revision.hash}}">{{git_revision.date|datify}}</a>.<br/>
         Alle Änderungen, die seitdem hinzugekommen sind, kannst du <a href="{{git_revision.url}}/compare/{{git_revision.hash}}...master">hier</a> sehen.
-		</p>
+    </p>
         {% endif %}
 {% endblock %}

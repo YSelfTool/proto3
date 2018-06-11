@@ -4,17 +4,17 @@
 
 {% block documentation_content %}
     <h3>Sitzungsverwaltung: Planung</h3>
-	<p>
-	Im Vorfeld einer Sitzung sollten verschiedene Tätigkeiten vorgenommen werden. Hierbei ist zu unterscheiden ob zu einem geplanten Sitzungstermin bereits ein Protokoll existiert oder nicht. Zu bereits existierenden und noch nicht geschriebenen Protokollen kann die Tagesordnung verwaltet werden.
-	</p>
-	
-	<h4>Nicht existierendes Protokoll</h4>
-	<p>
+  <p>
+  Im Vorfeld einer Sitzung sollten verschiedene Tätigkeiten vorgenommen werden. Hierbei ist zu unterscheiden ob zu einem geplanten Sitzungstermin bereits ein Protokoll existiert oder nicht. Zu bereits existierenden und noch nicht geschriebenen Protokollen kann die Tagesordnung verwaltet werden.
+  </p>
+  
+  <h4>Nicht existierendes Protokoll</h4>
+  <p>
     Versichere dich zuerst auf der <a href="{{url_for("list_protocols")}}">Protokollübersichtsseite</a>, dass das Protokoll nicht bereits existiert. Sollte das Protokoll noch nicht existieren, so führe die folgenden Schritte aus um es anzulegen.
-	</p>
+  </p>
     <ol>
         <li>Gehe auf <a href="{{url_for("new_protocol")}}">Neues Protokoll</a>.</li>
-        <li>Wähle bei „Typ“ den <a href="/documentation/configuration/types">Typ der Sitzung</a> aus.</li>
+        <li>Wähle bei „Typ“ den <a href="{{url_for("types_configuration_documentation")}}">Typ der Sitzung</a> aus.</li>
         <li>Gib das Datum der Sitzung und ggf. einen Startzeitpunkt ein.</li>
         <li>Klicke auf Anlegen.</li>
     </ol>    
@@ -45,13 +45,13 @@
             </form>
         </div>
     </div>
-	
-	<h4 id="find">Existierendes Protokoll finden</h4>
+  
+  <h4 id="find">Existierendes Protokoll finden</h4>
     <p>
-	Ist das Protokoll bereits angelegt, so kann es auf zwei verschiedenen Wegen gefunden werden. Zum einen über die Übersicht der nächsten Sitzungen auf der Startseite und zum anderen auf der Protokollübersichtsseite.
-	<br/>
-	Um ein Protokoll auf der Protokollübersichtsseite zu finden:
-	</p>
+  Ist das Protokoll bereits angelegt, so kann es auf zwei verschiedenen Wegen gefunden werden. Zum einen über die Übersicht der nächsten Sitzungen auf der Startseite und zum anderen auf der Protokollübersichtsseite.
+  <br/>
+  Um ein Protokoll auf der Protokollübersichtsseite zu finden:
+  </p>
     <ol>
         <li>Gehe auf <a href="{{url_for("list_protocols")}}">Protokolle</a>,</li>
         <li>Wähle die Sitzung aus - noch ausstehende Sitzungen sind ganz oben.</a>
@@ -99,155 +99,155 @@
                         <td class="hidden-sm hidden-md hidden-lg"><a href="#">Versammlung</a><br>11. März 2018</td>
                         <td class="hidden-xs"><a href="#example_protocoll_overview">Versammlung</a></td>
                         <td class="hidden-xs">11. März 2018</td>
-						<td class="hidden-sm hidden-md hidden-lg"><span class="glyphicon glyphicon-pencil"></span></td>
+            <td class="hidden-sm hidden-md hidden-lg"><span class="glyphicon glyphicon-pencil"></span></td>
                         <td class="hidden-xs"><span class="glyphicon glyphicon-pencil"></span> Geplant</td>
                         <td class="">
-							<div class="btn-group btn-group-xs">
-							</div>
-						</td>
+              <div class="btn-group btn-group-xs">
+              </div>
+            </td>
                     </tr>
                     <tr>
                         <td class="hidden-sm hidden-md hidden-lg"><a href="#">Sitzung</a><br>08. März 2018</td>
                         <td class="hidden-xs"><a href="#example_protocoll_overview">Sitzung</a></td>
                         <td class="hidden-xs">08. März 2018</td>
-						<td class="hidden-sm hidden-md hidden-lg"><span class="glyphicon glyphicon-pencil"></span></td>
+            <td class="hidden-sm hidden-md hidden-lg"><span class="glyphicon glyphicon-pencil"></span></td>
                         <td class="hidden-xs"><span class="glyphicon glyphicon-pencil"></span> Geplant</td>
                         <td class="">
-							<div class="btn-group btn-group-xs">
-							</div>
-						</td>
+              <div class="btn-group btn-group-xs">
+              </div>
+            </td>
                     </tr>
                     <tr>
                         <td class="hidden-sm hidden-md hidden-lg"><a href="#">Arbeitsgruppe</a><br>02. März 2018</td>
                         <td class="hidden-xs"><a href="#example_protocoll_overview">Arbeitsgruppe</a></td>
                         <td class="hidden-xs">02. März 2018</td>
                         <td class="hidden-sm hidden-md hidden-lg"><span class="glyphicon glyphicon-unchecked"></span></td>
-						<td class="hidden-xs"><span class="glyphicon glyphicon-unchecked"></span> Fertig</td>
+            <td class="hidden-xs"><span class="glyphicon glyphicon-unchecked"></span> Fertig</td>
                         <td class="">
-							<div class="btn-group btn-group-xs">
-								<a href="#example_protocoll_overview" class="btn btn-success"><span class="glyphicon glyphicon-download"></span></a>
-							</div>
-						</td>
+              <div class="btn-group btn-group-xs">
+                <a href="#example_protocoll_overview" class="btn btn-success"><span class="glyphicon glyphicon-download"></span></a>
+              </div>
+            </td>
                     </tr>
                     <tr>
                         <td class="hidden-sm hidden-md hidden-lg"><a href="#">Sitzung</a><br>01. März 2018</td>
                         <td class="hidden-xs"><a href="#example_protocoll_overview">Sitzung</a></td>
                         <td class="hidden-xs">01. März 2018</td>
                         <td class="hidden-sm hidden-md hidden-lg"><span class="glyphicon glyphicon-unchecked"></span></td>
-						<td class="hidden-xs"><span class="glyphicon glyphicon-unchecked"></span> Fertig</td>
+            <td class="hidden-xs"><span class="glyphicon glyphicon-unchecked"></span> Fertig</td>
                         <td class="">
-							<div class="btn-group btn-group-xs">
-								<a href="#example_protocoll_overview" class="btn btn-success"><span class="glyphicon glyphicon-download"></span></a>
-							</div>
-						</td>
+              <div class="btn-group btn-group-xs">
+                <a href="#example_protocoll_overview" class="btn btn-success"><span class="glyphicon glyphicon-download"></span></a>
+              </div>
+            </td>
                     </tr>
                     <tr>
                         <td class="hidden-sm hidden-md hidden-lg"><a href="#">Sitzung</a><br>22. Februar 2018</td>
                         <td class="hidden-xs"><a href="#example_protocoll_overview">Sitzung</a></td>
                         <td class="hidden-xs">22. Februar 2018</td>
                         <td class="hidden-sm hidden-md hidden-lg"><span class="glyphicon glyphicon-check"></span></td>
-						<td class="hidden-xs"><span class="glyphicon glyphicon-check"></span> Veröffentlicht</td>
+            <td class="hidden-xs"><span class="glyphicon glyphicon-check"></span> Veröffentlicht</td>
                         <td class="">
-							<div class="btn-group btn-group-xs">
-								<a href="#example_protocoll_overview" class="btn btn-success"><span class="glyphicon glyphicon-download"></span></a>
-							</div>
-						</td>
+              <div class="btn-group btn-group-xs">
+                <a href="#example_protocoll_overview" class="btn btn-success"><span class="glyphicon glyphicon-download"></span></a>
+              </div>
+            </td>
                     </tr>
                     <tr>
                         <td class="hidden-sm hidden-md hidden-lg"><a href="#">Arbeitsgruppe</a><br>15. Februar 2018</td>
                         <td class="hidden-xs"><a href="#example_protocoll_overview">Arbeitsgruppe</a></td>
                         <td class="hidden-xs">15. Februar 2018</td>
                         <td class="hidden-sm hidden-md hidden-lg"><span class="glyphicon glyphicon-check"></span></td>
-						<td class="hidden-xs"><span class="glyphicon glyphicon-check"></span> Veröffentlicht</td>
+            <td class="hidden-xs"><span class="glyphicon glyphicon-check"></span> Veröffentlicht</td>
                         <td class="">
-							<div class="btn-group btn-group-xs">
-								<a href="#example_protocoll_overview" class="btn btn-success"><span class="glyphicon glyphicon-download"></span></a>
-							</div>
-						</td>
+              <div class="btn-group btn-group-xs">
+                <a href="#example_protocoll_overview" class="btn btn-success"><span class="glyphicon glyphicon-download"></span></a>
+              </div>
+            </td>
                     </tr>
                 </tbody>
             </table>
-			<div align="center">
-				<span class="glyphicon glyphicon-pencil"></span> Geplant, 
-				<span class="glyphicon glyphicon-unchecked"></span> Fertig,
-				<span class="glyphicon glyphicon-check"></span> Veröffentlicht
-			</div>
+      <div align="center">
+        <span class="glyphicon glyphicon-pencil"></span> Geplant, 
+        <span class="glyphicon glyphicon-unchecked"></span> Fertig,
+        <span class="glyphicon glyphicon-check"></span> Veröffentlicht
+      </div>
         </div>
     </div>
-	
-	<h4 id="prepare">Existierendes Protokoll vorbereiten</h4>
-	<p>
-    Soll ein bereits existierendes Protokoll für die Sitzung vorbereitet oder angepasst werden, so ist das Protokoll entsprechend wie <a href="#find">oben</a> dargestellt aufzurufen. Auf der Seite der Sitzung werden neben verschiedenen sogenannten <a href="/documentation/configuration/types#meta">Metadaten</a>, wie Datum und Uhrzeit der Sitzung, auch die Tagesordnung dargestellt.
-	<br/>
-	Haben sich in den für die Sitzung angegebenen Metadaten Fehler eingeschlichen oder soll die Sitzung beispielsweise verschoben werden, so können diese Protokolldaten wie folgt bearbeitet und aktualisiert werden.
-	</p>
-	<ol>
+  
+  <h4 id="prepare">Existierendes Protokoll vorbereiten</h4>
+  <p>
+    Soll ein bereits existierendes Protokoll für die Sitzung vorbereitet oder angepasst werden, so ist das Protokoll entsprechend wie <a href="#find">oben</a> dargestellt aufzurufen. Auf der Seite der Sitzung werden neben verschiedenen sogenannten <a href="{{url_for("types_configuration_documentation")}}#meta">Metadaten</a>, wie Datum und Uhrzeit der Sitzung, auch die Tagesordnung dargestellt.
+  <br/>
+  Haben sich in den für die Sitzung angegebenen Metadaten Fehler eingeschlichen oder soll die Sitzung beispielsweise verschoben werden, so können diese Protokolldaten wie folgt bearbeitet und aktualisiert werden.
+  </p>
+  <ol>
         <li>Klicke auf Editieren.</li>
         <li>Passe die Daten auf der neu geladenen Seite entsprechend an.</li>
         <li>Speichere die Ändernungen durch das Klicken auf Ändern.</li>
     </ol>
-	<div class="panel panel-default">
+  <div class="panel panel-default">
         <div class="panel-heading">
             <h5 class="panel-title"><a data-toggle="collapse" href="#example_update_protocoll">Beispiel - Protokolldaten aktualisieren</a></h5>
         </div>
         <ul id="example_update_protocoll" class="list-group panel-collapse collapse">
             <li class="list-group-item">
-				<div class="btn-group">
-					{% if config.ETHERPAD_ACTIVE %}
-					<a class="btn btn-primary" href="#example_update_protocoll">Aus Etherpad</a>
-					{% endif %}
-					<a class="btn btn-default" href="#example_update_protocoll">Editieren</a>
-					{% if config.ETHERPAD_ACTIVE %}
-					<a class="btn btn-primary" href="#example_update_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.');">Etherpad</a>
-					{% endif %}
-					<a class="btn btn-default" href="#example_update_protocoll">Vorlage</a>
-					{% if config.MAIL_ACTIVE %}
-					<a class="btn btn-default" href="#example_update_protocoll" onclick="return confirm('Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.');">Einladung versenden</a>
-					{% endif %}
-					<a class="btn btn-default" href="#example_update_protocoll">Typ</a>
-				</div>
-			</li>
-			<li class="list-group-item">
-				<form role="form" class="">
-					<div class="form-group  ">
-						<label for="date" class="control-label"><label for="date">Datum</label></label>
-						<input class="form-control" id="date" name="date" placeholder="Datum" title="" value="2018-03-14" type="date">
-					</div>
-					<div class="form-group  ">
-						<label for="start_time" class="control-label"><label for="start_time">Beginn (%H:%M)</label></label>
-						<input class="form-control" id="start_time" name="start_time" placeholder="Beginn (%H:%M)" title="" value="17:00" type="text">
-					</div>
-					<div class="form-group  ">
-						<label for="end_time" class="control-label"><label for="end_time">Ende (%H:%M)</label></label>
-						<input class="form-control" id="end_time" name="end_time" placeholder="Ende (%H:%M)" title="" value="" type="text">
-					</div>
-					<div class="checkbox ">
-						<label>
-							<input id="done" name="done" value="y" type="checkbox"> <label for="done">Fertig</label> 
-						</label>
-					</div>
-					<div id="done-description" style="display:none" class="field-description"></div>
-					<div class="checkbox ">
-						<label>
-							<input id="public" name="public" value="y" type="checkbox"> <label for="public">Veröffentlicht</label>
-						</label>
-					</div>
-					<div id="public-description" style="display:none" class="field-description"></div>
-					<button type="button" class="btn btn-default">Ändern</button>
-				</form>
-			</li>
+        <div class="btn-group">
+          {% if config.ETHERPAD_ACTIVE %}
+          <a class="btn btn-primary" href="#example_update_protocoll">Aus Etherpad</a>
+          {% endif %}
+          <a class="btn btn-default" href="#example_update_protocoll">Editieren</a>
+          {% if config.ETHERPAD_ACTIVE %}
+          <a class="btn btn-primary" href="#example_update_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.');">Etherpad</a>
+          {% endif %}
+          <a class="btn btn-default" href="#example_update_protocoll">Vorlage</a>
+          {% if config.MAIL_ACTIVE %}
+          <a class="btn btn-default" href="#example_update_protocoll" onclick="return confirm('Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.');">Einladung versenden</a>
+          {% endif %}
+          <a class="btn btn-default" href="#example_update_protocoll">Typ</a>
+        </div>
+      </li>
+      <li class="list-group-item">
+        <form role="form" class="">
+          <div class="form-group  ">
+            <label for="date" class="control-label"><label for="date">Datum</label></label>
+            <input class="form-control" id="date" name="date" placeholder="Datum" title="" value="2018-03-14" type="date">
+          </div>
+          <div class="form-group  ">
+            <label for="start_time" class="control-label"><label for="start_time">Beginn (%H:%M)</label></label>
+            <input class="form-control" id="start_time" name="start_time" placeholder="Beginn (%H:%M)" title="" value="17:00" type="text">
+          </div>
+          <div class="form-group  ">
+            <label for="end_time" class="control-label"><label for="end_time">Ende (%H:%M)</label></label>
+            <input class="form-control" id="end_time" name="end_time" placeholder="Ende (%H:%M)" title="" value="" type="text">
+          </div>
+          <div class="checkbox ">
+            <label>
+              <input id="done" name="done" value="y" type="checkbox"> <label for="done">Fertig</label> 
+            </label>
+          </div>
+          <div id="done-description" style="display:none" class="field-description"></div>
+          <div class="checkbox ">
+            <label>
+              <input id="public" name="public" value="y" type="checkbox"> <label for="public">Veröffentlicht</label>
+            </label>
+          </div>
+          <div id="public-description" style="display:none" class="field-description"></div>
+          <button type="button" class="btn btn-default">Ändern</button>
+        </form>
+      </li>
         </ul>
     </div>
-	<p>
-	Für jede Sitzung kann auch die Tagesordnung individuell angepasst werden. Zwar gibt es einige Tagesordnungspunkte, die bereits durch den <a href="/documentation/configuration/types">Sitzungstyp</a> vorgegeben sind (sogenannte <a href="/documentation/configuration/types#tops">Standard-TOPs</a>), weitere Punkte können aber jeder Zeit hinzugefügt werden. Des weiteren besteht für jeden TOP die Möglichkeit durch sogenanntes Vorprotokollieren bereits bekannte Informationen zum TOP vor der Sitzung hinzuzufügen, wie bswp. einen schriftlichen Bericht.
-	<br/>
-	Bitte beachte weiterhin die folgenden Punkte beim Umgang mit Tagesordnungspunkten:</p>
+  <p>
+  Für jede Sitzung kann auch die Tagesordnung individuell angepasst werden. Zwar gibt es einige Tagesordnungspunkte, die bereits durch den <a href="{{url_for("types_configuration_documentation")}}">Sitzungstyp</a> vorgegeben sind (sogenannte <a href="{{url_for("types_configuration_documentation")}}#tops">Standard-TOPs</a>), weitere Punkte können aber jeder Zeit hinzugefügt werden. Des weiteren besteht für jeden TOP die Möglichkeit durch sogenanntes Vorprotokollieren bereits bekannte Informationen zum TOP vor der Sitzung hinzuzufügen, wie bswp. einen schriftlichen Bericht.
+  <br/>
+  Bitte beachte weiterhin die folgenden Punkte beim Umgang mit Tagesordnungspunkten:</p>
     <ul>
-        <li>Die ersten TOPs und ggf. die letztes TOPs sind <a href="/documentation/configuration/types#tops">Standard-TOPs</a> und daran zu erkennen, dass sie kursiv dargestellt sind. Diese werden durch den entsprechenden <a href="/documentation/configuration/types">Protokolltyp</a> definiert und sind bei jedem neu erstellten Protokoll automatisch vorhanden.</li>
+        <li>Die ersten TOPs und ggf. die letztes TOPs sind <a href="{{url_for("types_configuration_documentation")}}#tops">Standard-TOPs</a> und daran zu erkennen, dass sie kursiv dargestellt sind. Diese werden durch den entsprechenden <a href="{{url_for("types_configuration_documentation")}}">Protokolltyp</a> definiert und sind bei jedem neu erstellten Protokoll automatisch vorhanden.</li>
         <li>Die anderen, nicht kursiv dargestellten TOPs gehören nur zu dieser Sitzung. Du kannst diese Punkte hinzufügen oder sie umsortieren.</li>
         <li>Möchtest du zu einem TOP vorprotokollieren, so klicke auf ändern und füge unter "Beschreibung" deinen Inhalt ein (hier gilt die gleiche Syntax, wie im normalen Protokoll). Bitte beachte, dass das Vorprotokollieren nicht mehr möglich ist, wenn das Protokoll bereits {% if config.ETHERPAD_ACTIVE %}in ein Etherpad übertragen wurde{% else %}lokal geführt wird{% endif %}.</li>
-        <li>Solltest du die TOPs nicht bearbeiten können, handelt es sich um ein Protokoll, das du lesen, aber nicht bearbeiten darfst. Mehr dazu findet sich im Abschnitt zur <a href="/documentation/configuration/types#rechte">Rechteverwaltung</a>.</li>
-	</ul>
+        <li>Solltest du die TOPs nicht bearbeiten können, handelt es sich um ein Protokoll, das du lesen, aber nicht bearbeiten darfst. Mehr dazu findet sich im Abschnitt zur <a href="{{url_for("types_configuration_documentation")}}#rechte">Rechteverwaltung</a>.</li>
+  </ul>
     <div class="panel panel-default">
         <div class="panel-heading">
             <h5 class="panel-title"><a data-toggle="collapse" href="#example_top_overview">Beispiel - Übersicht der Tagesordnung</a></h5>
@@ -299,26 +299,26 @@
         <div id="example_edit_top" class="panel-body panel-collapse collapse">
             <form role="form" class="">
                 <div class="form-group  ">
-					<label for="name" class="control-label"><label for="name">TOP</label></label>
-					<input class="form-control" id="name" name="name" placeholder="TOP" title="" value="Änderungsbedarf" type="text">
-				</div>
-				<div class="form-group  ">
-					<label for="number" class="control-label"><label for="number">Sortierung</label></label>
-					<input class="form-control" id="number" name="number" placeholder="Sortierung" title="" value="0" type="text">
-				</div>
-				<div class="form-group  ">
-					<label for="description" class="control-label"><label for="description">Beschreibung</label></label>
-					<textarea class="form-control" id="description" name="description" placeholder="Beschreibung" textarea_rows="5" title="" style="min-height: 69px; overflow: hidden;">Hier steht der vorprotokolliert Text, der später beim ersten Erzeugen ins Protokoll übernommen aber beim Schreiben während der Sitzung noch angepasst werden kann.</textarea>
-				</div>
-				<button type="button" class="btn btn-default">Anlegen oder Ändern</button>
-			</form>
+          <label for="name" class="control-label"><label for="name">TOP</label></label>
+          <input class="form-control" id="name" name="name" placeholder="TOP" title="" value="Änderungsbedarf" type="text">
+        </div>
+        <div class="form-group  ">
+          <label for="number" class="control-label"><label for="number">Sortierung</label></label>
+          <input class="form-control" id="number" name="number" placeholder="Sortierung" title="" value="0" type="text">
+        </div>
+        <div class="form-group  ">
+          <label for="description" class="control-label"><label for="description">Beschreibung</label></label>
+          <textarea class="form-control" id="description" name="description" placeholder="Beschreibung" textarea_rows="5" title="" style="min-height: 69px; overflow: hidden;">Hier steht der vorprotokolliert Text, der später beim ersten Erzeugen ins Protokoll übernommen aber beim Schreiben während der Sitzung noch angepasst werden kann.</textarea>
+        </div>
+        <button type="button" class="btn btn-default">Anlegen oder Ändern</button>
+      </form>
         </div>
     </div>
-	<p>
-	Im Einsatz des Protokollsystem hat sich bereits gezeigt, dass die folgenden Ratschläge dazubeitragen können, bereits aus der Tagesordnung zu erkennen, was behandelt werden soll.
-	</p>
-	<ul>
-        <li>Jedes selbstständige Thema oder jeder Antrag sollte in einen eigenen TOP geschrieben werden. Sammel-TOPs, oder TOPs mit allen finanzwirksamen Anträgen sorgen für wenig Übersichtlichkeit.</li>
-        <li>Es ist wünschenswert, dass TOPs so früh wie möglich auf die Tagesordnung geschrieben werden und unter "Beschreibung" kurz erläutert wird, worum es gehen soll. Sollte es in dem TOP darum gehen, dass Geld beantragt wird, sollte der TOP im Namen entsprechend gekennzeichnet werden.</li>
+  <p>
+  Im Einsatz des Protokollsystem hat sich bereits gezeigt, dass die folgenden Ratschläge dazubeitragen können, bereits aus der Tagesordnung zu erkennen, was behandelt werden soll.
+  </p>
+  <ul>
+    <li>Jedes selbstständige Thema oder jeder Antrag sollte in einen eigenen TOP geschrieben werden. Sammel-TOPs, oder TOPs mit allen finanzwirksamen Anträgen sorgen für wenig Übersichtlichkeit.</li>
+    <li>Es ist wünschenswert, dass TOPs so früh wie möglich auf die Tagesordnung geschrieben werden und unter „Beschreibung“ kurz erläutert wird, worum es gehen soll. Sollte es in dem TOP darum gehen, dass Geld beantragt wird, sollte der TOP im Namen entsprechend gekennzeichnet werden.</li>
     </ul>
 {% endblock %}

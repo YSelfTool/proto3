@@ -486,7 +486,7 @@ class DefaultTOP(DatabaseModel):
         localtop = self.get_localtop(protocol)
         top = TOP(
             protocol_id=protocol.id, name=self.name,
-            description=localtop.description)
+            description=getattr(localtop, "description", ""))
         return top
 
 

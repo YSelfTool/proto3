@@ -5,7 +5,7 @@
 {% block documentation_content %}
     <h3>Syntax</h3>
     <p>
-	Das Herz des Protokollsystems ist die eigentliche Protokollsyntax, aus dem systemintern ein druckbares Dokument und menschenlesbarer Webseiteninhalt erstellt wird. Die Systax sieht eine Strukturierung des Prokolls vor. Ein Dokument beginn mit einigen Metadaten, danach kommen nacheinander die Tagesordnungspunkte, die strukturiert diskuiterte Punkte enthalten. Darüberhinaus gibt es Tags, mit denen unter anderem URLs, Beschlüsse oder ToDos markiert werden können.
+	Das Herz des Protokollsystems ist die eigentliche Protokollsyntax, aus dem systemintern ein druckbares Dokument und menschenlesbarer Webseiteninhalt erstellt wird. Die Systax sieht eine Strukturierung des Protokolls vor. Ein Dokument beginn mit einigen Metadaten, danach kommen nacheinander die Tagesordnungspunkte, die strukturiert diskutierte Punkte enthalten. Darüberhinaus gibt es Tags, mit denen unter anderem URLs, Beschlüsse oder ToDos markiert werden können.
 	</p>
 	<h4>Allgemeine Grundsätze</h4>
 	<p>
@@ -14,17 +14,27 @@
 	<ul>
 		<li>Jede geschweifte oder eckige Klammer die aufgemacht wird, wird sofort wieder geschlossen und anschließend der Inhalt zwischen die Klammern geschrieben.</li>
 		<li>Jeder Zeilenumbruch erzeugt eine neue Zeile im Protokoll.</li>
-		<li>Beachte die geschützten Begriffe: <code class="highlight" style="color: inherit;"><span class="nc">#Datum</span></code> <code class="highlight" style="color: inherit;"><span class="nc">#Beginn</span></code> <code class="highlight" style="color: inherit;"><span class="nc">#Ende</span></code> <code class="highlight" style="color: inherit;"><span class="kr">TOP</span></code> <code class="highlight" style="color: inherit;"><span class="kr">private</span></code> <code class="highlight" style="color: inherit;"><span class="kr">todo</span></code> <code class="highlight" style="color: inherit;"><span class="kr">id</span></code> <code class="highlight" style="color: inherit;"><span class="kr">beschluss</span></code> <code class="highlight" style="color: inherit;"><span class="kr">url</span></code> <code class="highlight" style="color: inherit;"><span class="kr">footnote</span></code> <code class="highlight" style="color: inherit;"><span class="kr">sitzung</span></code></li>
+		<li>Beachte die geschützten Begriffe:
+    {% for term in ["#Datum", "#Beginn", "#Ende"] %}
+      <code class="highlight" style="color: inherit;">
+        <span class="nc">{{term}}</span>
+      </code>
+    {% endfor %}
+    {% for term in ["TOP", "private", "todo", "id", "beschluss", "url", "footnote", "sitzung"] %}
+      <code class="highlight" style="color: inherit;">
+        <span class="kr">{{term}}</span>
+      </code>
+    {% endfor %}
 	</ul>
 	<h4>Der Syntax im Detail</h4>
 	<p>
 	Um die Funktionsweise und das Verhalten des Protokollsystems bei der Umwandlung eines Protokolls zu verstehen, wird auf den Unterseiten auf die einzelnen Elemente der Protokollsyntax näher eingegangen.
 	</p>
 	<ul>
-		<li><a href="/documentation/syntax/meta">Metadaten</a></li>
-		<li><a href="/documentation/syntax/top">Tagesordnungspunkte</a></li>
-		<li><a href="/documentation/syntax/lists">Listen</a></li>
-		<li><a href="/documentation/syntax/internal">Interne Abschnitte</a></li>
-		<li><a href="/documentation/syntax/tags">Tags</a></li>
+		<li><a href="{{url_for("meta_syntax_documentation")}}">Metadaten</a></li>
+		<li><a href="{{url_for("top_syntax_documentation")}}">Tagesordnungspunkte</a></li>
+		<li><a href="{{url_for("lists_syntax_documentation")}}">Listen</a></li>
+		<li><a href="{{url_for("internal_syntax_documentation")}}">Interne Abschnitte</a></li>
+		<li><a href="{{url_for("tags_syntax_documentation")}}">Tags</a></li>
 	</ul>
 {% endblock %}
