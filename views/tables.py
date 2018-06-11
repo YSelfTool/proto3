@@ -481,29 +481,28 @@ class TodosTable(Table):
         super().__init__("Todos", todos, newlink=url_for("new_todo"))
 
     def headers(self):
-        return ["Todo", "ID", "Status", "Sitzung", "Name", "Aufgabe", ""]
+        return ["Todo", "Status", "Name", "Aufgabe", "Sitzung", ""]
 
     def classes(self):
         return [
             "hidden-sm hidden-md hidden-lg",
-            "hidden-xs", "hidden-xs", "hidden-xs", "hidden-xs",
-            None, "hidden-xs"]
+            "hidden-xs", "hidden-xs", None,
+            "hidden-xs", "hidden-xs"]
 
     def row(self, todo):
         user = current_user()
         protocol = todo.get_first_protocol()
-        mobile_parts = [Table.link(
-            url_for("show_todo", todo_id=todo.id),
-            todo.get_state())]
+        mobile_parts = [Table.glyphicon(todo.get_state_glyph())]
+        mobile_parts.append(todo.who)
         if protocol is not None:
             mobile_parts.append(Table.link(
                 url_for("show_protocol", protocol_id=protocol.id),
                 todo.protocoltype.short_name))
-        mobile_parts.append(todo.who)
         row = [
             Markup("<br>").join(mobile_parts),
-            Table.link(url_for("show_todo", todo_id=todo.id), todo.get_id()),
-            todo.get_state(),
+            Table.glyphicon(todo.get_state_glyph(),todo.get_state_plain()),
+            todo.who,
+            Table.link(url_for("show_todo", todo_id=todo.id), todo.description),
             Table.link(
                 url_for("show_protocol", protocol_id=protocol.id),
                 protocol.get_short_identifier())
@@ -512,15 +511,22 @@ class TodosTable(Table):
                 url_for(
                     "list_protocols", protocoltype_id=todo.protocoltype.id),
                 todo.protocoltype.short_name),
-            todo.who,
-            todo.description,
         ]
         if todo.protocoltype.has_modify_right(user):
-            row.append(Table.concat([
-                Table.link(url_for("edit_todo", todo_id=todo.id), "Ändern"),
-                Table.link(url_for("delete_todo", todo_id=todo.id,
-                           csrf_token=get_csrf_token()), "Löschen")
-            ]))
+            buttons = []
+            buttons.append(Table.button(
+                url_for(
+                    "edit_todo", todo_id=todo.id,
+                    csrf_token=get_csrf_token()),
+                icon="pencil",
+                style="success"))
+            buttons.append(Table.button(
+                url_for(
+                    "delete_todo", todo_id=todo.id,
+                    csrf_token=get_csrf_token()),
+                icon="trash",
+                style="danger"))
+            row.append(Table.button_group(buttons))
         else:
             row.append("")
         return row
