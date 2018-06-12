@@ -1970,4 +1970,4 @@ def check_and_send_reminders():
                     protocol, -day_difference,
                     config.MAX_PAST_INDEX_DAYS_BEFORE_REMINDER)
 
-make_scheduler()
+#make_scheduler()
