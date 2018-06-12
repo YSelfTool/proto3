@@ -112,35 +112,43 @@
                 <thead>
                     <tr>
                         <th class="hidden-sm hidden-md hidden-lg">Todo</th>
-						<th class="hidden-xs">ID</th>
 						<th class="hidden-xs">Status</th>
-						<th class="hidden-xs">Sitzung</th>
 						<th class="hidden-xs">Name</th>
 						<th>Aufgabe</th>
+						<th class="hidden-xs">Sitzung</th>
 						<th class="hidden-xs"></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="hidden-sm hidden-md hidden-lg"><a href="#">[offen]</a><br><a href="#">Sitzung</a><br>mmustermann</td>
-                        <td class="hidden-xs"><a href="#">2</a></td>
-                        <td class="hidden-xs">[offen]</td>
-                        <td class="hidden-xs"><a href="#">Sitzung-18-03-01</a></td>
+                        <td class="hidden-sm hidden-md hidden-lg"><span class="glyphicon glyphicon-unchecked"></span><br>mmustermann<br><a href="#">Sitzung</a></td>
+                        <td class="hidden-xs"><span class="glyphicon glyphicon-unchecked"></span> offen</td>
                         <td class="hidden-xs">mmustermann</td>
-                        <td>Mit der Fakultät treffen</td>
-                        <td class="hidden-xs"><a href="#">Ändern</a>, <a href="#">Löschen</a></td>
+                        <td><a href="#">Mit der Fakultät treffen</a></td>
+                        <td class="hidden-xs"><a href="#">Sitzung-18-03-01</a></td>
+                        <td class="hidden-xs"><div class="btn-group btn-group-xs"><a href="#" class="btn btn-success"><span class="glyphicon glyphicon-pencil"></span></a><a href="#" class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span></a></div></td>
 					</tr>
 					<tr>
-                        <td class="hidden-sm hidden-md hidden-lg"><a href="#">[in Bearbeitung]</a><br><a href="#">Arbeitsgruppe</a><br>kmusterfrau</td>
-                        <td class="hidden-xs"><a href="#">1</a></td>
-                        <td class="hidden-xs">[in Bearbeitung]</td>
-                        <td class="hidden-xs"><a href="#">Arbeitsgruppe-18-02-15</a></td>
+                        <td class="hidden-sm hidden-md hidden-lg"><span class="glyphicon glyphicon-edit"></span><br>kmusterfrau<br><a href="#">Arbeitsgruppe</a></td>
+                        <td class="hidden-xs"><span class="glyphicon glyphicon-edit"></span> in Bearbeitung</td>
                         <td class="hidden-xs">kmusterfrau</td>
-                        <td>Organisiation des nächsten Events</td>
-                        <td class="hidden-xs"><a href="#">Ändern</a>, <a href="#">Löschen</a></td>
+                        <td><a href="#">Organisiation des nächsten Events</a></td>
+                        <td class="hidden-xs"><a href="#">Arbeitsgruppe-18-02-15</a></td>
+                        <td class="hidden-xs"><div class="btn-group btn-group-xs"><a href="#" class="btn btn-success"><span class="glyphicon glyphicon-pencil"></span></a><a href="#" class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span></a></div></td>
 					</tr>
                 </tbody>
             </table>
+            <div align="center">
+                <span class="glyphicon glyphicon-unchecked"></span> offen, 
+                <span class="glyphicon glyphicon-share"></span> wartet auf Rückmeldung, 
+                <span class="glyphicon glyphicon-edit"></span> in Bearbeitung, 
+                <span class="glyphicon glyphicon-log-out"></span> ab, 
+                <span class="glyphicon glyphicon-log-in"></span> vor, 
+                <span class="glyphicon glyphicon-modal-window"></span> verwaist, 
+                <span class="glyphicon glyphicon-check"></span> erledigt, 
+                <span class="glyphicon glyphicon-remove-circle"></span> abgewiesen, 
+                <span class="glyphicon glyphicon-ban-circle"></span> obsolet
+            </div>
         </div>
     </div>
 	<p>
@@ -202,39 +210,39 @@
 		</thead>
         <tbody>
             <tr>
-				<td>offen</td>
+				<td><span class="glyphicon glyphicon-unchecked"></span> offen</td>
 				<td>Das Todo muss noch erledigt werden</td>
 			</tr>
             <tr>
-				<td>wartet auf Rückmeldung</td>
+				<td><span class="glyphicon glyphicon-share"></span> wartet auf Rückmeldung</td>
 				<td>Jemand kümmert sich um das Todo, wartet allerdings gerade darauf, dass jemand anderes (intern oder extern) sich zurückmeldet.</td>
 			</tr>
 			<tr>
-				<td>in Bearbeitung</td>
+				<td><span class="glyphicon glyphicon-edit"></span> in Bearbeitung</td>
 				<td>Jemand kümmert sich gerade um das Todo.</td>
 			</tr>
 			<tr>
-				<td>ab</td>
+				<td><span class="glyphicon glyphicon-log-out"></span> ab</td>
 				<td>Das Todo wird erst ab dem Datum relevant.</td>
 			</tr>
 			<tr>
-				<td>vor</td>
+				<td><span class="glyphicon glyphicon-log-in"></span> vor</td>
 				<td>Das Todo muss vor dem Datum erledigt werden.</td>
 			</tr>
 			<tr>
-				<td>verwaist</td>
+				<td><span class="glyphicon glyphicon-modal-window"></span> verwaist</td>
 				<td>Das Todo hat niemanden, der es erledigen wird.</td>
 			</tr>
 			<tr>
-				<td>erledigt</td>
+				<td><span class="glyphicon glyphicon-check"></span> erledigt</td>
 				<td>Das Todo ist erledigt.</td>
 			</tr>
 			<tr>
-				<td>abgewiesen</td>
+				<td><span class="glyphicon glyphicon-remove-circle"></span> abgewiesen</td>
 				<td>Das Todo ist nicht und wird nicht mehr erledigt.</td>
 			</tr>
 			<tr>
-				<td>obsolet</td>
+				<td><span class="glyphicon glyphicon-ban-circle"></span> obsolet</td>
 				<td>Das Todo wurde nicht erledigt und nun ist es zu spät, das noch zu tun.</td>
 			</tr>
         </tbody>

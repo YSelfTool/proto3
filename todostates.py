@@ -56,3 +56,17 @@ def make_states(TodoState):
         "obsolete": TodoState.obsolete
     }
     return STATE_TO_NAME, NAME_TO_STATE
+
+def make_state_glyphes(TodoState):
+    STATE_TO_GLYPH = {
+        TodoState.open: "unchecked",
+        TodoState.waiting: "share",
+        TodoState.in_progress: "edit",
+        TodoState.after: "log-out",
+        TodoState.before: "log-in",
+        TodoState.orphan: "modal-window",
+        TodoState.done: "check",
+        TodoState.rejected: "remove-circle",
+        TodoState.obsolete: "ban-circle"
+    }
+    return STATE_TO_GLYPH

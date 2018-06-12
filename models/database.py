@@ -17,7 +17,7 @@ import os
 from sqlalchemy import event
 from sqlalchemy.orm import relationship, backref
 
-from todostates import make_states
+from todostates import make_states, make_state_glyphes
 
 
 class DatabaseModel(db.Model):
@@ -602,6 +602,10 @@ class TodoState(Enum):
         STATE_TO_NAME, NAME_TO_STATE = make_states(TodoState)
         return STATE_TO_NAME[self]
 
+    def get_glyph(self):
+        STATE_TO_GLYPH = make_state_glyphes(TodoState)
+        return STATE_TO_GLYPH[self]
+
     @staticmethod
     def get_name_to_state():
         STATE_TO_NAME, NAME_TO_STATE = make_states(TodoState)
@@ -710,6 +714,9 @@ class Todo(DatabaseModel):
 
     def get_state(self):
         return "[{}]".format(self.get_state_plain())
+
+    def get_state_glyph(self):
+        return self.state.get_glyph()
 
     def get_state_plain(self):
         result = self.state.get_name()

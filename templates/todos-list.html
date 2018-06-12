@@ -6,6 +6,16 @@
 <div class="container">
     {{render_form(search_form, class_="form-inline", action_url=url_for("list_todos"), action_text="Suchen", labels_visible=False, method="GET")}}
     {{render_table(todos_table)}}
+<div align="center"><span class="glyphicon glyphicon-unchecked"></span> offen, 
+    <span class="glyphicon glyphicon-share"></span> wartet auf Rückmeldung, 
+    <span class="glyphicon glyphicon-edit"></span> in Bearbeitung, 
+    <span class="glyphicon glyphicon-log-out"></span> ab, 
+    <span class="glyphicon glyphicon-log-in"></span> vor, 
+    <span class="glyphicon glyphicon-modal-window"></span> verwaist, 
+    <span class="glyphicon glyphicon-check"></span> erledigt, 
+    <span class="glyphicon glyphicon-remove-circle"></span> abgewiesen, 
+    <span class="glyphicon glyphicon-ban-circle"></span> obsolet
+</div>
     {% include "pagination-footer.html" %}
 </div>
 {% endblock %}
