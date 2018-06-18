@@ -1439,8 +1439,6 @@ def upload_document(protocol):
             protocol, document, filename)
         document.filename = internal_filename
         file.save(os.path.join(config.DOCUMENTS_PATH, internal_filename))
-        if datetime.now().date() >= protocol.date:
-            protocol.done = True
         db.session.commit()
     return back.redirect("show_protocol", protocol_id=protocol.id)
 
