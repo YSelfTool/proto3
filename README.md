@@ -19,6 +19,7 @@ System zur Verwaltung von Protokollen und Sitzungen.
 
 Required infrastructure:
 
+* python >= 3.5
 * some WSGI-capable webserver (nginx + uwsgi, …)
 * some database (postgres, …)
 * some LDAP server (Samba 4, slapd, …) for accounts and groups
