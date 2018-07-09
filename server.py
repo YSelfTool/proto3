@@ -823,7 +823,7 @@ def etherpull_protocol(protocol):
 def upload_source_to_known_protocol(protocol):
     form = KnownProtocolSourceUploadForm()
     if form.validate_on_submit():
-        if form.source.data is None:
+        if form.source.data is None or isinstance(form.source.data, str):
             flash("Es wurde keine Datei ausgewählt.", "alert-error")
         else:
             file = form.source.data
@@ -846,7 +846,7 @@ def upload_new_protocol():
     available_types = ProtocolType.get_modifiable_protocoltypes(user)
     form = NewProtocolSourceUploadForm(protocoltypes=available_types)
     if form.validate_on_submit():
-        if form.source.data is None:
+        if form.source.data is None or isinstance(form.source.data, str):
             flash("Es wurde keine Datei ausgewählt.", "alert-error")
             return redirect(request.args.get("fail")
                             or url_for("new_protocol"))
@@ -880,7 +880,7 @@ def upload_new_protocol_by_file():
     available_types = ProtocolType.get_modifiable_protocoltypes(user)
     form = NewProtocolFileUploadForm(protocoltypes=available_types)
     if form.validate_on_submit():
-        if form.file.data is None:
+        if form.file.data is None or isinstance(form.file.data, str):
             flash("Es wurde keine Datei ausgewählt.", "alert-error")
             return redirect(request.args.get("fail")
                             or url_for("new_protocol"))
