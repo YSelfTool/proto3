@@ -57,26 +57,26 @@ class ProtocolType(DatabaseModel):
     __tablename__ = "protocoltypes"
     __model_name__ = "protocoltype"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, unique=True)
-    short_name = db.Column(db.String, unique=True)
-    organization = db.Column(db.String)
+    name = db.Column(db.String(128), unique=True)
+    short_name = db.Column(db.String(128), unique=True)
+    organization = db.Column(db.Text)
     usual_time = db.Column(db.Time)
     is_public = db.Column(db.Boolean)
-    modify_group = db.Column(db.String)
-    private_group = db.Column(db.String)
-    public_group = db.Column(db.String)
-    publish_group = db.Column(db.String)
-    private_mail = db.Column(db.String)
-    public_mail = db.Column(db.String)
+    modify_group = db.Column(db.Text)
+    private_group = db.Column(db.Text)
+    public_group = db.Column(db.Text)
+    publish_group = db.Column(db.Text)
+    private_mail = db.Column(db.Text)
+    public_mail = db.Column(db.Text)
     non_reproducible_pad_links = db.Column(db.Boolean)
     use_wiki = db.Column(db.Boolean)
-    wiki_category = db.Column(db.String)
+    wiki_category = db.Column(db.Text)
     wiki_only_public = db.Column(db.Boolean)
-    printer = db.Column(db.String)
-    calendar = db.Column(db.String)
+    printer = db.Column(db.Text)
+    calendar = db.Column(db.Text)
     restrict_networks = db.Column(db.Boolean)
-    allowed_networks = db.Column(db.String)
-    latex_template = db.Column(db.String)
+    allowed_networks = db.Column(db.Text)
+    latex_template = db.Column(db.Text)
 
     protocols = relationship(
         "Protocol", backref=backref("protocoltype"),
@@ -187,17 +187,17 @@ class Protocol(DatabaseModel):
     __model_name__ = "protocol"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
-    source = db.Column(db.String)
-    content_public = db.Column(db.String)
-    content_private = db.Column(db.String)
-    content_html_public = db.Column(db.String)
-    content_html_private = db.Column(db.String)
+    source = db.Column(db.Text)
+    content_public = db.Column(db.Text)
+    content_private = db.Column(db.Text)
+    content_html_public = db.Column(db.Text)
+    content_html_private = db.Column(db.Text)
     date = db.Column(db.Date)
     start_time = db.Column(db.Time)
     end_time = db.Column(db.Time)
     done = db.Column(db.Boolean, nullable=False, default=False)
     public = db.Column(db.Boolean)
-    pad_identifier = db.Column(db.String)
+    pad_identifier = db.Column(db.Text)
 
     tops = relationship(
         "TOP", backref=backref("protocol"),
@@ -464,9 +464,9 @@ class DefaultTOP(DatabaseModel):
     __model_name__ = "defaulttop"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
-    name = db.Column(db.String)
+    name = db.Column(db.Text)
     number = db.Column(db.Integer)
-    description = db.Column(db.String)
+    description = db.Column(db.Text)
 
     localtops = relationship(
         "LocalTOP", backref=backref("defaulttop"),
@@ -495,10 +495,10 @@ class TOP(DatabaseModel):
     __model_name__ = "top"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
-    name = db.Column(db.String)
+    name = db.Column(db.Text)
     number = db.Column(db.Integer)
     planned = db.Column(db.Boolean)
-    description = db.Column(db.String)
+    description = db.Column(db.Text)
 
     likes = relationship("Like", secondary="liketopassociations")
 
@@ -512,7 +512,7 @@ class LocalTOP(DatabaseModel):
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
     defaulttop_id = db.Column(db.Integer, db.ForeignKey("defaulttops.id"))
-    description = db.Column(db.String)
+    description = db.Column(db.Text)
 
     def get_parent(self):
         return self.protocol
@@ -536,8 +536,8 @@ class Document(DatabaseModel):
     __model_name__ = "document"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
-    name = db.Column(db.String)
-    filename = db.Column(db.String)
+    name = db.Column(db.Text)
+    filename = db.Column(db.Text)
     is_compiled = db.Column(db.Boolean)
     is_private = db.Column(db.Boolean)
 
@@ -565,8 +565,8 @@ class DecisionDocument(DatabaseModel):
     __model_name__ = "decisiondocument"
     id = db.Column(db.Integer, primary_key=True)
     decision_id = db.Column(db.Integer, db.ForeignKey("decisions.id"))
-    name = db.Column(db.String)
-    filename = db.Column(db.String)
+    name = db.Column(db.Text)
+    filename = db.Column(db.Text)
 
     def get_parent(self):
         return self.decision
@@ -677,8 +677,8 @@ class Todo(DatabaseModel):
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
     number = db.Column(db.Integer)
-    who = db.Column(db.String)
-    description = db.Column(db.String)
+    who = db.Column(db.Text)
+    description = db.Column(db.Text)
     state = db.Column(db.Enum(TodoState), nullable=False)
     date = db.Column(db.Date, nullable=True)
 
@@ -781,7 +781,7 @@ class Decision(DatabaseModel):
     __model_name__ = "decision"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
-    content = db.Column(db.String)
+    content = db.Column(db.Text)
 
     document = relationship(
         "DecisionDocument", backref=backref("decision"),
@@ -803,7 +803,7 @@ class DecisionCategory(DatabaseModel):
     __model_name__ = "decisioncategory"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
-    name = db.Column(db.String)
+    name = db.Column(db.Text)
 
     def get_parent(self):
         return self.protocoltype
@@ -825,7 +825,7 @@ class MeetingReminder(DatabaseModel):
     days_before = db.Column(db.Integer)
     send_public = db.Column(db.Boolean)
     send_private = db.Column(db.Boolean)
-    additional_text = db.Column(db.String)
+    additional_text = db.Column(db.Text)
 
     def get_parent(self):
         return self.protocoltype
@@ -836,10 +836,10 @@ class Error(DatabaseModel):
     __model_name__ = "error"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
-    action = db.Column(db.String)
-    name = db.Column(db.String)
+    action = db.Column(db.Text)
+    name = db.Column(db.Text)
     datetime = db.Column(db.DateTime)
-    description = db.Column(db.String)
+    description = db.Column(db.Text)
 
     def get_parent(self):
         return self.protocol
@@ -857,8 +857,8 @@ class TodoMail(DatabaseModel):
     __tablename__ = "todomails"
     __model_name__ = "todomail"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, unique=True)
-    mail = db.Column(db.String)
+    name = db.Column(db.String(128), unique=True)
+    mail = db.Column(db.Text)
 
     def get_formatted_mail(self):
         return "{} <{}>".format(self.name, self.mail)
@@ -869,9 +869,9 @@ class OldTodo(DatabaseModel):
     __model_name__ = "oldtodo"
     id = db.Column(db.Integer, primary_key=True)
     old_id = db.Column(db.Integer)
-    who = db.Column(db.String)
-    description = db.Column(db.String)
-    protocol_key = db.Column(db.String)
+    who = db.Column(db.Text)
+    description = db.Column(db.Text)
+    protocol_key = db.Column(db.Text)
 
 
 class DefaultMeta(DatabaseModel):
@@ -879,9 +879,9 @@ class DefaultMeta(DatabaseModel):
     __model_name__ = "defaultmeta"
     id = db.Column(db.Integer, primary_key=True)
     protocoltype_id = db.Column(db.Integer, db.ForeignKey("protocoltypes.id"))
-    key = db.Column(db.String)
-    name = db.Column(db.String)
-    value = db.Column(db.String)
+    key = db.Column(db.Text)
+    name = db.Column(db.Text)
+    value = db.Column(db.Text)
     internal = db.Column(db.Boolean)
     prior = db.Column(db.Boolean, default=False, nullable=False)
 
@@ -894,8 +894,8 @@ class Meta(DatabaseModel):
     __model_name__ = "meta"
     id = db.Column(db.Integer, primary_key=True)
     protocol_id = db.Column(db.Integer, db.ForeignKey("protocols.id"))
-    name = db.Column(db.String)
-    value = db.Column(db.String)
+    name = db.Column(db.Text)
+    value = db.Column(db.Text)
     internal = db.Column(db.Boolean)
 
     def get_parent(self):
@@ -906,7 +906,7 @@ class Like(DatabaseModel):
     __tablename__ = "likes"
     __model_name__ = "like"
     id = db.Column(db.Integer, primary_key=True)
-    who = db.Column(db.String)
+    who = db.Column(db.Text)
 
 
 class LikeProtocolAssociation(DatabaseModel):
