@@ -1,4 +1,18 @@
-====== Beschlüsse ======
+====== <var>protocol.get_wiki_title()</var>
+  * <var>protocol.protocoltype.name</var>
+<env> if protocol.date is not none </env>
+  * <var>protocol.date|datify_long</var>
+<env> endif </env>
+<env> if protocol.start_time is not none and protocol.end_time is not none </env>
+  * von <var>protocol.start_time|timify</var> bis <var>protocol.end_time|timify</var>
+<env> endif </env>
+<env> for meta in protocol.metas </env>
+  <env> if not meta.internal or not protocol.protocoltype.wiki_only_public </env>
+  * <var>meta.name</var>: <var>meta.value</var>
+  </env>
+</env>
+
+===== Beschlüsse =====
 <env> if protocol.decisions|length > 0 </env>
     <env> for decision in protocol.decisions </env>
   * <var>decision.content</var>

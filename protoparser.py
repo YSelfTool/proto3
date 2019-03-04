@@ -465,7 +465,7 @@ class Fork(Element):
                 or render_type == RenderType.dokuwiki):
             equal_signs = level + 2
             if render_type == RenderType.dokuwiki:
-                equal_signs = 6 - level
+                equal_signs = 5 - level
             title_line = "{0} {1} {0}".format("=" * equal_signs, name_line)
             content_parts = []
             for child in self.children:
