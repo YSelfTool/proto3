@@ -9,8 +9,8 @@
 <env> for meta in protocol.metas </env>
   <env> if not meta.internal or not protocol.protocoltype.wiki_only_public </env>
   * <var>meta.name</var>: <var>meta.value</var>
-  </env>
-</env>
+  <env> endif </env>
+<env> endfor </env>
 
 ===== Beschlüsse =====
 <env> if protocol.decisions|length > 0 </env>
