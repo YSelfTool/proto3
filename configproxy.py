@@ -472,6 +472,11 @@ CONFIG_SECTIONS = [
                 required=False, internal=False,
                 description="Protocol used by this website. "
                             "Either 'http' or 'https'."),
+            ConfigEntry(
+                name="CDN_URL",
+                default=None,
+                required=False, internal=False,
+                description="URL to get bootstrap and jQuery from.")
         ],
         check=check_server_name,
         description="Where is the website hosted"),

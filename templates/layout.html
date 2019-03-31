@@ -5,7 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Protokollsystem" />
-    <link rel="stylesheet" href="{{url_for("static", filename="css/bootstrap.min.css")}}">
+    {% if config.CDN_URL is defined %}
+      <link rel="stylesheet" href="{{[config.CDN_URL, "bootstrap/css/bootstrap.min.css"]|join("/")}}">
+    {% else %}
+      <link rel="stylesheet" href="{{url_for("static", filename="css/bootstrap.min.css")}}">
+    {% endif %}
     <link rel="stylesheet" href="{{url_for("static", filename="css/style.css")}}" />
     {% block additional_js %}
     {% endblock %}
@@ -73,6 +77,11 @@ Diese Seite ist leer.
 {% endblock %}
 
 </div>
-<script src="{{url_for("static", filename="js/jquery.min.js")}}"></script>
-<script src="{{url_for("static", filename="js/bootstrap.min.js")}}"></script>
+{% if config.CDN_URL is defined %}
+  <script src="{{[config.CDN_URL, "jquery/jquery.min.js"]|join("/")}}"></script>
+  <script src="{{[config.CDN_URL, "bootstrap/js/bootstrap.min.js"]|join("/")}}"></script>
+{% else %}
+  <script src="{{url_for("static", filename="js/jquery.min.js")}}"></script>
+  <script src="{{url_for("static", filename="js/bootstrap.min.js")}}"></script>
+{% endif %}
 </body>
