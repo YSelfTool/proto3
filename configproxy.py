@@ -159,7 +159,7 @@ def check_security(SECRET_KEY, SECURITY_KEY, SESSION_PROTECTION):
     check_choice("SESSION_PROTECTION", SESSION_PROTECTION, ["strong"])
 
 
-def check_server_name(SERVER_NAME, PREFERRED_URL_SCHEME):
+def check_server_name(SERVER_NAME, PREFERRED_URL_SCHEME, CDN_URL):
     # todo: check ip address and server name
     check_choice(
         "PREFERRED_URL_SCHEME", PREFERRED_URL_SCHEME,

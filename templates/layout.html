@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Protokollsystem" />
-    {% if config.CDN_URL is defined %}
+    {% if config.CDN_URL is defined and config.CDN_URL is not none %}
       <link rel="stylesheet" href="{{[config.CDN_URL, "bootstrap/css/bootstrap.min.css"]|join("/")}}">
     {% else %}
       <link rel="stylesheet" href="{{url_for("static", filename="css/bootstrap.min.css")}}">
@@ -77,7 +77,7 @@ Diese Seite ist leer.
 {% endblock %}
 
 </div>
-{% if config.CDN_URL is defined %}
+{% if config.CDN_URL is defined and config.CDN_URL is not none %}
   <script src="{{[config.CDN_URL, "jquery/jquery.min.js"]|join("/")}}"></script>
   <script src="{{[config.CDN_URL, "bootstrap/js/bootstrap.min.js"]|join("/")}}"></script>
 {% else %}
