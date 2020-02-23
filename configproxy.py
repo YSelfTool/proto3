@@ -378,17 +378,12 @@ def check_printing(PRINTING_SERVER, PRINTING_USER, PRINTING_PRINTERS):
 
 def check_etherpad(ETHERPAD_URL, EMPTY_ETHERPAD):
     import requests
-    key = "Server"
     try:
         answer = requests.get(ETHERPAD_URL)
         if answer.status_code != 200:
             raise ValueError(
                 "The etherpad does not return 200 OK at {}".format(
                     ETHERPAD_URL))
-        headers = answer.headers
-        if key not in headers or "Etherpad" not in headers[key]:
-            raise ValueError("{} does not look like an etherpad!".format(
-                ETHERPAD_URL))
     except requests.exceptions.ConnectionError as error:
         raise ValueError("Cannot connect to the etherpad at {}: {}".format(
             ETHERPAD_URL, error))
