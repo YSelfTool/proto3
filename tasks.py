@@ -5,6 +5,7 @@ import subprocess
 import shutil
 import tempfile
 from datetime import datetime
+import time
 import traceback
 from copy import copy
 import xmlrpc.client
@@ -952,7 +953,9 @@ def push_tops_to_calendar_async(protocol_id):
 
 
 def set_etherpad_content(protocol):
-    set_etherpad_content_async.delay(protocol.id)
+    # wait for the users browser to open the etherpad
+    # and for etherpad to create it, otherwise the import will fail
+    set_etherpad_content_async.apply_async((protocol.id,), countdown=10)
 
 
 @celery.task
