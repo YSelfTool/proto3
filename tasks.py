@@ -955,7 +955,7 @@ def push_tops_to_calendar_async(protocol_id):
 def set_etherpad_content(protocol):
     # wait for the users browser to open the etherpad
     # and for etherpad to create it, otherwise the import will fail
-    set_etherpad_content_async.apply_async((protocol.id,), countdown=10)
+    set_etherpad_content_async.apply_async((protocol.id,), countdown=15)
 
 
 @celery.task
