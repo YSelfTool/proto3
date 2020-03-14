@@ -153,10 +153,11 @@ def set_etherpad_text(pad, text, only_if_default=True):
     if only_if_default:
         current_text = get_etherpad_text(pad).strip()
         if (current_text != config.EMPTY_ETHERPAD.strip()
+                and "<pre>Cannot GET /p" not in current_text
                 and len(current_text) > 0):
             return False
     file_like = BytesIO(text.encode("utf-8"))
-    files = {"file": file_like}
+    files = {"file": ("content.txt", file_like, "text/plain")}
     url = get_etherpad_import_url(pad)
     req = requests.post(url, files=files)
     return req.status_code == 200
