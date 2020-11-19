@@ -376,7 +376,7 @@ def check_printing(PRINTING_SERVER, PRINTING_USER, PRINTING_PRINTERS):
                         printer, value, name, available_options[name]))
 
 
-def check_etherpad(ETHERPAD_URL, EMPTY_ETHERPAD):
+def check_etherpad(ETHERPAD_URL, ETHERPAD_APIKEY, EMPTY_ETHERPAD):
     import requests
     try:
         answer = requests.get(ETHERPAD_URL)
@@ -822,6 +822,11 @@ CONFIG_SECTIONS = [
                 description=(
                     "URL of the etherpad installation. "
                     "Do not include the '/p'!")),
+            ConfigEntry(
+                name="ETHERPAD_APIKEY",
+                default="abc123",
+                required=True, internal=True, no_sane_default=True,
+                description="Key to access the etherpad API"),
             ConfigEntry(
                 name="EMPTY_ETHERPAD",
                 default="\n".join([

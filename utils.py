@@ -16,6 +16,8 @@ from uuid import uuid4
 import subprocess
 import contextlib
 
+from etherpad_lite import EtherpadLiteClient as EtherpadClient
+
 from shared import config
 
 
@@ -136,31 +138,29 @@ def get_etherpad_url(pad):
     return "{}/p/{}".format(config.ETHERPAD_URL, normalize_pad(pad))
 
 
-def get_etherpad_export_url(pad):
-    return "{}/p/{}/export/txt".format(config.ETHERPAD_URL, normalize_pad(pad))
+def get_etherpad_api_url():
+    return "{}/api".format(config.ETHERPAD_URL)
 
-
-def get_etherpad_import_url(pad):
-    return "{}/p/{}/import".format(config.ETHERPAD_URL, normalize_pad(pad))
+def get_etherpad_api_client():
+    return EtherpadClient(base_url=get_etherpad_api_url(), api_version="1.2.14", base_params=dict(apikey=config.ETHERPAD_APIKEY))
 
 
 def get_etherpad_text(pad):
-    req = requests.get(get_etherpad_export_url(pad))
-    return req.text
+    client = get_etherpad_api_client()
+    return client.getText(padID=pad)["text"]
 
 
 def set_etherpad_text(pad, text, only_if_default=True):
+    client = get_etherpad_api_client()
     if only_if_default:
         current_text = get_etherpad_text(pad).strip()
         if (current_text != config.EMPTY_ETHERPAD.strip()
                 and "<pre>Cannot GET /p" not in current_text
                 and len(current_text) > 0):
             return False
-    file_like = BytesIO(text.encode("utf-8"))
-    files = {"file": ("content.txt", file_like, "text/plain")}
-    url = get_etherpad_import_url(pad)
-    req = requests.post(url, files=files)
-    return req.status_code == 200
+    client = get_etherpad_api_client()
+    client.setText(padID=pad, text=text)
+    return True
 
 
 def split_terms(text, quote_chars="\"'", separators=" \t\n"):
