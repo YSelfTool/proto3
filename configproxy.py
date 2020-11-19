@@ -131,6 +131,8 @@ def check_choice(option, value, choices):
 def check_database(
         SQLALCHEMY_DATABASE_URI,
         SQLALCHEMY_TRACK_MODIFICATIONS):
+    # remove once sqlalchemy.database_exists works as intended
+    return True
     from sqlalchemy_utils import database_exists
     from sqlalchemy import exc
     try:
