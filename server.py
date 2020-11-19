@@ -739,8 +739,8 @@ def new_protocol():
         return back.redirect("show_protocol", protocol_id=protocol.id)
     type_id = request.args.get("protocoltype_id")
     if type_id is not None:
-        form.protocoltype.data = type_id
-        upload_form.protocoltype.data = type_id
+        form.protocoltype_id.data = type_id
+        upload_form.protocoltype_id.data = type_id
     return render_template(
         "protocol-new.html", form=form,
         upload_form=upload_form, file_upload_form=file_upload_form,
