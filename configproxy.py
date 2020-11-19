@@ -159,6 +159,9 @@ def check_security(SECRET_KEY, SECURITY_KEY, SESSION_PROTECTION):
             "least {}!".format(
                 MIN_KEY_LENGTH))
     check_choice("SESSION_PROTECTION", SESSION_PROTECTION, ["strong"])
+    check_choice("SESSION_COOKIE_SECURE", SESSION_COOKIE_SECURE, [True, False])
+    check_choice("SESSION_COOKIE_HTTPONLY", SESSION_COOKIE_HTTPONLY, [True, False])
+    check_choice("SESSION_COOKIE_SAMESITE", SESSION_COOKIE_HTTPONLY, ["Lax", "Strict"])
 
 
 def check_server_name(SERVER_NAME, PREFERRED_URL_SCHEME, CDN_URL):
@@ -452,6 +455,21 @@ CONFIG_SECTIONS = [
                 default="strong",
                 required=False, internal=True, immutable=True,
                 description="Flask setting for sessions. Do not change."),
+            ConfigEntry(
+                name="SESSION_COOKIE_SECURE",
+                default=True,
+                required=False, internal=True, immutable=True,
+                description="Flask setting for cookies. Do not change."),
+            ConfigEntry(
+                name="SESSION_COOKIE_HTTPONLY",
+                default=True,
+                required=False, internal=True, immutable=True,
+                description="Flask setting for cookies. Do not change."),
+            ConfigEntry(
+                name="SESSION_COOKIE_SAMESITE",
+                default="Strict",
+                required=False, internal=True, immutable=True,
+                description="Flask setting for cookies. Do not change."),
         ],
         check=check_security,
         description="Secret keys and random strings"),
