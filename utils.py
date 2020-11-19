@@ -139,7 +139,11 @@ def get_etherpad_url(pad):
 
 
 def get_etherpad_api_url():
-    return "{}/api".format(config.ETHERPAD_URL)
+    try:
+        return config.ETHERPAD_API_URL
+    except AttributeError:
+        return "{}/api".format(config.ETHERPAD_URL)
+
 
 def get_etherpad_api_client():
     return EtherpadClient(base_url=get_etherpad_api_url(), api_version="1.2.14", base_params=dict(apikey=config.ETHERPAD_APIKEY))
