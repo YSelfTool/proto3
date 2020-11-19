@@ -20,7 +20,7 @@ dnspython==1.16.0
 enum-compat==0.0.3
 etherpad-lite==0.5
 eventlet==0.25.1
-feedgen==0.8.0
+feedgen==0.9.0
 Flask==1.1.1
 Flask-Migrate==2.5.2
 Flask-SQLAlchemy==2.4.1
