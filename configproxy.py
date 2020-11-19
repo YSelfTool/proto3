@@ -147,7 +147,7 @@ def check_database(
             "database: {}".format(SQLALCHEMY_DATABASE_URI, error))
 
 
-def check_security(SECRET_KEY, SECURITY_KEY, SESSION_PROTECTION):
+def check_security(SECRET_KEY, SECURITY_KEY, SESSION_PROTECTION, SESSION_COOKIE_SECURE, SESSION_COOKIE_HTTPONLY, SESSION_COOKIE_SAMESITE):
     MIN_KEY_LENGTH = 20
     if len(SECRET_KEY) < MIN_KEY_LENGTH:
         raise ValueError(
