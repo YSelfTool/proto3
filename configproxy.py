@@ -862,7 +862,7 @@ CONFIG_SECTIONS = [
                     "everyone viewing this page sees the same text. This "
                     "allows you to collaborate seamlessly on documents!",
                     "",
-                    "Get involved with Etherpad at http://etherpad.org",
+                    "Get involved with Etherpad at https://etherpad.org",
                     ""
                 ]),
                 required=False, internal=False,
