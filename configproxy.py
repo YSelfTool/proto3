@@ -158,13 +158,13 @@ def check_security(SECRET_KEY, SECURITY_KEY, SESSION_PROTECTION, SESSION_COOKIE_
             "Insufficient length of SECURITY_KEY, should be at "
             "least {}!".format(
                 MIN_KEY_LENGTH))
-    check_choice("SESSION_PROTECTION", SESSION_PROTECTION, ["strong"])
+    check_choice("SESSION_PROTECTION", SESSION_PROTECTION, ["strong", "none"])
     check_choice("SESSION_COOKIE_SECURE", SESSION_COOKIE_SECURE, [True, False])
     check_choice("SESSION_COOKIE_HTTPONLY", SESSION_COOKIE_HTTPONLY, [True, False])
     check_choice("SESSION_COOKIE_SAMESITE", SESSION_COOKIE_SAMESITE, ["Lax", "Strict"])
 
 
-def check_server_name(SERVER_NAME, PREFERRED_URL_SCHEME, CDN_URL):
+def check_server_name(SERVER_NAME, PREFERRED_URL_SCHEME, CDN_URL, PERMITTED_METADATA_DOMAINS):
     # todo: check ip address and server name
     check_choice(
         "PREFERRED_URL_SCHEME", PREFERRED_URL_SCHEME,
@@ -491,7 +491,12 @@ CONFIG_SECTIONS = [
                 name="CDN_URL",
                 default=None,
                 required=False, internal=False,
-                description="URL to get bootstrap and jQuery from.")
+                description="URL to get bootstrap and jQuery from."),
+            ConfigEntry(
+                name="PERMITTED_METADATA_DOMAINS",
+                default=[],
+                required=False, internal=False,
+                description="Domains allowed to be linked to in protocol metadata (e.g. location)."),
         ],
         check=check_server_name,
         description="Where is the website hosted"),

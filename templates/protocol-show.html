@@ -79,7 +79,7 @@
                 {% if has_public_view_right %}
                     {% for meta in protocol.metas %}
                         {% if not meta.internal or has_private_view_right %}
-                            <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
+                            <p><strong>{{meta.name}}:</strong> {% if meta.is_url() %}<a href="{{meta.value}}">{{meta.value}}</a>{% else %}{{meta.value}}{% endif %}</p>
                         {% endif %}
                     {% endfor %}
                 {% endif %}
@@ -88,7 +88,7 @@
                     <p><strong>Geplant:</strong> {{protocol.date|datify_long}}, {{protocol.get_time()|timify}}</p>
                 {% endif %}
                 {% for meta in protocol.metas %}
-                    <p><strong>{{meta.name}}:</strong> {{meta.value}}</p>
+                    <p><strong>{{meta.name}}:</strong> {% if meta.is_url() %}<a href="{{meta.value}}">{{meta.value}}</a>{% else %}{{meta.value}}{% endif %}</p>
                 {% endfor %}
             {% endif %}
 

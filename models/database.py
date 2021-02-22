@@ -4,6 +4,7 @@ from datetime import datetime
 from io import BytesIO
 from enum import Enum
 from uuid import uuid4
+from urllib.parse import urlparse
 
 from shared import (
     db, date_filter_short, escape_tex, DATE_KEY, START_TIME_KEY, END_TIME_KEY,
@@ -900,6 +901,18 @@ class Meta(DatabaseModel):
 
     def get_parent(self):
         return self.protocol
+
+    def is_url(self):
+        print(self.value)
+        url = urlparse(self.value)
+        if not url.scheme == "https":
+            print(self.value, 1)
+            return False
+        if not url.netloc or url.netloc not in config.PERMITTED_METADATA_DOMAINS:
+            print(self.value, 2)
+            return False
+        print(self.value, 3)
+        return True
 
 
 class Like(DatabaseModel):
