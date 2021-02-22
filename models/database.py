@@ -903,15 +903,11 @@ class Meta(DatabaseModel):
         return self.protocol
 
     def is_url(self):
-        print(self.value)
         url = urlparse(self.value)
         if not url.scheme == "https":
-            print(self.value, 1)
             return False
         if not url.netloc or url.netloc not in config.PERMITTED_METADATA_DOMAINS:
-            print(self.value, 2)
             return False
-        print(self.value, 3)
         return True
 
 
