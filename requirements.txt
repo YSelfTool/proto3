@@ -35,7 +35,7 @@ greenlet==0.4.17
 icalendar==4.0.7
 idna==2.10
 itsdangerous==1.1.0
-Jinja2==2.11.2
+Jinja2==2.11.3
 kombu==5.0.2
 ldap3==2.8.1
 lxml==4.6.1
