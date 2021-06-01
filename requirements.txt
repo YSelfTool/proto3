@@ -77,7 +77,7 @@ SQLAlchemy-Utils==0.36.8
 stevedore==3.2.2
 typing==3.7.4.3
 tzlocal==2.1
-urllib3==1.26.2
+urllib3==1.26.5
 uwsgidecorators==1.1.0
 vine==5.0.0
 vobject==0.9.6.1
