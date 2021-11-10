@@ -103,8 +103,11 @@
                             {% for decision in protocol.decisions %}
                                 <li>
                                     {{decision.content}}
-                                    {% if config.PRINTING_ACTIVE and has_private_view_right and decision.document is not none %}
-                                        <a href="{{url_for("print_decision", decisiondocument_id=decision.document.id, csrf_token=get_csrf_token())}}">Drucken</a>
+                                    {% if has_private_view_right and decision.document is not none %}
+                                        {% if config.PRINTING_ACTIVE %}
+                                            <a href="{{url_for("print_decision", decisiondocument_id=decision.document.id, csrf_token=get_csrf_token())}}">Drucken</a>
+                                        {% endif %}
+                                        <a href="{{url_for("download_decision", decisiondocument_id=decision.document.id, csrf_token=get_csrf_token())}}">Download</a>
                                     {% endif %}
                                     {{render_likes(decision.likes, decision_id=decision.id)}}</h2>
                                 </li>

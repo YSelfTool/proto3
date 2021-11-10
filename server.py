@@ -1506,6 +1506,17 @@ def print_decision(decisiondocument):
         "show_protocol", protocol_id=decisiondocument.decision.protocol.id)
 
 
+@app.route("/decision/download/<int:decisiondocument_id>")
+@login_required
+@protect_csrf
+@db_lookup(DecisionDocument)
+@require_private_view_right()
+def download_decision(decisiondocument):
+    return send_file(
+        decisiondocument.as_file_like(), cache_timeout=1,
+        as_attachment=True, attachment_filename=decisiondocument.name)
+
+
 @app.route("/errors/list")
 @back.anchor
 @login_required
