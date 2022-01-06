@@ -9,7 +9,7 @@ blessings==1.7
 blinker==1.4
 bpython==0.21
 caldav==0.8.0
-celery==5.1.2
+celery==5.2.2
 certifi==2021.5.30
 chardet==4.0.0
 charset-normalizer==2.0.3
