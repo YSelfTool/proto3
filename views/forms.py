@@ -61,7 +61,7 @@ def get_calendar_choices(protocoltype=None):
 
 def get_printer_choices():
     choices = []
-    if config.PRINTING_PRINTERS is not None:
+    if config.PRINTING_ACTIVE and config.PRINTING_PRINTERS is not None:
         choices = list(zip(config.PRINTING_PRINTERS, config.PRINTING_PRINTERS))
     choices.insert(0, ("", "Nicht drucken"))
     return choices
