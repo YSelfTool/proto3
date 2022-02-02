@@ -486,7 +486,7 @@ def parse_protocol_async_inner(protocol):
                         "'{}' ist keine valide Uhrzeit.".format(
                             protocol_tag.values[1]))
     for protocol_tag in protocol_tags:
-        new_protocol_date = parse_datetime_from_string(protocol_tag.values[0])
+        new_protocol_date = parse_datetime_from_string(protocol_tag.values[0]).date()
         new_protocol_time = None
         if len(protocol_tag.values) > 1:
             new_protocol_time = datetime.strptime(
