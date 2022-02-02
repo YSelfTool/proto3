@@ -182,7 +182,7 @@ def parse_protocol_async_inner(protocol):
     db.session.commit()
     if protocol.source is None or len(protocol.source.strip()) == 0:
         return _make_error(protocol, "Parsing", "Protocol source is empty", "")
-    if protocol.source == config.EMPTY_ETHERPAD:
+    if config.ETHERPAD_ACTIVE and protocol.source == config.EMPTY_ETHERPAD:
         return _make_error(
             protocol, "Parsing", "The etherpad is unmodified and does not "
             "contain a protocol.", protocol.source)
