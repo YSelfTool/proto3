@@ -185,13 +185,6 @@ def check_config():
     return configproxy.check_config()
 
 
-@app.cli.command()
-@click.argument("filename")
-def create_example_config(filename):
-    import configproxy
-    return configproxy.write_example_config(filename=filename)
-
-
 def send_file(file_like, cache_timeout, as_attachment, attachment_filename):
     """
     Replaces flask.send_file since that uses an uwsgi function that is buggy.
