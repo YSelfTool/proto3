@@ -39,7 +39,7 @@ Steps:
 1. clone the [repository](https://git.fsmpi.rwth-aachen.de/protokollsystem/proto3)
 2. create a python virtualenv and install the packages from `requirements.txt` there
 3. create a database (tested with postgres and sqlite, but feel free to use whatever you like and [SQLAlchemy](http://docs.sqlalchemy.org/en/latest/dialects/index.html) supports
-4. create `config.py` with `flask create_example_config config.py` and edit it
+4. create `config.py` with `python configproxy.py create --filename config.py` and edit it (make sure that python version >= 3.5)
   * **do** change everything that is not commented out
   * change commented out settings if they are wrong
   * **do** change the random keys `SECRET_KEY` and `SECURITY_KEY` to something random (although the generated config already uses random values generated with `os.urandom`)
