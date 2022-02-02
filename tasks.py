@@ -155,19 +155,24 @@ def _make_error(protocol, *args):
 ID_FIELD_BEGINNING = "id "
 
 
-def parse_protocol(protocol):
-    parse_protocol_async.delay(protocol.id)
+def parse_protocol(protocol, ignore_old_date=False):
+    parse_protocol_async.delay(protocol.id, ignore_old_date)
 
 
 @celery.task
-def parse_protocol_async(protocol_id):
+def parse_protocol_async(protocol_id, ignore_old_date=False):
     with app.app_context():
         with app.test_request_context("/"):
             try:
                 protocol = Protocol.first_by_id(protocol_id)
                 if protocol is None:
                     raise Exception("No protocol given. Aborting parsing.")
-                parse_protocol_async_inner(protocol)
+                parse_protocol_async_inner(protocol, ignore_old_date)
+                if protocol.date is None :
+                    initialdate = datetime.now().date()
+                    protocol.date = initialdate
+                    db.session.commit()
+                    _make_error(protocol, "Parsing", "No date for the protocol found, use current date instead.", initialdate)
             except Exception as exc:
                 stacktrace = traceback.format_exc()
                 return _make_error(
@@ -175,7 +180,7 @@ def parse_protocol_async(protocol_id):
                     "{}\n\n{}".format(str(exc), stacktrace))
 
 
-def parse_protocol_async_inner(protocol):
+def parse_protocol_async_inner(protocol, ignore_old_date=False):
     old_errors = list(protocol.errors)
     for error in old_errors:
         protocol.errors.remove(error)
@@ -220,7 +225,7 @@ def parse_protocol_async_inner(protocol):
                 protocol, "Parsing", "Du hast vergessen, Metadaten anzugeben.",
                 ", ".join(missing_fields))
     try:
-        protocol.fill_from_remarks(remarks)
+        protocol.fill_from_remarks(remarks, ignore_old_date)
     except ValueError:
         return _make_error(
             protocol, "Parsing", "Invalid fields",
