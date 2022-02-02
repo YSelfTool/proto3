@@ -855,13 +855,13 @@ def upload_new_protocol():
             flash("Invalider Protokolltyp oder keine Rechte.", "alert-error")
             return redirect(request.args.get("fail")
                             or url_for("new_protocol"))
-        protocol = Protocol(protocoltype_id=protocoltype.id, source=source)
+        protocol = Protocol(protocoltype_id=protocoltype.id, source=source, date=datetime.now().date())
         db.session.add(protocol)
         db.session.commit()
         for local_top in protocol.create_localtops():
             db.session.add(local_top)
         db.session.commit()
-        tasks.parse_protocol(protocol)
+        tasks.parse_protocol(protocol, ignore_old_date=True)
         return back.redirect("show_protocol", protocol_id=protocol.id)
     return redirect(request.args.get("fail") or url_for("new_protocol"))
 
@@ -904,7 +904,7 @@ def upload_new_protocol_by_file():
         db.session.add(document)
         db.session.commit()
         internal_filename = get_internal_filename(
-            protocol, document.id, filename)
+            protocol, document, filename)
         document.filename = internal_filename
         file.save(os.path.join(config.DOCUMENTS_PATH, internal_filename))
         db.session.commit()

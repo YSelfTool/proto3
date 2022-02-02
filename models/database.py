@@ -236,7 +236,7 @@ class Protocol(DatabaseModel):
                 description=default_top.description or ""))
         return local_tops
 
-    def fill_from_remarks(self, remarks):
+    def fill_from_remarks(self, remarks, ignore_old_date=False):
         def _date_or_lazy(key, get_date=False, get_time=False):
             formats = []
             if get_date:
@@ -258,7 +258,7 @@ class Protocol(DatabaseModel):
                 raise exc
         if DATE_KEY in remarks:
             new_date = _date_or_lazy(DATE_KEY, get_date=True)
-            if self.date is not None:
+            if self.date is not None and not ignore_old_date:
                 if new_date != self.date:
                     raise DateNotMatchingException(
                         original_date=self.date, protocol_date=new_date)
