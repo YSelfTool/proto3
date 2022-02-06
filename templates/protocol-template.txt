@@ -1,5 +1,5 @@
 #Datum;{{protocol.date|datify_short}}
-#Beginn;{{protocol.protocoltype.usual_time|timify_short}}
+#Beginn;{{protocol.get_time()|timify_short}}
 #Ende;
 {% for meta in protocol.metas %}
 #{{meta.name}};{{meta.value}}
