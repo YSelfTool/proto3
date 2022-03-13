@@ -1524,6 +1524,26 @@ def list_errors():
         "errors-list.html", erros=errors, errors_table=errors_table)
 
 
+@app.route("/errors/delete")
+@login_required
+@protect_csrf
+@require_modify_right()
+def delete_errors():
+    user = current_user()
+    errors = [
+        error for error in Error.query.all()
+        if error.protocol.protocoltype.has_private_view_right(user)
+    ]
+    if errors:
+        for error in errors:
+            db.session.delete(error)
+        db.session.commit()
+        flash("Alle verfügbaren Fehler gelöscht.", "alert-success")
+    else :
+        flash("Keine Fehler zum Löschen gefunden.")
+    return back.redirect("list_errors")
+
+
 @app.route("/error/show/<int:error_id>")
 @back.anchor
 @login_required
