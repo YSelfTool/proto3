@@ -397,8 +397,9 @@ class Remark(Element):
 
 
 class Fork(Element):
-    def __init__(self, is_top, name, parent, linenumber, children=None):
+    def __init__(self, is_top, name, parent, linenumber, children=None, is_extra=False):
         self.is_top = is_top
+        self.is_extra = is_extra
         self.name = name.strip() if name else None
         self.parent = parent
         self.linenumber = linenumber
@@ -428,6 +429,9 @@ class Fork(Element):
         if level == 0 and self.name == "Todos" and not show_private:
             return ""
         if render_type == RenderType.latex:
+            if self.is_extra:
+                return r"\textit{[Dieser Tagesordnungspunkt wird in einem eigenem PDF exportiert.]}"
+
             begin_line = r"\begin{itemize}"
             end_line = r"\end{itemize}"
             content_parts = []
@@ -592,11 +596,17 @@ class Fork(Element):
         linenumber = Element.parse_inner(match, current, linenumber)
         topname = match.group("topname")
         name = match.group("name")
+        extra = match.group("extra")
+
         is_top = False
+        is_extra = False
         if topname is not None:
             is_top = True
             name = topname
-        element = Fork(is_top, name, current, linenumber)
+            if extra is not None:
+                is_extra = True
+
+        element = Fork(is_top, name, current, linenumber, is_extra=is_extra)
         current = Element.parse_outer(element, current)
         return current, linenumber
 
@@ -613,7 +623,7 @@ class Fork(Element):
         self.children.append(element)
 
     PATTERN = (
-        r"\s*(?<name>(?:[^{};\n])+)?\n?\s*{(?:TOP\h*(?<topname>[^;{}\n]+))?")
+        r"\s*(?<name>(?:[^{};\n])+)?\n?\s*{(?:(?<extra>!)?TOP\h*(?<topname>[^;{}\n]+))?")
     END_PATTERN = r"\s*};?"
 
 
