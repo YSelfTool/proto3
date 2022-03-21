@@ -540,6 +540,7 @@ class Document(DatabaseModel):
     name = db.Column(db.Text)
     filename = db.Column(db.Text)
     is_compiled = db.Column(db.Boolean)
+    is_extra = db.Column(db.Boolean)
     is_private = db.Column(db.Boolean)
 
     def get_parent(self):

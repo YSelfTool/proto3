@@ -1,0 +1,113 @@
+% Template created by Karol Kozioł (www.karol-koziol.net) for ShareLaTeX
+% Template adapted by Nils Beyer
+
+\documentclass[a4paper,ngerman,twocolumn,9pt]{extarticle}
+\usepackage[utf8]{inputenc}
+
+\usepackage{ifthen}
+\newboolean{intern}
+\newcommand{\intern}[2]{\ifthenelse{\boolean{intern}}{#1}{#2} }
+
+\usepackage[T1]{fontenc}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{pgf,tikz}
+\usepackage{mathrsfs}
+
+\usepackage{csquotes}
+\usepackage{tcolorbox}
+\tcbuselibrary{listings,breakable}
+\usepackage{draftwatermark}
+\SetWatermarkText{}
+\SetWatermarkScale{1}
+
+\usetikzlibrary{shapes, calc, shapes, arrows, babel}
+
+\usepackage{amsmath,amssymb,textcomp}
+\everymath{\displaystyle}
+
+\usepackage{times}
+\renewcommand\familydefault{\sfdefault}
+\usepackage{tgheros}
+
+\usepackage{multicol}
+\setlength{\columnseprule}{0.5pt}
+\setlength{\columnsep}{20.0pt}
+
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage{eurosym}
+
+\usepackage{hyperref}
+
+\usepackage{geometry}
+\geometry{
+	a4paper,
+	total={210mm,297mm},
+	left=10mm,right=10mm,top=10mm,bottom=15mm}
+
+\linespread{1.2}
+
+
+% custom section titles
+\usepackage[explicit]{titlesec}
+\newcommand*\sectionlabel{}
+\titleformat{\section}
+%  {\gdef\sectionlabel{}\normalfont\sffamily\Large\bfseries\scshape}
+{\gdef\sectionlabel{}\normalfont\sffamily\bfseries}
+{\gdef\sectionlabel{\thesection }}{0pt}
+{
+	\noindent
+	\begin{tikzpicture}
+		\node[rectangle,rounded corners=1pt,inner sep=4pt,fill=red!45!black,text width=0.95\columnwidth] {\color{white}\sectionlabel #1};
+	\end{tikzpicture}
+}
+\titlespacing*{\section}{0pt}{10pt}{0pt}
+
+% Numbering style
+\renewcommand*{\thesection}{\Roman{section}~: }
+
+
+% custom footer
+\usepackage{fancyhdr}
+\makeatletter
+\pagestyle{fancy}
+\fancyhead{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\makeatother
+
+% href boxes
+\hypersetup{
+	colorlinks,
+	linkcolor={red!50!black},
+	citecolor={blue!50!black},
+	urlcolor={blue!80!black}
+}
+
+% Line numbers on sides
+\usepackage[switch,columnwise]{lineno}
+
+
+\setlength{\parindent}{0em}
+\usepackage{enumitem}
+\setlist{nosep}
+
+\newcommand{\Beschluss}[2][]{\textbf{Beschluss:} #2 \def\temp{#1}\ifx\temp\empty\else\textit{(#1)}\fi}
+
+
+\ENV{if show_private}\setboolean{intern}{true}\ENV{endif}
+\intern{\SetWatermarkText{INTERN} \SetWatermarkScale{1}}{}
+\begin{document}
+    \small
+    \begin{center}
+        \VAR{top.name|escape_tex} zur \textsc{\VAR{protocol.protocoltype.name|escape_tex}} am \VAR{protocol.date|datify_long|escape_tex}
+    \end{center}
+
+    \ENV{if top|class == "Fork"}
+        \VAR{top.render(render_type=render_type, level=0, show_private=show_private, protocol=protocol)}
+    \ENV{endif}
+
+    \runningpagewiselinenumbers \linenumbers
+\end{document}

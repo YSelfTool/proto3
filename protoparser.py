@@ -38,6 +38,7 @@ class RenderType(Enum):
     plaintext = 2
     html = 3
     dokuwiki = 4
+    extra = 5
 
 
 def _not_implemented(self, render_type):
@@ -187,7 +188,7 @@ class Text:
         self.fork = fork
 
     def render(self, render_type, show_private, level=None, protocol=None):
-        if render_type == RenderType.latex:
+        if render_type == RenderType.latex or render_type == RenderType.extra:
             return escape_tex(self.text)
         elif render_type == RenderType.wikitext:
             return self.text
@@ -239,6 +240,22 @@ class Tag:
                         escape_tex(self.decision.content))
                 else:
                     return r"\Beschluss{{{}}}".format(self.decision.content)
+            elif self.name == "footnote":
+                return r"\footnote{{{}}}".format(self.values[0])
+            return r"\textbf{{{}:}} {}".format(
+                escape_tex(self.name.capitalize()),
+                escape_tex(";".join(self.values)))
+        elif render_type == RenderType.extra:
+            if self.name == "url":
+                return r"\url{{{}}}".format(self.values[0])
+            elif self.name == "todo":
+                return ""
+            elif self.name == "beschluss":
+                return (
+                            r"\begin{tcolorbox}[breakable,title=Beschluss, colframe=red!45!yellow, colback=yellow!10, coltitle=white,]" + "\n"
+                            + r"\begin{itemize}"
+                            + r"\item[] " + self.values[0] + "\n"
+                            + r"\end{itemize} \end{tcolorbox}")
             elif self.name == "footnote":
                 return r"\footnote{{{}}}".format(self.values[0])
             return r"\textbf{{{}:}} {}".format(
@@ -357,7 +374,7 @@ class Remark(Element):
         self.linenumber = linenumber
 
     def render(self, render_type, show_private, level=None, protocol=None):
-        if render_type == RenderType.latex:
+        if render_type == RenderType.latex or render_type == RenderType.extra:
             return r"\textbf{{{}}}: {}".format(self.name, self.value)
         elif render_type == RenderType.wikitext:
             return "{}: {}".format(self.name, self.value)
@@ -428,27 +445,39 @@ class Fork(Element):
         name_line = self.name if self.name is not None else ""
         if level == 0 and self.name == "Todos" and not show_private:
             return ""
-        if render_type == RenderType.latex:
-            if self.is_extra:
+        if render_type == RenderType.latex or render_type == RenderType.extra:
+            if render_type == RenderType.latex and self.is_extra:
                 return r"\textit{[Dieser Tagesordnungspunkt wird in einem eigenem PDF exportiert.]}"
 
             begin_line = r"\begin{itemize}"
             end_line = r"\end{itemize}"
             content_parts = []
+            parts = []
             for child in self.children:
                 part = child.render(
                     render_type, show_private, level=level + 1,
                     protocol=protocol)
+                parts.append(part)
                 if len(part.strip()) == 0:
                     continue
-                if not part.startswith(r"\item"):
-                    part = r"\item {}".format(part)
+                if render_type == RenderType.latex:
+                    if not part.startswith(r"\item"):
+                        part = r"\item {}".format(part)
+                elif render_type == RenderType.extra:
+                    if not part.startswith(r"\item") and not part.startswith(r"\footnote") and not part.startswith(
+                            r"\begin{tcolorbox}"):
+                        part = r"\item {}".format(part)
+                    elif part.startswith(r"\begin{tcolorbox}"):
+                        part = r"\item[] {}".format(part)
                 content_parts.append(part)
             content_lines = "\n".join(content_parts)
             if len(content_lines.strip()) == 0:
                 content_lines = "\\item Nichts\n"
             if level == 0:
-                return "\n".join([begin_line, content_lines, end_line])
+                if render_type == RenderType.latex:
+                    return "\n".join([begin_line, content_lines, end_line])
+                elif render_type == RenderType.extra:
+                    return "\n".join(parts)
             elif self.test_private(self.name):
                 if show_private:
                     return (r"\begin{tcolorbox}[breakable,title=Interner "
@@ -460,6 +489,12 @@ class Fork(Element):
                 else:
                     return (r"\textit{[An dieser Stelle wurde intern "
                             r"protokolliert.]}")
+            elif render_type == RenderType.extra and level == 1:
+                name_escape = escape_tex(name_line)
+                return "\n".join([
+                    f"\section{{{name_escape}}}", begin_line,
+                    content_lines, end_line
+                ])
             else:
                 return "\n".join([
                     escape_tex(name_line), begin_line,
