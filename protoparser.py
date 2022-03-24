@@ -52,7 +52,7 @@ class Element:
     Generic (abstract) base element. Should never really exist.
     Template for what an element class should contain.
     """
-    def render(self, render_type, show_private, level=None, protocol=None):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False):
         """
         Renders the element to TeX.
         Returns:
@@ -122,7 +122,7 @@ class Content(Element):
         self.children = children
         self.linenumber = linenumber
 
-    def render(self, render_type, show_private, level=None, protocol=None):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False):
         return "".join(map(lambda e: e.render(
             render_type, show_private, level=level, protocol=protocol),
             self.children))
@@ -225,7 +225,7 @@ class Tag:
         self.linenumber = linenumber
         self.fork = fork
 
-    def render(self, render_type, show_private, level=None, protocol=None):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False):
         if render_type == RenderType.latex:
             if self.name == "url":
                 return r"\url{{{}}}".format(self.values[0])
@@ -351,7 +351,7 @@ class Empty(Element):
     def __init__(self, linenumber):
         linenumber = linenumber
 
-    def render(self, render_type, show_private, level=None, protocol=None):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False):
         return ""
 
     def dump(self, level=None):
@@ -373,7 +373,7 @@ class Remark(Element):
         self.value = value
         self.linenumber = linenumber
 
-    def render(self, render_type, show_private, level=None, protocol=None):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False):
         if render_type == RenderType.latex or render_type == RenderType.extra:
             return r"\textbf{{{}}}: {}".format(self.name, self.value)
         elif render_type == RenderType.wikitext:
@@ -441,12 +441,12 @@ class Fork(Element):
         stripped_name = name.replace(":", "").strip()
         return stripped_name in config.PRIVATE_KEYWORDS
 
-    def render(self, render_type, show_private, level, protocol=None):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False):
         name_line = self.name if self.name is not None else ""
         if level == 0 and self.name == "Todos" and not show_private:
             return ""
         if render_type == RenderType.latex or render_type == RenderType.extra:
-            if render_type == RenderType.latex and self.is_extra:
+            if render_type == RenderType.latex and self.is_extra and not decision_render:
                 return r"\textit{[Dieser Tagesordnungspunkt wird in einem eigenem PDF exportiert.]}"
 
             begin_line = r"\begin{itemize}"
