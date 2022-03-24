@@ -71,7 +71,7 @@ def provide_latex_template(template, documenttype):
         "class": "protokoll2.cls",
         "protocol": "protocol.tex",
         "decision": "decision.tex",
-        "extra": "extra.tex"
+        "top": "top.tex"
     }
     _PROVIDES = "provides"
     _LOGO_TEMPLATE = "logo_template"
@@ -564,7 +564,7 @@ def parse_protocol_async_inner(protocol, ignore_old_date=False):
     for top in extra_tops:
         for show_private in privacy_states:
             latex_source = texenv.get_template(provide_latex_template(
-                protocol.protocoltype.latex_template, "extra")).render(
+                protocol.protocoltype.latex_template, "top")).render(
                     render_type=RenderType.extra,
                     top=top,
                     show_private=show_private,
