@@ -38,7 +38,6 @@ class RenderType(Enum):
     plaintext = 2
     html = 3
     dokuwiki = 4
-    extra = 5
 
 
 def _not_implemented(self, render_type):
@@ -52,7 +51,7 @@ class Element:
     Generic (abstract) base element. Should never really exist.
     Template for what an element class should contain.
     """
-    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
         """
         Renders the element to TeX.
         Returns:
@@ -122,7 +121,7 @@ class Content(Element):
         self.children = children
         self.linenumber = linenumber
 
-    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
         return "".join(map(lambda e: e.render(
             render_type, show_private, level=level, protocol=protocol),
             self.children))
@@ -187,8 +186,8 @@ class Text:
         self.linenumber = linenumber
         self.fork = fork
 
-    def render(self, render_type, show_private, level=None, protocol=None):
-        if render_type == RenderType.latex or render_type == RenderType.extra:
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
+        if render_type == RenderType.latex:
             return escape_tex(self.text)
         elif render_type == RenderType.wikitext:
             return self.text
@@ -225,8 +224,8 @@ class Tag:
         self.linenumber = linenumber
         self.fork = fork
 
-    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False):
-        if render_type == RenderType.latex:
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
+        if render_type == RenderType.latex and not top_render:
             if self.name == "url":
                 return r"\url{{{}}}".format(self.values[0])
             elif self.name == "todo":
@@ -245,7 +244,7 @@ class Tag:
             return r"\textbf{{{}:}} {}".format(
                 escape_tex(self.name.capitalize()),
                 escape_tex(";".join(self.values)))
-        elif render_type == RenderType.extra:
+        elif render_type == RenderType.latex and top_render:
             if self.name == "url":
                 return r"\url{{{}}}".format(self.values[0])
             elif self.name == "todo":
@@ -351,7 +350,7 @@ class Empty(Element):
     def __init__(self, linenumber):
         linenumber = linenumber
 
-    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
         return ""
 
     def dump(self, level=None):
@@ -373,8 +372,8 @@ class Remark(Element):
         self.value = value
         self.linenumber = linenumber
 
-    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False):
-        if render_type == RenderType.latex or render_type == RenderType.extra:
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
+        if render_type == RenderType.latex:
             return r"\textbf{{{}}}: {}".format(self.name, self.value)
         elif render_type == RenderType.wikitext:
             return "{}: {}".format(self.name, self.value)
@@ -441,12 +440,12 @@ class Fork(Element):
         stripped_name = name.replace(":", "").strip()
         return stripped_name in config.PRIVATE_KEYWORDS
 
-    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
         name_line = self.name if self.name is not None else ""
         if level == 0 and self.name == "Todos" and not show_private:
             return ""
-        if render_type == RenderType.latex or render_type == RenderType.extra:
-            if render_type == RenderType.latex and self.is_extra and not decision_render:
+        if render_type == RenderType.latex:
+            if self.is_extra and not top_render and not decision_render:
                 return r"\textit{[Dieser Tagesordnungspunkt wird in einem eigenem PDF exportiert.]}"
 
             begin_line = r"\begin{itemize}"
@@ -456,14 +455,14 @@ class Fork(Element):
             for child in self.children:
                 part = child.render(
                     render_type, show_private, level=level + 1,
-                    protocol=protocol)
+                    protocol=protocol, decision_render=decision_render, top_render=top_render)
                 parts.append(part)
                 if len(part.strip()) == 0:
                     continue
-                if render_type == RenderType.latex:
+                if not top_render:
                     if not part.startswith(r"\item"):
                         part = r"\item {}".format(part)
-                elif render_type == RenderType.extra:
+                else:
                     if not part.startswith(r"\item") and not part.startswith(r"\footnote") and not part.startswith(
                             r"\begin{tcolorbox}"):
                         part = r"\item {}".format(part)
@@ -474,9 +473,9 @@ class Fork(Element):
             if len(content_lines.strip()) == 0:
                 content_lines = "\\item Nichts\n"
             if level == 0:
-                if render_type == RenderType.latex:
+                if not top_render:
                     return "\n".join([begin_line, content_lines, end_line])
-                elif render_type == RenderType.extra:
+                else:
                     return "\n".join(parts)
             elif self.test_private(self.name):
                 if show_private:
@@ -489,7 +488,7 @@ class Fork(Element):
                 else:
                     return (r"\textit{[An dieser Stelle wurde intern "
                             r"protokolliert.]}")
-            elif render_type == RenderType.extra and level == 1:
+            elif top_render and level == 1:
                 name_escape = escape_tex(name_line)
                 return "\n".join([
                     f"\section{{{name_escape}}}", begin_line,
@@ -510,7 +509,7 @@ class Fork(Element):
             for child in self.children:
                 part = child.render(
                     render_type, show_private, level=level + 1,
-                    protocol=protocol)
+                    protocol=protocol, decision_render=decision_render, top_render=top_render)
                 if len(part.strip()) == 0:
                     continue
                 content_parts.append(part)
@@ -526,7 +525,7 @@ class Fork(Element):
             for child in self.children:
                 part = child.render(
                     render_type, show_private, level=level + 1,
-                    protocol=protocol)
+                    protocol=protocol, decision_render=decision_render, top_render=top_render)
                 if len(part.strip()) == 0:
                     continue
                 content_parts.append(part)
@@ -546,7 +545,7 @@ class Fork(Element):
                 for child in self.children:
                     part = child.render(
                         render_type, show_private, level=level + 1,
-                        protocol=protocol)
+                        protocol=protocol, decision_render=decision_render, top_render=top_render)
                     if len(part.strip()) == 0:
                         continue
                     content_parts.append("<p>{}</p>".format(part))
@@ -557,7 +556,7 @@ class Fork(Element):
                 for child in self.children:
                     part = child.render(
                         render_type, show_private, level=level + 1,
-                        protocol=protocol)
+                        protocol=protocol, decision_render=decision_render, top_render=top_render)
                     if len(part.strip()) == 0:
                         continue
                     content_parts.append("<li>{}</li>".format(part))

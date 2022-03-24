@@ -565,7 +565,7 @@ def parse_protocol_async_inner(protocol, ignore_old_date=False):
         for show_private in privacy_states:
             latex_source = texenv.get_template(provide_latex_template(
                 protocol.protocoltype.latex_template, "top")).render(
-                    render_type=RenderType.extra,
+                    render_type=RenderType.latex,
                     top=top,
                     show_private=show_private,
                     **render_kwargs[show_private])

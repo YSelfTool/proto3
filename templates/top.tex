@@ -95,7 +95,7 @@
 \setlist{nosep}
 
 \newcommand{\Beschluss}[2][]{\textbf{Beschluss:} #2 \def\temp{#1}\ifx\temp\empty\else\textit{(#1)}\fi}
-
+\newcommand{\Todo}[4]{\textbf{{#1}}: #2: #3 -- #4}
 
 \ENV{if show_private}\setboolean{intern}{true}\ENV{endif}
 \intern{\SetWatermarkText{INTERN} \SetWatermarkScale{1}}{}
@@ -106,7 +106,7 @@
     \end{center}
 
     \ENV{if top|class == "Fork"}
-        \VAR{top.render(render_type=render_type, level=0, show_private=show_private, protocol=protocol)}
+        \VAR{top.render(render_type=render_type, level=0, show_private=show_private, protocol=protocol, top_render=True)}
     \ENV{endif}
 
     \runningpagewiselinenumbers \linenumbers
