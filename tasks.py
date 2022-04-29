@@ -808,12 +808,12 @@ def send_reminder_async(reminder_id, protocol_id):
         if reminder.send_public:
             send_mail(
                 protocol, protocol.protocoltype.public_mail,
-                "Tagesordnung der {}".format(protocol.protocoltype.name),
+                "Tagesordnung der {} am {}".format(protocol.protocoltype.name, date_filter_short(protocol.date)),
                 reminder_text, reply_to=protocol.protocoltype.public_mail)
         if reminder.send_private:
             send_mail(
                 protocol, protocol.protocoltype.private_mail,
-                "Tagesordnung der {}".format(protocol.protocoltype.name),
+                "Tagesordnung der {} am {}".format(protocol.protocoltype.name, date_filter_short(protocol.date)),
                 reminder_text, reply_to=protocol.protocoltype.private_mail)
 
 
