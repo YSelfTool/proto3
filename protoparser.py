@@ -51,7 +51,7 @@ class Element:
     Generic (abstract) base element. Should never really exist.
     Template for what an element class should contain.
     """
-    def render(self, render_type, show_private, level=None, protocol=None):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
         """
         Renders the element to TeX.
         Returns:
@@ -121,7 +121,7 @@ class Content(Element):
         self.children = children
         self.linenumber = linenumber
 
-    def render(self, render_type, show_private, level=None, protocol=None):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
         return "".join(map(lambda e: e.render(
             render_type, show_private, level=level, protocol=protocol),
             self.children))
@@ -186,7 +186,7 @@ class Text:
         self.linenumber = linenumber
         self.fork = fork
 
-    def render(self, render_type, show_private, level=None, protocol=None):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
         if render_type == RenderType.latex:
             return escape_tex(self.text)
         elif render_type == RenderType.wikitext:
@@ -224,8 +224,8 @@ class Tag:
         self.linenumber = linenumber
         self.fork = fork
 
-    def render(self, render_type, show_private, level=None, protocol=None):
-        if render_type == RenderType.latex:
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
+        if render_type == RenderType.latex and not top_render:
             if self.name == "url":
                 return r"\url{{{}}}".format(self.values[0])
             elif self.name == "todo":
@@ -239,6 +239,22 @@ class Tag:
                         escape_tex(self.decision.content))
                 else:
                     return r"\Beschluss{{{}}}".format(self.decision.content)
+            elif self.name == "footnote":
+                return r"\footnote{{{}}}".format(self.values[0])
+            return r"\textbf{{{}:}} {}".format(
+                escape_tex(self.name.capitalize()),
+                escape_tex(";".join(self.values)))
+        elif render_type == RenderType.latex and top_render:
+            if self.name == "url":
+                return r"\url{{{}}}".format(self.values[0])
+            elif self.name == "todo":
+                return ""
+            elif self.name == "beschluss":
+                return (
+                            r"\begin{tcolorbox}[breakable,title=Beschluss, colframe=red!45!yellow, colback=yellow!10, coltitle=white,]" + "\n"
+                            + r"\begin{itemize}"
+                            + r"\item[] " + self.values[0] + "\n"
+                            + r"\end{itemize} \end{tcolorbox}")
             elif self.name == "footnote":
                 return r"\footnote{{{}}}".format(self.values[0])
             return r"\textbf{{{}:}} {}".format(
@@ -334,7 +350,7 @@ class Empty(Element):
     def __init__(self, linenumber):
         linenumber = linenumber
 
-    def render(self, render_type, show_private, level=None, protocol=None):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
         return ""
 
     def dump(self, level=None):
@@ -356,7 +372,7 @@ class Remark(Element):
         self.value = value
         self.linenumber = linenumber
 
-    def render(self, render_type, show_private, level=None, protocol=None):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
         if render_type == RenderType.latex:
             return r"\textbf{{{}}}: {}".format(self.name, self.value)
         elif render_type == RenderType.wikitext:
@@ -397,8 +413,9 @@ class Remark(Element):
 
 
 class Fork(Element):
-    def __init__(self, is_top, name, parent, linenumber, children=None):
+    def __init__(self, is_top, name, parent, linenumber, children=None, is_extra=False):
         self.is_top = is_top
+        self.is_extra = is_extra
         self.name = name.strip() if name else None
         self.parent = parent
         self.linenumber = linenumber
@@ -423,28 +440,43 @@ class Fork(Element):
         stripped_name = name.replace(":", "").strip()
         return stripped_name in config.PRIVATE_KEYWORDS
 
-    def render(self, render_type, show_private, level, protocol=None):
+    def render(self, render_type, show_private, level=None, protocol=None, decision_render=False, top_render=False):
         name_line = self.name if self.name is not None else ""
         if level == 0 and self.name == "Todos" and not show_private:
             return ""
         if render_type == RenderType.latex:
+            if self.is_extra and not top_render and not decision_render:
+                return r"\textit{[Dieser Tagesordnungspunkt wird in einem eigenem PDF exportiert.]}"
+
             begin_line = r"\begin{itemize}"
             end_line = r"\end{itemize}"
             content_parts = []
+            parts = []
             for child in self.children:
                 part = child.render(
                     render_type, show_private, level=level + 1,
-                    protocol=protocol)
+                    protocol=protocol, decision_render=decision_render, top_render=top_render)
+                parts.append(part)
                 if len(part.strip()) == 0:
                     continue
-                if not part.startswith(r"\item"):
-                    part = r"\item {}".format(part)
+                if not top_render:
+                    if not part.startswith(r"\item"):
+                        part = r"\item {}".format(part)
+                else:
+                    if not part.startswith(r"\item") and not part.startswith(r"\footnote") and not part.startswith(
+                            r"\begin{tcolorbox}"):
+                        part = r"\item {}".format(part)
+                    elif part.startswith(r"\begin{tcolorbox}"):
+                        part = r"\item[] {}".format(part)
                 content_parts.append(part)
             content_lines = "\n".join(content_parts)
             if len(content_lines.strip()) == 0:
                 content_lines = "\\item Nichts\n"
             if level == 0:
-                return "\n".join([begin_line, content_lines, end_line])
+                if not top_render:
+                    return "\n".join([begin_line, content_lines, end_line])
+                else:
+                    return "\n".join(parts)
             elif self.test_private(self.name):
                 if show_private:
                     return (r"\begin{tcolorbox}[breakable,title=Interner "
@@ -456,6 +488,12 @@ class Fork(Element):
                 else:
                     return (r"\textit{[An dieser Stelle wurde intern "
                             r"protokolliert.]}")
+            elif top_render and level == 1:
+                name_escape = escape_tex(name_line)
+                return "\n".join([
+                    f"\section{{{name_escape}}}", begin_line,
+                    content_lines, end_line
+                ])
             else:
                 return "\n".join([
                     escape_tex(name_line), begin_line,
@@ -471,7 +509,7 @@ class Fork(Element):
             for child in self.children:
                 part = child.render(
                     render_type, show_private, level=level + 1,
-                    protocol=protocol)
+                    protocol=protocol, decision_render=decision_render, top_render=top_render)
                 if len(part.strip()) == 0:
                     continue
                 content_parts.append(part)
@@ -487,7 +525,7 @@ class Fork(Element):
             for child in self.children:
                 part = child.render(
                     render_type, show_private, level=level + 1,
-                    protocol=protocol)
+                    protocol=protocol, decision_render=decision_render, top_render=top_render)
                 if len(part.strip()) == 0:
                     continue
                 content_parts.append(part)
@@ -507,7 +545,7 @@ class Fork(Element):
                 for child in self.children:
                     part = child.render(
                         render_type, show_private, level=level + 1,
-                        protocol=protocol)
+                        protocol=protocol, decision_render=decision_render, top_render=top_render)
                     if len(part.strip()) == 0:
                         continue
                     content_parts.append("<p>{}</p>".format(part))
@@ -518,7 +556,7 @@ class Fork(Element):
                 for child in self.children:
                     part = child.render(
                         render_type, show_private, level=level + 1,
-                        protocol=protocol)
+                        protocol=protocol, decision_render=decision_render, top_render=top_render)
                     if len(part.strip()) == 0:
                         continue
                     content_parts.append("<li>{}</li>".format(part))
@@ -592,11 +630,17 @@ class Fork(Element):
         linenumber = Element.parse_inner(match, current, linenumber)
         topname = match.group("topname")
         name = match.group("name")
+        extra = match.group("extra")
+
         is_top = False
+        is_extra = False
         if topname is not None:
             is_top = True
             name = topname
-        element = Fork(is_top, name, current, linenumber)
+            if extra is not None:
+                is_extra = True
+
+        element = Fork(is_top, name, current, linenumber, is_extra=is_extra)
         current = Element.parse_outer(element, current)
         return current, linenumber
 
@@ -613,7 +657,7 @@ class Fork(Element):
         self.children.append(element)
 
     PATTERN = (
-        r"\s*(?<name>(?:[^{};\n])+)?\n?\s*{(?:TOP\h*(?<topname>[^;{}\n]+))?")
+        r"\s*(?<name>(?:[^{};\n])+)?\n?\s*{(?:(?<extra>!)?TOP\h*(?<topname>[^;{}\n]+))?")
     END_PATTERN = r"\s*};?"
 
 

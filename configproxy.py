@@ -766,8 +766,8 @@ CONFIG_SECTIONS = [
                     "files: e.g. the files for the template 'yourtemplate' "
                     "need to be in the folder named 'yourtemplate', and the "
                     "templates provides the files: 'protokoll2.cls' (class), "
-                    "'protocol.tex' (protocol), 'decision.tex' (decision) and "
-                    "'asta-logo.tex'")),
+                    "'protocol.tex' (protocol), 'decision.tex' (decision),"
+                    "'top.tex' (exported TOP) and 'asta-logo.tex'")),
         ],
         check=check_rendering,
         description="Settings for rendering protocols to pdf, html, etc."),

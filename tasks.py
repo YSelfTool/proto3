@@ -70,7 +70,8 @@ def provide_latex_template(template, documenttype):
     _DOCUMENTTYPE_FILENAME_MAP = {
         "class": "protokoll2.cls",
         "protocol": "protocol.tex",
-        "decision": "decision.tex"
+        "decision": "decision.tex",
+        "top": "top.tex"
     }
     _PROVIDES = "provides"
     _LOGO_TEMPLATE = "logo_template"
@@ -558,6 +559,21 @@ def parse_protocol_async_inner(protocol, ignore_old_date=False):
             latex_source, protocol, show_private=show_private,
             maxdepth=maxdepth)
 
+    # Export extra TOPs
+    extra_tops = [child for child in tree.children if isinstance(child, Fork) and child.is_extra]
+    for top in extra_tops:
+        for show_private in privacy_states:
+            latex_source = texenv.get_template(provide_latex_template(
+                protocol.protocoltype.latex_template, "top")).render(
+                    render_type=RenderType.latex,
+                    top=top,
+                    show_private=show_private,
+                    **render_kwargs[show_private])
+            compile_extra(
+                latex_source, protocol, show_private=show_private, extra_name=top.name,
+                maxdepth=maxdepth)
+
+
     if protocol.protocoltype.use_wiki:
         wiki_type = WikiType[getattr(config, "WIKI_TYPE", "MEDIAWIKI")]
         wiki_template = {
@@ -644,10 +660,13 @@ def compile_decision(content, decision, maxdepth):
     compile_async.delay(
         content, decision.id, use_decision=True, maxdepth=maxdepth)
 
+def compile_extra(content, protocol, show_private, maxdepth, extra_name):
+    compile_async.delay(
+        content, protocol.id, use_decision=False, show_private=show_private, maxdepth=maxdepth, is_extra=True, extra_name=extra_name)
 
 @celery.task
 def compile_async(
-        content, protocol_id, show_private=False, use_decision=False,
+        content, protocol_id, show_private=False, use_decision=False, is_extra=False, extra_name="",
         maxdepth=5):
     with tempfile.TemporaryDirectory() as compile_dir, app.app_context():
         decision = None
@@ -692,7 +711,7 @@ def compile_async(
                 stderr=subprocess.DEVNULL)
             os.chdir(current)
             document = None
-            if not use_decision:
+            if not use_decision and not is_extra:
                 for old_document in [
                     document for document in protocol.documents
                     if document.is_compiled
@@ -708,7 +727,7 @@ def compile_async(
                     filename="",
                     is_compiled=True,
                     is_private=show_private)
-            else:
+            elif use_decision and not is_extra:
                 document = DecisionDocument(
                     decision_id=decision.id,
                     name="beschluss_{}_{}_{}.pdf".format(
@@ -716,6 +735,20 @@ def compile_async(
                         date_filter_short(protocol.date),
                         decision.id),
                     filename="")
+            elif is_extra and not use_decision:
+                document = Document(
+                    protocol_id=protocol.id,
+                    name="extra-{}{}_{}_{}.pdf".format(
+                        extra_name,
+                        "_intern" if show_private else "",
+                        protocol.protocoltype.short_name,
+                        date_filter_short(protocol.date)),
+                    filename="",
+                    is_compiled=True,
+                    is_extra=True,
+                    is_private=show_private)
+            else:
+                raise NotImplementedError("Unknown type.")
             db.session.add(document)
             db.session.commit()
             target_filename = "compiled-{}-{}.pdf".format(
