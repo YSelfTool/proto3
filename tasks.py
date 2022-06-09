@@ -645,6 +645,12 @@ def push_to_dokuwiki_async(protocol_id, content, summary):
                     return _make_error(
                         protocol, "Pushing to Wiki",
                         "Pushing to Wiki failed." "")
+            except xmlrpc.client.ProtocolError as prot_err: # makes sure the WIKI_API_URL does not get leaked
+                error_msg = "A ProtocolError occurred with code:'{}'; and Message:'{}'".format(
+                    prot_err.errcode, prot_err.errmsg)
+                return _make_error(
+                    protocol, "Pushing to Wiki", "XML RPC ProtocolError",
+                    error_msg)
             except xmlrpc.client.Error as exception:
                 return _make_error(
                     protocol, "Pushing to Wiki", "XML RPC Exception",
