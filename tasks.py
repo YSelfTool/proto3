@@ -639,7 +639,7 @@ def push_to_dokuwiki_async(protocol_id, content, summary):
         with xmlrpc.client.ServerProxy(config.WIKI_API_URL) as proxy:
             try:
                 if not proxy.wiki.putPage(
-                    protocol.get_wiki_title(), content,
+                    protocol.get_dokuwiki_pagetitle(), content,
                     {"sum":
                         "Automatisch generiert vom Protokollsystem 3."}):
                     return _make_error(
