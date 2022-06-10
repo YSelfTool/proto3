@@ -61,7 +61,8 @@
 	<p>
 	Zu beachten ist, dass der Anzeigename des Sitzungstyps nur im Protokolltyp angepasst werden kann und im Protokoll ein Teil der Überschrift ist.
 	{% if config.WIKI_ACTIVE %}
-		Je Typ kann angegeben werdem, ob das Protokoll im Status veröffentlicht in das Wiki exportiert werden soll, wobei eien Kategorie anzugeben ist.
+		Je Typ kann angegeben werden, ob das Protokoll im Status veröffentlicht in das Wiki exportiert werden soll, wobei eine Kategorie anzugeben ist.
+		Wenn ein Dokuwiki genutzt wird, wird die Kategorie als <a href="https://www.dokuwiki.org/de:namespaces">Namensraum</a> verwendet (default Kategorie ist "Protokoll").
 	{% endif %}
 	{% if config.PRINTING_ACTIVE %}
 		Auch kann der Standarddrucker festgelegt werden, der für den Protokolltyp genutzt werden soll.

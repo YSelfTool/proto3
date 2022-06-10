@@ -332,6 +332,15 @@ class Protocol(DatabaseModel):
     def get_wiki_title(self):
         return "Protokoll:{}-{:%Y-%m-%d}".format(
             self.protocoltype.short_name, self.date)
+            
+    def get_dokuwiki_pagetitle(self):
+        """ Uses dokuwiki namespaces in the pagetitle as a standin for a categories 
+
+            The default namespace 'protokoll', is used if protocoltype.wiki_category is empty.
+        """
+        category = self.protocoltype.wiki_category or "protokoll"
+        return "{}:{}-{:%Y-%m-%d}".format(
+            category, self.protocoltype.short_name, self.date)
 
     def get_etherpad_link(self):
         if self.pad_identifier is None:
