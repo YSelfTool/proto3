@@ -382,7 +382,7 @@ class Protocol(DatabaseModel):
     def has_compiled_document(self, private=None):
         candidates = [
             document for document in self.documents
-            if document.is_compiled
+            if document.is_compiled and not document.is_extra
             and (private is None or document.is_private == private)
         ]
         return len(candidates) > 0
@@ -390,7 +390,7 @@ class Protocol(DatabaseModel):
     def get_compiled_document(self, private=None):
         candidates = [
             document for document in self.documents
-            if document.is_compiled
+            if document.is_compiled and not document.is_extra
         ]
         private_candidates = [
             document for document in candidates
