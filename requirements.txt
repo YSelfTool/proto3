@@ -42,7 +42,7 @@ Jinja2==3.0.1
 kombu==5.1.0
 ldap3==2.9.1
 lxml==4.6.3
-Mako==1.1.4
+Mako==1.2.2
 mando==0.7.0
 MarkupSafe==2.0.1
 mccabe==0.6.1
