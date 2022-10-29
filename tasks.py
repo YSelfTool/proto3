@@ -4,7 +4,7 @@ import os
 import subprocess
 import shutil
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import traceback
 from copy import copy
@@ -500,6 +500,11 @@ def parse_protocol_async_inner(protocol, ignore_old_date=False):
         if not protocol.protocoltype.get_protocols_on_date(new_protocol_date):
             Protocol.create_new_protocol(
                 protocol.protocoltype, new_protocol_date, new_protocol_time)
+    if not protocol_tags and protocol.protocoltype.recurrence:
+        new_protocol_date = protocol.date + timedelta(
+            days=protocol.protocoltype.recurrence)
+        if new_protocol_date > datetime.now().date():
+            Protocol.create_new_protocol(protocol.protocoltype, new_protocol_date)
 
     # TOPs
     old_tops = list(protocol.tops)
