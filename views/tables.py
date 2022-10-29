@@ -237,6 +237,7 @@ class ProtocolTypeTable(SingleValueTable):
         calendar_headers = ["Kalender"]
         if not config.CALENDAR_ACTIVE:
             calendar_headers = []
+        recurrence_headers = ["Turnus"]
         network_headers = ["Netzwerke einschränken", "Erlaubte Netzwerke"]
         action_headers = ["Aktion"]
         feed_headers = []
@@ -249,8 +250,8 @@ class ProtocolTypeTable(SingleValueTable):
         return (
             general_headers + etherpad_headers + mail_headers
             + printing_headers + wiki_headers + calendar_headers
-            + network_headers + latex_template_headers + feed_headers
-            + action_headers)
+            + recurrence_headers + network_headers + latex_template_headers
+            + feed_headers + action_headers)
 
     def row(self):
         user = current_user()
@@ -297,6 +298,7 @@ class ProtocolTypeTable(SingleValueTable):
             if self.value.calendar is not None else ""]
         if not config.CALENDAR_ACTIVE:
             calendar_part = []
+        recurrence_part = [f"{self.value.recurrence} Tage" if self.value.recurrence is not None else ""]
         network_part = [Table.bool(self.value.restrict_networks)]
         if self.value.allowed_networks is not None:
             network_part.append(
@@ -344,8 +346,8 @@ class ProtocolTypeTable(SingleValueTable):
             action_part = [""]
         return (
             general_part + etherpad_part + mail_part + printing_part
-            + wiki_part + calendar_part + network_part + latex_template_part
-            + feed_part + action_part)
+            + wiki_part + calendar_part + recurrence_part + network_part
+            + latex_template_part + feed_part + action_part)
 
 
 class DefaultTOPsTable(Table):

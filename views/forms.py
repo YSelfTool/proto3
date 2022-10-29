@@ -174,6 +174,7 @@ class ProtocolTypeForm(FlaskForm):
     wiki_only_public = BooleanField("Wiki ist öffentlich")
     printer = SelectField("Drucker", choices=[])
     calendar = SelectField("Kalender", choices=[])
+    recurrence = IntegerField("Turnus (in Tagen)", validators=[Optional()])
     restrict_networks = BooleanField("Netzwerke einschränken")
     allowed_networks = IPNetworkField("Erlaubte Netzwerke")
     latex_template = SelectField("LaTeX Vorlage", choices=[])

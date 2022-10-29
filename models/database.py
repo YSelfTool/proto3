@@ -78,6 +78,7 @@ class ProtocolType(DatabaseModel):
     restrict_networks = db.Column(db.Boolean)
     allowed_networks = db.Column(db.Text)
     latex_template = db.Column(db.Text)
+    recurrence = db.Column(db.Integer)
 
     protocols = relationship(
         "Protocol", backref=backref("protocoltype"),
