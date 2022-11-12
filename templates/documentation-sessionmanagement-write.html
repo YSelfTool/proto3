@@ -39,11 +39,11 @@
 				{% endif %}
 				<a class="btn btn-default" href="#example_create_protocoll">Editieren</a>
 				{% if config.ETHERPAD_ACTIVE %}
-				<a class="btn btn-primary" href="#example_create_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.');">Etherpad</a>
+				<a class="btn btn-primary" href="#example_create_protocoll" confirm="Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.">Etherpad</a>
 				{% endif %}
 				<a class="btn btn-default" href="#example_create_protocoll">Vorlage</a>
 				{% if config.MAIL_ACTIVE %}
-				<a class="btn btn-default" href="#example_create_protocoll" onclick="return confirm('Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.');">Einladung versenden</a>
+				<a class="btn btn-default" href="#example_create_protocoll" confirm="Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.">Einladung versenden</a>
 				{% endif %}
 				<a class="btn btn-default" href="#example_create_protocoll">Typ</a>
 			</div>
@@ -99,10 +99,10 @@
 			<div class="btn-group">
 				<a class="btn btn-primary" href="#example_import_protocoll">Aus Etherpad</a>
 				<a class="btn btn-default" href="#example_import_protocoll">Editieren</a>
-				<a class="btn btn-primary" href="#example_import_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.');">Etherpad</a>
+				<a class="btn btn-primary" href="#example_import_protocoll" confirm="Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.">Etherpad</a>
 				<a class="btn btn-default" href="#example_import_protocoll">Vorlage</a>
 				{% if config.MAIL_ACTIVE %}
-				<a class="btn btn-default" href="#example_import_protocoll" onclick="return confirm('Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.');">Einladung versenden</a>
+				<a class="btn btn-default" href="#example_import_protocoll" confirm="Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.">Einladung versenden</a>
 				{% endif %}
 				<a class="btn btn-default" href="#example_import_protocoll">Typ</a>
 			</div>
@@ -146,7 +146,7 @@
 				<a class="btn btn-primary" href="#example_corect_protocoll">Quelltext</a>
 				<a class="btn btn-success" href="#example_corect_protocoll">Editieren</a>
 				{% if config.ETHERPAD_ACTIVE %}
-				<a class="btn btn-primary" href="#example_corect_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.');">Etherpad</a>
+				<a class="btn btn-primary" href="#example_corect_protocoll" confirm="Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.">Etherpad</a>
 				{% endif %}
 				{% if config.MAIL_ACTIVE %}
                 <a class="btn btn-default" href="#example_corect_protocoll">Intern versenden</a>
@@ -181,7 +181,7 @@
 					<a class="btn btn-primary" href="#example_publish_protocoll">Quelltext</a>
 					<a class="btn btn-success" href="#example_publish_protocoll">Editieren</a>
 					{% if config.ETHERPAD_ACTIVE %}
-					<a class="btn btn-primary" href="#example_publish_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.');">Etherpad</a>
+					<a class="btn btn-primary" href="#example_publish_protocoll" confirm="Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.">Etherpad</a>
 					{% endif %}
 					{% if config.MAIL_ACTIVE %}
 					<a class="btn btn-default" href="#example_publish_protocoll">Intern versenden</a>
@@ -231,11 +231,11 @@
 					{% endif %}
 					<a class="btn btn-default" href="#example_internal_protocoll">Editieren</a>
 					{% if config.ETHERPAD_ACTIVE %}
-					<a class="btn btn-primary" href="#example_internal_protocoll" onclick="return confirm('Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.');">Etherpad</a>
+					<a class="btn btn-primary" href="#example_internal_protocoll" confirm="Bist du dir sicher, dass du das Template bereits in das Etherpad kopieren willst? Die Sitzung ist erst einigen Tagen.">Etherpad</a>
 					{% endif %}
 					<a class="btn btn-default" href="#example_internal_protocoll">Vorlage</a>
 					{% if config.MAIL_ACTIVE %}
-					<a class="btn btn-default" href="#example_internal_protocoll" onclick="return confirm('Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.');">Einladung versenden</a>
+					<a class="btn btn-default" href="#example_internal_protocoll" confirm="Bist du dir sicher, dass du manuell eine Einladung verschicken willst? Dies wird auch automatisch geschehen.">Einladung versenden</a>
 					{% endif %}
 					<a class="btn btn-default" href="#example_internal_protocoll">Typ</a>
 				</div>

@@ -120,4 +120,14 @@ window.onload=function() {
         textarea.addEventListener("keydown", function(e){tab_func(e); delayed()}, false);
         resize_textarea(textarea)();
     }
+    // confirm buttons
+    for (var element of document.querySelectorAll('[confirm]')) {
+        element.onclick = function(evt) {
+            var target = evt.target;
+            while (!target.hasAttribute("confirm")) {
+                target = target.parentElement;
+            }
+            return confirm(target.getAttribute("confirm"));
+        };
+    }
 };

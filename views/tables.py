@@ -26,8 +26,7 @@ class Table:
             "href=\"{}\"".format(target)
         ]
         if confirm:
-            attributes.append(
-                "onclick=\"return confirm('{}');\"".format(confirm))
+            attributes.append(f"confirm=\"{confirm}\"")
         if css_class:
             attributes.append("class=\"{}\"".format(css_class))
         return Markup("<a {}>{}</a>".format(" ".join(attributes), text))
@@ -47,6 +46,7 @@ class Table:
         return Table.link(
             target=target,
             text=Table.glyphicon(icon),
+            confirm=confirm,
             css_class="btn btn-{}".format(style))
 
     @staticmethod
@@ -149,7 +149,7 @@ class ProtocolsTable(Table):
                     csrf_token=get_csrf_token()),
                 icon="trash",
                 style="danger",
-                confirm="Bist du dir sicher, dass du das Protokoll {} "
+                confirm=f"Bist du dir sicher, dass du das Protokoll {protocol.get_title()} "
                         "löschen möchtest?"))
 
         result.append(Table.button_group(buttons))
