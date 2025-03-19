@@ -665,6 +665,20 @@ CONFIG_SECTIONS = [
         name="Rendering",
         entries=[
             ConfigEntry(
+                name="RENDERING_PDF",
+                default=True,
+                required=False,
+                internal=False,
+                description="Enable rendering to PDF via XeLaTeX",
+            ),
+            ConfigEntry(
+                name="RENDERING_MD",
+                default=False,
+                required=False,
+                internal=False,
+                description="Enable rendering to (GitLab-flavoured) Markdown",
+            ),
+            ConfigEntry(
                 name="FONTS",
                 default={
                     "main": {
@@ -883,7 +897,7 @@ CONFIG_SECTIONS = [
                 name="WIKI_TYPE",
                 default="MEDIAWIKI",
                 required=True, internal=False,
-                description="'MEDIAWIKI' or 'DOKUWIKI'"),
+                description="'MEDIAWIKI' or 'DOKUWIKI' or 'GITLAB_WIKI'"),
             ConfigEntry(
                 name="WIKI_API_URL",
                 default="https://wiki.example.com/wiki/api.php",
@@ -915,7 +929,7 @@ CONFIG_SECTIONS = [
         ],
         check=check_wiki,
         deactivatable=True,
-        description="Mediawiki or Dokuwiki settings"),
+        description="Mediawiki or Dokuwiki or GitLab Wiki settings"),
     ConfigSection(
         name="CALENDAR",
         entries=[

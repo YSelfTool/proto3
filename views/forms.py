@@ -170,6 +170,8 @@ class ProtocolTypeForm(FlaskForm):
     private_mail = StringField("Interner Verteiler")
     public_mail = StringField("Öffentlicher Verteiler")
     wiki_category = StringField("Wiki-Kategorie")
+    gitlab_api_token = StringField("Gitlab API Token")
+    gitlab_project_id = IntegerField("Gitlab Project ID")
     use_wiki = BooleanField("Wiki benutzen")
     wiki_only_public = BooleanField("Wiki ist öffentlich")
     printer = SelectField("Drucker", choices=[])
