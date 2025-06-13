@@ -19,3 +19,6 @@ test/
 *.sql
 pg_to_sqlite.sh
 local-templates/
+_version.py
+.idea/
+.python-version
