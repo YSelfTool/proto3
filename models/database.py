@@ -73,6 +73,8 @@ class ProtocolType(DatabaseModel):
     use_wiki = db.Column(db.Boolean)
     wiki_category = db.Column(db.Text)
     wiki_only_public = db.Column(db.Boolean)
+    gitlab_api_token = db.Column(db.Text)
+    gitlab_project_id = db.Column(db.Integer)
     printer = db.Column(db.Text)
     calendar = db.Column(db.Text)
     restrict_networks = db.Column(db.Boolean)
@@ -342,6 +344,15 @@ class Protocol(DatabaseModel):
         category = self.protocoltype.wiki_category or "protokoll"
         return "{}:{}-{:%Y-%m-%d}".format(
             category, self.protocoltype.short_name, self.date)
+
+    def get_gitlab_wiki_pagetitle(self):
+        """ Uses gitlab wiki directories in the pagetitle as a standin for a categories
+
+            The default namespace 'protokoll', is used if protocoltype.wiki_category is empty.
+        """
+        category = self.protocoltype.wiki_category or "protokoll"
+        return "{}/{}/{}-{:%Y-%m-%d}".format(
+            category, self.date.year, self.protocoltype.short_name, self.date)
 
     def get_etherpad_link(self):
         if self.pad_identifier is None:
@@ -748,6 +759,14 @@ class Todo(DatabaseModel):
         parts = [
             self.get_state(),
             "<strong>{}:</strong>".format(self.who),
+            self.description
+        ]
+        return " ".join(parts)
+
+    def render_md(self, current_protocol=None):
+        parts = [
+            self.get_state(),
+            "**{}:**".format(self.who),
             self.description
         ]
         return " ".join(parts)

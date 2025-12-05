@@ -232,6 +232,7 @@ class ProtocolTypeTable(SingleValueTable):
         wiki_headers = ["Wiki"]
         if self.value.use_wiki:
             wiki_headers.append("Wiki-Kategorie")
+            wiki_headers.append("GitLab Project ID")
         if not config.WIKI_ACTIVE:
             wiki_headers = []
         calendar_headers = ["Kalender"]
@@ -291,6 +292,7 @@ class ProtocolTypeTable(SingleValueTable):
         ]
         if self.value.use_wiki:
             wiki_part.append(self.value.wiki_category)
+            wiki_part.append(self.value.gitlab_project_id)
         if not config.WIKI_ACTIVE:
             wiki_part = []
         calendar_part = [

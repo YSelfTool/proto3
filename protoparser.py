@@ -38,6 +38,7 @@ class RenderType(Enum):
     plaintext = 2
     html = 3
     dokuwiki = 4
+    markdown = 5
 
 
 def _not_implemented(self, render_type):
@@ -197,6 +198,8 @@ class Text:
             return self.text
         elif render_type == RenderType.dokuwiki:
             return self.text
+        elif render_type == RenderType.markdown:
+            return self.text
         else:
             raise _not_implemented(self, render_type)
 
@@ -305,7 +308,7 @@ class Tag:
                 return (
                     '<sup id="#fnref{0}"><a href="#fn{0}">Fn</a></sup>'.format(
                         footnote_hash(self.values[0])))
-            return "[{}: {}]".format(self.name, ";".join(self.values))
+            return "<b>{}:</b> {}".format(self.name, ";".join(self.values))
         elif render_type == RenderType.dokuwiki:
             if self.name == "url":
                 return self.values[0]
@@ -322,6 +325,28 @@ class Tag:
             else:
                 return "**{}:** {}".format(
                     self.name.capitalize(), ";".join(self.values))
+        elif render_type == RenderType.markdown:
+            if self.name == "url":
+                return "[{0}]({0})".format(self.values[0])
+            elif self.name == "todo":
+                if not show_private:
+                    return ""
+                if getattr(self, "todo", None) is not None:
+                    return self.todo.render_md(current_protocol=protocol)
+                else:
+                    return "**Todo:** {}".format(";".join(self.values))
+            elif self.name == "beschluss":
+                if getattr(self, "decision", None) is not None:
+                    parts = ["**Beschluss:**", self.decision.content]
+                    if len(self.decision.categories) > 0:
+                        parts.append("*{}*".format(
+                            self.decision.get_categories_str()))
+                    return " ".join(parts)
+                else:
+                    return "**Beschluss:** {}".format(self.values[0])
+            elif self.name == "footnote":
+                return '[^{}]'.format(footnote_hash(self.values[0]))
+            return "**{}**: {}".format(self.name, ";".join(self.values))
         else:
             raise _not_implemented(self, render_type)
 
@@ -378,11 +403,13 @@ class Remark(Element):
         elif render_type == RenderType.wikitext:
             return "{}: {}".format(self.name, self.value)
         elif render_type == RenderType.plaintext:
-            return "{}: {}".format(RenderType.plaintex)
+            return "{}: {}".format(self.name, self.value)
         elif render_type == RenderType.html:
             return "<p>{}: {}</p>".format(self.name, self.value)
         elif render_type == RenderType.dokuwiki:
             return r"{}: {}\\".format(self.name, self.value)
+        elif render_type == RenderType.markdown:
+            return "**{}**: {}".format(self.name, self.value)
         else:
             raise _not_implemented(self, render_type)
 
@@ -566,6 +593,52 @@ class Fork(Element):
                 return ""
             else:
                 return content_lines
+        elif render_type == RenderType.markdown:
+            depth = level + 1
+            content_lines = ""
+            if depth < 2:
+                title_line = "{} {}".format("#" * (depth + 1), name_line)
+                content_parts = []
+                for child in self.children:
+                    part = child.render(
+                        render_type, show_private, level=level + 1,
+                        protocol=protocol, decision_render=decision_render, top_render=top_render)
+                    if len(part.strip()) == 0:
+                        continue
+                    content_parts.append(part)
+                if self.test_private(self.name) and not show_private:
+                    return "An dieser Stelle wurde intern protokolliert."
+                else:
+                    content_lines = "{}\n{}{}{}".format(
+                        title_line,
+                        ">>> [!note] Interner Abschnitt  \n" if self.test_private(self.name) else "",
+                        "\n\n".join(content_parts),
+                        ">>> \n" if self.test_private(self.name) else "",
+                    )
+                    return content_lines
+            else:
+                is_private = self.test_private(self.name)
+                content_parts = []
+                for child in self.children:
+                    part = child.render(
+                        render_type, show_private, level=level + 1 if not is_private else level,
+                        protocol=protocol, decision_render=decision_render, top_render=top_render)
+                    if len(part.strip()) == 0:
+                        continue
+                    if is_private:
+                        level -= 1
+                    content_parts.append(("  " * (level - 1)) + "* {}".format(part))
+
+                if is_private and not show_private:
+                    return "An dieser Stelle wurde intern protokolliert."
+                else:
+                    content_lines = "{}\n{}{}{}".format(
+                        name_line if not is_private else "",
+                        ">>> [!note] Interner Abschnitt  \n" if is_private else "",
+                        "\n".join(content_parts),
+                        ">>> \n" if is_private else "",
+                    )
+                    return content_lines
         else:
             raise _not_implemented(self, render_type)
 

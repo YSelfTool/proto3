@@ -19,25 +19,26 @@ System zur Verwaltung von Protokollen und Sitzungen.
 
 Required infrastructure:
 
-* python >= 3.5
+* python >= 3.9
+* a pyproject.toml tool (suggested choice: uv)
 * some WSGI-capable webserver (nginx + uwsgi, …)
 * some database (postgres, …)
 * some LDAP server (Samba 4, slapd, …) for accounts and groups
-* texlive
 * some message broker for [celery](http://docs.celeryproject.org/en/latest/getting-started/brokers/) (redis, …)
 
 Optional infrastructure:
 
+* texlive for rendering PDFs
 * a mail server (for sending protocols and invitations)
 * a CUPS printing server (for printing protocols and decisions)
 * an [Etherpad](https://github.com/ether/etherpad-lite) (for writing the protocol collectively)
-* a Mediawiki instance (for uploading the protocols there)
+* a Mediawiki/Dokuwiki/GitLab instance (for uploading the protocols there)
 * a CalDAV server (for uploading the events)
 
 Steps:
 
 1. clone the [repository](https://git.fsmpi.rwth-aachen.de/protokollsystem/proto3)
-2. create a python virtualenv and install the packages from `requirements.txt` there
+2. run `uv sync`
 3. create a database (tested with postgres and sqlite, but feel free to use whatever you like and [SQLAlchemy](http://docs.sqlalchemy.org/en/latest/dialects/index.html) supports
 4. create `config.py` with `python configproxy.py create --filename config.py` and edit it (make sure that python version >= 3.5)
   * **do** change everything that is not commented out

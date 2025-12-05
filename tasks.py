@@ -451,8 +451,12 @@ def parse_protocol_async_inner(protocol, ignore_old_date=False):
             protocol.protocoltype.latex_template, "decision")).render(
                 render_type=RenderType.latex, decision=decision,
                 protocol=protocol, top=decision_top, show_private=True)
+        decision_md_content = render_template("decision.md",
+            render_type=RenderType.markdown, decision=decision,
+            protocol=protocol, top=decision_top, show_private=True)
         maxdepth = decision_top.get_maxdepth()
         compile_decision(decision_content, decision, maxdepth=maxdepth)
+        compile_decision_md(decision_md_content, decision, maxdepth=maxdepth)
 
     # Footnotes
     footnote_tags = [
@@ -563,6 +567,13 @@ def parse_protocol_async_inner(protocol, ignore_old_date=False):
         compile(
             latex_source, protocol, show_private=show_private,
             maxdepth=maxdepth)
+        md_source = render_template("protocol.md",
+            render_type=RenderType.markdown,
+            show_private=show_private,
+            **render_kwargs[show_private])
+        compile_md(
+            md_source, protocol, show_private=show_private,
+            maxdepth=maxdepth)
 
     # Export extra TOPs
     extra_tops = [child for child in tree.children if isinstance(child, Fork) and child.is_extra]
@@ -570,12 +581,20 @@ def parse_protocol_async_inner(protocol, ignore_old_date=False):
         for show_private in privacy_states:
             latex_source = texenv.get_template(provide_latex_template(
                 protocol.protocoltype.latex_template, "top")).render(
-                    render_type=RenderType.latex,
-                    top=top,
-                    show_private=show_private,
-                    **render_kwargs[show_private])
+                render_type=RenderType.latex,
+                top=top,
+                show_private=show_private,
+                **render_kwargs[show_private])
+            md_source = render_template("top.md",
+                render_type=RenderType.markdown,
+                top=top,
+                show_private=show_private,
+                **render_kwargs[show_private])
             compile_extra(
                 latex_source, protocol, show_private=show_private, extra_name=top.name,
+                maxdepth=maxdepth)
+            compile_extra_md(
+                md_source, protocol, show_private=show_private, extra_name=top.name,
                 maxdepth=maxdepth)
 
 
@@ -584,17 +603,26 @@ def parse_protocol_async_inner(protocol, ignore_old_date=False):
         wiki_template = {
             WikiType.MEDIAWIKI: "protocol.wiki",
             WikiType.DOKUWIKI: "protocol.dokuwiki",
+            WikiType.GITLAB_WIKI: "protocol.md",
         }
         wiki_render_type = {
             WikiType.MEDIAWIKI: RenderType.wikitext,
             WikiType.DOKUWIKI: RenderType.dokuwiki,
+            WikiType.GITLAB_WIKI: RenderType.markdown,
+        }
+        wiki_env = {
+            WikiType.MEDIAWIKI: wikienv,
+            WikiType.DOKUWIKI: wikienv,
+            WikiType.GITLAB_WIKI: app.jinja_env,
         }
         show_private = not protocol.protocoltype.wiki_only_public
-        wiki_source = wikienv.get_template(wiki_template[wiki_type]).render(
+        wiki_source = wiki_env[wiki_type].get_template(wiki_template[wiki_type]).render(
             render_type=wiki_render_type[wiki_type],
             show_private=show_private,
             **render_kwargs[show_private]
-        ).replace("\n\n\n", "\n\n")
+        )
+        if wiki_type != WikiType.GITLAB_WIKI:
+            wiki_source = wiki_source.replace("\n\n\n", "\n\n")
         if wiki_type == WikiType.MEDIAWIKI:
             wiki_infobox_source = wikienv.get_template("infobox.wiki").render(
                 protocoltype=protocol.protocoltype)
@@ -605,6 +633,8 @@ def parse_protocol_async_inner(protocol, ignore_old_date=False):
             push_to_dokuwiki(
                 protocol, wiki_source,
                 "Automatisch generiert vom Protokollsystem 3.0")
+        elif wiki_type == WikiType.GITLAB_WIKI:
+            push_to_gitlab_wiki(protocol, wiki_source, "Automatisch generiert vom Protokollsystem 3.0")
     protocol.done = True
     db.session.commit()
 
@@ -662,18 +692,139 @@ def push_to_dokuwiki_async(protocol_id, content, summary):
                     str(exception))
 
 
+def push_to_gitlab_wiki(protocol, content, summary):
+    push_to_gitlab_wiki_async.delay(protocol.id, content, summary)
+
+
+@celery.task
+def push_to_gitlab_wiki_async(protocol_id, content, summary):
+    import gitlab
+    import urllib.parse
+
+    with app.app_context():
+        protocol = Protocol.query.filter_by(id=protocol_id).first()
+        gl = gitlab.Gitlab(config.WIKI_API_URL, private_token=protocol.protocoltype.gitlab_api_token or config.WIKI_PASSWORD)
+        if gl is None:
+            return _make_error(protocol, "Pushing to GitLab Wiki", "Pushing to GitLab Wiki failed.", "Unable to create API object.")
+        try:
+            project = gl.projects.get(protocol.protocoltype.gitlab_project_id)
+            category_page = project.wikis.get(protocol.protocoltype.wiki_category)
+            all_protocols = Protocol.query.filter_by(protocoltype=protocol.protocoltype).order_by(Protocol.date.desc()).all()
+            category_page.content = render_template("protocol-index.md", protocols=all_protocols)
+            category_page.title = protocol.protocoltype.wiki_category
+            category_page.save()
+            protocol_title = protocol.get_gitlab_wiki_pagetitle()
+            try:
+                current_page = project.wikis.get(protocol_title)
+                current_page.content = content
+                current_page.title = protocol_title
+                current_page.save()
+            except (gitlab.GitlabGetError, AttributeError):
+                project.wikis.create({
+                    "title": protocol_title,
+                    "content": content,
+                })
+            return None
+        except gitlab.GitlabError as e:
+            return _make_error(protocol, "Pushing to GitLab Wiki", "Pushing to GitLab Wiki", str(e))
+
+
+
 def compile(content, protocol, show_private, maxdepth):
+    if not getattr(config, "RENDERING_PDF", True):
+        return
     compile_async.delay(
         content, protocol.id, show_private=show_private, maxdepth=maxdepth)
 
-
 def compile_decision(content, decision, maxdepth):
+    if not getattr(config, "RENDERING_PDF", True):
+        return
     compile_async.delay(
         content, decision.id, use_decision=True, maxdepth=maxdepth)
 
 def compile_extra(content, protocol, show_private, maxdepth, extra_name):
+    if not getattr(config, "RENDERING_PDF", True):
+        return
     compile_async.delay(
         content, protocol.id, use_decision=False, show_private=show_private, maxdepth=maxdepth, is_extra=True, extra_name=extra_name)
+
+def compile_md(content, protocol, show_private, maxdepth):
+    if not getattr(config, "RENDERING_MD", False):
+        return
+    compile_md_async.delay(
+        content, protocol.id, show_private=show_private, maxdepth=maxdepth)
+
+def compile_decision_md(content, decision, maxdepth):
+    if not getattr(config, "RENDERING_MD", False):
+        return
+    compile_md_async.delay(
+        content, decision.id, use_decision=True, maxdepth=maxdepth)
+
+def compile_extra_md(content, protocol, show_private, maxdepth, extra_name):
+    if not getattr(config, "RENDERING_MD", False):
+        return
+    compile_md_async.delay(
+        content, protocol.id, use_decision=False, show_private=show_private, maxdepth=maxdepth, is_extra=True, extra_name=extra_name)
+
+@celery.task
+def compile_md_async(content, protocol_id, show_private=False, use_decision=False, is_extra=False, extra_name="",
+        maxdepth=5):
+    with app.app_context():
+        decision = None
+        protocol = None
+        if use_decision:
+            decision = Decision.query.filter_by(id=protocol_id).first()
+            protocol = decision.protocol
+        else:
+            protocol = Protocol.query.filter_by(id=protocol_id).first()
+        if not use_decision and not is_extra:
+            for old_document in protocol.documents:
+                if old_document.is_compiled and old_document.is_private == show_private \
+                    and old_document.filename.endswith(".md"):
+                    protocol.documents.remove(old_document)
+            db.session.commit()
+            document = Document(
+                protocol_id=protocol.id,
+                name="protokoll{}_{}_{}.md".format(
+                    "_intern" if show_private else "",
+                    protocol.protocoltype.short_name,
+                    date_filter_short(protocol.date)),
+                filename="",
+                is_compiled=True,
+                is_private=show_private)
+        elif use_decision and not is_extra:
+            document = DecisionDocument(
+                decision_id=decision.id,
+                name="beschluss_{}_{}_{}.md".format(
+                    protocol.protocoltype.short_name,
+                    date_filter_short(protocol.date),
+                    decision.id),
+                filename="")
+        elif is_extra and not use_decision:
+            document = Document(
+                protocol_id=protocol.id,
+                name="extra-{}{}_{}_{}.md".format(
+                    extra_name,
+                    "_intern" if show_private else "",
+                    protocol.protocoltype.short_name,
+                    date_filter_short(protocol.date)),
+                filename="",
+                is_compiled=True,
+                is_extra=True,
+                is_private=show_private)
+        else:
+            raise NotImplementedError("Unknown type.")
+        db.session.add(document)
+        db.session.commit()
+        target_filename = "compiled-{}-{}.md".format(
+            document.id, "internal" if show_private else "public")
+        if use_decision:
+            target_filename = "decision-{}-{}-{}.md".format(
+                protocol.id, decision.id, document.id)
+        document.filename = target_filename
+        with open(os.path.join(config.DOCUMENTS_PATH, target_filename), "w") as fp:
+            fp.write(content)
+        db.session.commit()
 
 @celery.task
 def compile_async(
@@ -723,11 +874,10 @@ def compile_async(
             os.chdir(current)
             document = None
             if not use_decision and not is_extra:
-                for old_document in [
-                    document for document in protocol.documents
-                    if document.is_compiled
-                        and document.is_private == show_private]:
-                    protocol.documents.remove(old_document)
+                for old_document in protocol.documents:
+                    if document.is_compiled and document.is_private == show_private \
+                            and old_document.filename.endswith(".pdf"):
+                        protocol.documents.remove(old_document)
                 db.session.commit()
                 document = Document(
                     protocol_id=protocol.id,
@@ -796,6 +946,8 @@ def compile_async(
             else:
                 log += "\n\nLogfile not found."
             _make_error(protocol, "Compiling", "Compiling LaTeX failed", log)
+        except FileNotFoundError:
+            _make_error(protocol, "No XeLaTeX found", "")
         finally:
             os.chdir(current)
 
