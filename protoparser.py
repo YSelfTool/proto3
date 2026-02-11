@@ -241,9 +241,9 @@ class Tag:
                         escape_tex(self.decision.get_categories_str()),
                         escape_tex(self.decision.content))
                 else:
-                    return r"\Beschluss{{{}}}".format(self.decision.content)
+                    return r"\Beschluss{{{}}}".format(escape_tex(self.decision.content))
             elif self.name == "footnote":
-                return r"\footnote{{{}}}".format(self.values[0])
+                return r"\footnote{{{}}}".format(escape_tex(self.values[0]))
             return r"\textbf{{{}:}} {}".format(
                 escape_tex(self.name.capitalize()),
                 escape_tex(";".join(self.values)))
@@ -256,10 +256,10 @@ class Tag:
                 return (
                             r"\begin{tcolorbox}[breakable,title=Beschluss, colframe=red!45!yellow, colback=yellow!10, coltitle=white,]" + "\n"
                             + r"\begin{itemize}"
-                            + r"\item[] " + self.values[0] + "\n"
+                            + r"\item[] " + escape_tex(self.values[0]) + "\n"
                             + r"\end{itemize} \end{tcolorbox}")
             elif self.name == "footnote":
-                return r"\footnote{{{}}}".format(self.values[0])
+                return r"\footnote{{{}}}".format(escape_tex(self.values[0]))
             return r"\textbf{{{}:}} {}".format(
                 escape_tex(self.name.capitalize()),
                 escape_tex(";".join(self.values)))
