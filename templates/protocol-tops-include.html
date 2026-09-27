@@ -5,13 +5,18 @@
             {% if not default_top.is_at_end() %}
                 {% set localtop = default_top.get_localtop(protocol) %}
                 {% if localtop is not none %}
-                  <li class="{{localtop.get_css_classes()|join(" ")}}" {% if localtop.is_expandable() %} id="localtop-{{localtop.id}}" title="{{localtop.description}}"{% endif %}>
-                      {{default_top.name}}
-                      {% if not protocol.is_done() and has_modify_right %}
-                          <a href="{{url_for('edit_localtop', localtop_id=localtop.id)}}">Ändern</a>
-                      {% endif %}
-                      {% if has_private_view_right and localtop.description is not none and localtop.description|length > 0 %}
-                          <span class="glyphicon glyphicon-info-sign"></span>
+                  {% set localtop_expandable = has_private_view_right and localtop.description is not none and localtop.description|length > 0 %}
+                  <li class="defaulttop">
+                      <span{% if localtop.is_expandable() %} class="expansion-button" id="localtop-{{localtop.id}}" title="{{localtop.description}}"{% endif %}>
+                          {{default_top.name}}
+                          {% if not protocol.is_done() and has_modify_right %}
+                              <a href="{{url_for('edit_localtop', localtop_id=localtop.id)}}">Ändern</a>
+                          {% endif %}
+                          {% if localtop_expandable %}
+                              <span class="glyphicon glyphicon-info-sign"></span>
+                          {% endif %}
+                      </span>
+                      {% if localtop_expandable %}
                           <pre id="localtop-{{localtop.id}}-description" class="expansion-text">
                               {{-localtop.description-}}
                           </pre>
@@ -22,24 +27,29 @@
         {% endfor %}
     {% endif %}
     {% for top in protocol.tops %}
-        <li{% if has_private_view_right and top.description is not none %} class="expansion-button" id="top-{{top.id}}" title="{{top.description}}"{% endif %}>
-            {{top.name}}
-            {% if not protocol.is_done() and has_modify_right %}
-                ({{top.number}})
-            {% endif %}
-            {% if not protocol.is_done() and has_modify_right %}
-                <a href="{{url_for('edit_top', top_id=top.id)}}">Ändern</a>
-                <a href="{{url_for('move_top', top_id=top.id, diff=1, csrf_token=get_csrf_token())}}">Runter</a>
-                <a href="{{url_for('move_top', top_id=top.id, diff=-1, csrf_token=get_csrf_token())}}">Hoch</a>
-                <a href="{{url_for('delete_top', top_id=top.id, csrf_token=get_csrf_token())}}" confirm="Bist du dir sicher, dass du den TOP {{top.name}} löschen möchtest?">Löschen</a>
-            {% endif %}
-            {% if has_private_view_right and top.description is not none and top.description|length > 0 %}
-                <span class="glyphicon glyphicon-info-sign"></span>
+        {% set top_expandable = has_private_view_right and top.description is not none and top.description|length > 0 %}
+        <li>
+            <span{% if has_private_view_right and top.description is not none %} class="expansion-button" id="top-{{top.id}}" title="{{top.description}}"{% endif %}>
+                {{top.name}}
+                {% if not protocol.is_done() and has_modify_right %}
+                    ({{top.number}})
+                {% endif %}
+                {% if not protocol.is_done() and has_modify_right %}
+                    <a href="{{url_for('edit_top', top_id=top.id)}}">Ändern</a>
+                    <a href="{{url_for('move_top', top_id=top.id, diff=1, csrf_token=get_csrf_token())}}">Runter</a>
+                    <a href="{{url_for('move_top', top_id=top.id, diff=-1, csrf_token=get_csrf_token())}}">Hoch</a>
+                    <a href="{{url_for('delete_top', top_id=top.id, csrf_token=get_csrf_token())}}" confirm="Bist du dir sicher, dass du den TOP {{top.name}} löschen möchtest?">Löschen</a>
+                {% endif %}
+                {% if top_expandable %}
+                    <span class="glyphicon glyphicon-info-sign"></span>
+                {% endif %}
+                {{render_likes(top.likes, top_id=top.id)}}
+            </span>
+            {% if top_expandable %}
                 <pre id="top-{{top.id}}-description" class="expansion-text">
                     {{-top.description-}}
                 </pre>
             {% endif %}
-            {{render_likes(top.likes, top_id=top.id)}}
         </li>
     {% endfor %}
     {% if not protocol.has_nonplanned_tops() %}
@@ -47,13 +57,18 @@
             {% if default_top.is_at_end() %}
                 {% set localtop = default_top.get_localtop(protocol) %}
                 {% if localtop is not none %}
-                  <li class="{{localtop.get_css_classes()|join(" ")}}" {% if localtop.is_expandable() %} id="localtop-{{localtop.id}}" title="{{localtop.description}}"{% endif %}>
-                      {{default_top.name}}
-                      {% if not protocol.is_done() and has_modify_right %}
-                          <a href="{{url_for('edit_localtop', localtop_id=localtop.id)}}">Ändern</a>
-                      {% endif %}
-                      {% if has_private_view_right and localtop.description is not none and localtop.description|length > 0 %}
-                          <span class="glyphicon glyphicon-info-sign"></span>
+                  {% set localtop_expandable = has_private_view_right and localtop.description is not none and localtop.description|length > 0 %}
+                  <li class="defaulttop">
+                      <span{% if localtop.is_expandable() %} class="expansion-button" id="localtop-{{localtop.id}}" title="{{localtop.description}}"{% endif %}>
+                          {{default_top.name}}
+                          {% if not protocol.is_done() and has_modify_right %}
+                              <a href="{{url_for('edit_localtop', localtop_id=localtop.id)}}">Ändern</a>
+                          {% endif %}
+                          {% if localtop_expandable %}
+                              <span class="glyphicon glyphicon-info-sign"></span>
+                          {% endif %}
+                      </span>
+                      {% if localtop_expandable %}
                           <pre id="localtop-{{localtop.id}}-description" class="expansion-text">
                               {{-localtop.description-}}
                           </pre>

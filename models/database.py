@@ -535,12 +535,6 @@ class LocalTOP(DatabaseModel):
             and self.description is not None
             and len(self.description) > 0)
 
-    def get_css_classes(self):
-        classes = ["defaulttop"]
-        if self.is_expandable():
-            classes.append("expansion-button")
-        return classes
-
 
 class Document(DatabaseModel):
     __tablename__ = "documents"
