@@ -13,7 +13,7 @@ from io import BytesIO
 import ipaddress
 from socket import getfqdn
 from uuid import uuid4
-import subprocess
+import os
 import contextlib
 
 from etherpad_lite import EtherpadLiteClient as EtherpadClient
@@ -267,16 +267,20 @@ def parse_datetime_from_string(text):
 
 
 def get_git_revision():
+    commit_hash = os.environ.get("GIT_COMMIT_SHA")
+    timestamp = os.environ.get("GIT_COMMIT_TIMESTAMP")
+    if not commit_hash or not timestamp:
+        return None
     try:
-        gitlab_url = "https://git.fsmpi.rwth-aachen.de/protokollsystem/proto3"
-        commit_hash = subprocess.check_output(
-            ["git", "log", "-g", "-1", "--pretty=%H"]).decode("UTF-8").strip()
-        timestamp = int(subprocess.check_output(
-            ["git", "log", "-g", "-1", "--pretty=%at"]).strip())
-        commit_date = datetime.fromtimestamp(timestamp)
-        return {"url": gitlab_url, "hash": commit_hash, "date": commit_date}
-    except subprocess.SubprocessError:
-        pass
+        commit_date = datetime.fromisoformat(timestamp).astimezone().replace(
+            tzinfo=None)
+    except ValueError:
+        return None
+    return {
+        "url": "https://git.fsmpi.rwth-aachen.de/protokollsystem/proto3",
+        "hash": commit_hash,
+        "date": commit_date,
+    }
 
 
 def get_max_page_length_exp(objects):
