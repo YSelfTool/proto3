@@ -1,3 +1,11 @@
+
+# Usage:
+# 1. Create config.py next to this file (python configproxy.py create --filename config.py) with:
+#    - SQLALCHEMY_DATABASE_URI = "postgresql://proto3:proto3@postgres/proto3"
+#    - CELERY_BROKER_URL = "redis://redis:6379/0"
+#    - DOCUMENTS_PATH = "/data/documents"
+# 2. docker compose up --build
+
 services:
   postgres:
     image: postgres:15-alpine
@@ -55,11 +63,3 @@ volumes:
   postgres_data:
   documents:
 
-# Usage:
-# 1. Create config.py next to this file (python configproxy.py create --filename config.py) with:
-#    - SQLALCHEMY_DATABASE_URI = "postgresql://proto3:<POSTGRES_PASSWORD>@postgres/proto3"
-#    - CELERY_BROKER_URL = "redis://redis:6379/0"
-#    - DOCUMENTS_PATH = "/data/documents"
-# 2. Put POSTGRES_PASSWORD=... in a .env file next to this file.
-# 3. docker compose up -d
-# Reminders are sent by the uwsgi mule in the web container.
